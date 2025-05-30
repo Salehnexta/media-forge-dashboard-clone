@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/morvo/AppSidebar";
@@ -13,12 +12,10 @@ import { AIManager } from "@/types/morvo";
 
 const Dashboard = () => {
   const [selectedManager, setSelectedManager] = useState<AIManager>("strategic");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("morvo");
 
   const renderDashboard = () => {
     switch (activeTab) {
-      case 'dashboard':
-        return <DashboardHome />;
       case 'morvo':
         return <MorvoDashboard />;
       case 'social':
@@ -30,7 +27,7 @@ const Dashboard = () => {
       case 'analytics':
         return <AnalyticsDashboard />;
       default:
-        return <DashboardHome />;
+        return <MorvoDashboard />;
     }
   };
 
