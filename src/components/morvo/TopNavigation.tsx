@@ -8,7 +8,8 @@ interface TopNavigationProps {
 
 export const TopNavigation = ({ activeTab, onTabChange }: TopNavigationProps) => {
   const tabs = [
-    { id: 'morvo', label: 'Morvo', icon: '🏠' },
+    { id: 'dashboard', label: 'الرئيسية', icon: '🏠' },
+    { id: 'morvo', label: 'Morvo', icon: '🤖' },
     { id: 'social', label: 'سوشال', icon: '📱' },
     { id: 'campaigns', label: 'الحملات', icon: '🎯' },
     { id: 'content', label: 'المحتوى', icon: '✨' },

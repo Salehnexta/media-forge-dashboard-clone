@@ -8,14 +8,17 @@ import { SocialDashboard } from "@/components/morvo/dashboards/SocialDashboard";
 import { CampaignsDashboard } from "@/components/morvo/dashboards/CampaignsDashboard";
 import { ContentDashboard } from "@/components/morvo/dashboards/ContentDashboard";
 import { AnalyticsDashboard } from "@/components/morvo/dashboards/AnalyticsDashboard";
+import { DashboardHome } from "@/components/morvo/DashboardHome";
 import { AIManager } from "@/types/morvo";
 
 const Index = () => {
   const [selectedManager, setSelectedManager] = useState<AIManager>("strategic");
-  const [activeTab, setActiveTab] = useState("morvo");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const renderDashboard = () => {
     switch (activeTab) {
+      case 'dashboard':
+        return <DashboardHome />;
       case 'morvo':
         return <MorvoDashboard />;
       case 'social':
@@ -27,7 +30,7 @@ const Index = () => {
       case 'analytics':
         return <AnalyticsDashboard />;
       default:
-        return <MorvoDashboard />;
+        return <DashboardHome />;
     }
   };
 
