@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Sidebar,
@@ -12,15 +13,12 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { 
-  Home, 
+  Bot,
+  Target,
+  MessageSquare,
   BarChart3,
-  Settings,
-  Video,
-  Mic,
-  Image,
-  FileText,
-  TestTube,
-  Presentation
+  Brain,
+  Users
 } from "lucide-react";
 import { AIManager } from "@/types/morvo";
 
@@ -30,16 +28,37 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps) {
-  const navigation = [
-    { name: 'لوحة التحكم', href: '#', icon: Home, manager: 'strategic' as AIManager },
-    { name: 'مولد الصوت', href: '#', icon: Mic, manager: 'creative' as AIManager },
-    { name: 'مولد الصور', href: '#', icon: Image, manager: 'creative' as AIManager },
-    { name: 'مولد الفيديو', href: '#', icon: Video, manager: 'creative' as AIManager },
-    { name: 'مولد المستندات', href: '#', icon: FileText, manager: 'executor' as AIManager },
-    { name: 'التحليلات', href: '#', icon: BarChart3, manager: 'analyst' as AIManager },
-    { name: 'مختبر الذكاء الاصطناعي', href: '#', icon: TestTube, manager: 'monitor' as AIManager },
-    { name: 'العروض التقديمية', href: '#', icon: Presentation, manager: 'executor' as AIManager },
-    { name: 'الإعدادات', href: '#', icon: Settings, manager: 'strategic' as AIManager },
+  const marketingTeam = [
+    { 
+      id: 'strategic', 
+      name: 'أحمد - الاستراتيجي', 
+      description: 'مدير التسويق الاستراتيجي', 
+      icon: Target 
+    },
+    { 
+      id: 'monitor', 
+      name: 'فاطمة - السوشال', 
+      description: 'مديرة وسائل التواصل الاجتماعي', 
+      icon: MessageSquare 
+    },
+    { 
+      id: 'executor', 
+      name: 'محمد - الحملات', 
+      description: 'مدير الحملات والأداء', 
+      icon: BarChart3 
+    },
+    { 
+      id: 'creative', 
+      name: 'نورا - المحتوى', 
+      description: 'مديرة المحتوى والإبداع', 
+      icon: Brain 
+    },
+    { 
+      id: 'analyst', 
+      name: 'خالد - التحليلات', 
+      description: 'مدير التحليلات ومراقبة العلامة التجارية', 
+      icon: Users 
+    },
   ];
 
   return (
@@ -47,11 +66,11 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
       <SidebarHeader className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
+            <Bot className="text-white w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Media Genius AI</h1>
-            <p className="text-xs text-gray-500">الذكاء الاصطناعي للوسائط</p>
+            <h1 className="text-lg font-bold text-gray-900">منصة Morvo</h1>
+            <p className="text-xs text-gray-500">فريق التسويق الذكي المتكامل</p>
           </div>
         </div>
       </SidebarHeader>
@@ -59,24 +78,37 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
       <SidebarContent className="py-6">
         <SidebarGroup>
           <SidebarGroupContent>
+            <div className="px-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                مرحباً بك في فريق التسويق الذكي المتكامل
+              </h3>
+              <p className="text-xs text-gray-600 mb-4">
+                يمكنك التحدث مع أي من المديرين الخمسة المتخصصين:
+              </p>
+            </div>
+            
             <SidebarMenu className="space-y-2 px-4">
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.name}>
+              {marketingTeam.map((member) => (
+                <SidebarMenuItem key={member.id}>
                   <SidebarMenuButton
-                    onClick={() => onManagerSelect(item.manager)}
-                    className={`w-full justify-start px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                      selectedManager === item.manager
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    onClick={() => onManagerSelect(member.id as AIManager)}
+                    className={`w-full justify-start px-4 py-4 text-right rounded-lg border transition-all duration-200 ${
+                      selectedManager === member.id
+                        ? 'bg-blue-50 border-blue-200 text-blue-800'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    <item.icon
-                      className={`ml-3 h-5 w-5 ${
-                        selectedManager === item.manager ? 'text-blue-600' : 'text-gray-400'
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {item.name}
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-1">
+                        <member.icon
+                          className={`h-5 w-5 ${
+                            selectedManager === member.id ? 'text-blue-600' : 'text-gray-400'
+                          }`}
+                        />
+                        <div className="font-medium text-sm">{member.name}</div>
+                      </div>
+                      <div className="text-xs text-gray-500 text-right">{member.description}</div>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -86,15 +118,20 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
       </SidebarContent>
       
       <SidebarFooter className="p-4 border-t border-gray-200">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-              <span className="text-lg font-semibold">م.أ</span>
+        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <span className="text-sm font-semibold">م.أ</span>
+              </div>
+            </div>
+            <div className="mr-3 text-right">
+              <p className="text-sm font-medium text-gray-700">محمد أحمد</p>
+              <p className="text-xs font-medium text-gray-500">الخطة المميزة</p>
             </div>
           </div>
-          <div className="mr-3">
-            <p className="text-sm font-medium text-gray-700">محمد أحمد</p>
-            <p className="text-xs font-medium text-gray-500">الخطة المميزة</p>
+          <div className="mt-2 text-xs text-blue-800">
+            مرحباً! اختر مديراً من الأعلى للبدء في المحادثة
           </div>
         </div>
       </SidebarFooter>
