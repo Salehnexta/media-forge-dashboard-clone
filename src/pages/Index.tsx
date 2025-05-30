@@ -2,12 +2,34 @@
 import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/morvo/AppSidebar";
-import { DashboardSection } from "@/components/morvo/DashboardSection";
 import { TopNavigation } from "@/components/morvo/TopNavigation";
+import { MorvoDashboard } from "@/components/morvo/dashboards/MorvoDashboard";
+import { SocialDashboard } from "@/components/morvo/dashboards/SocialDashboard";
+import { CampaignsDashboard } from "@/components/morvo/dashboards/CampaignsDashboard";
+import { ContentDashboard } from "@/components/morvo/dashboards/ContentDashboard";
+import { AnalyticsDashboard } from "@/components/morvo/dashboards/AnalyticsDashboard";
 import { AIManager } from "@/types/morvo";
 
 const Index = () => {
   const [selectedManager, setSelectedManager] = useState<AIManager>("strategic");
+  const [activeTab, setActiveTab] = useState("morvo");
+
+  const renderDashboard = () => {
+    switch (activeTab) {
+      case 'morvo':
+        return <MorvoDashboard />;
+      case 'social':
+        return <SocialDashboard />;
+      case 'campaigns':
+        return <CampaignsDashboard />;
+      case 'content':
+        return <ContentDashboard />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      default:
+        return <MorvoDashboard />;
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -17,9 +39,12 @@ const Index = () => {
           onManagerSelect={setSelectedManager}
         />
         <div className="flex-1 flex flex-col">
-          <TopNavigation />
+          <TopNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
           <main className="flex-1 overflow-auto">
-            <DashboardSection selectedManager={selectedManager} />
+            {renderDashboard()}
           </main>
         </div>
       </div>
