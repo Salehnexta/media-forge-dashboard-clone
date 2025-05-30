@@ -1,6 +1,5 @@
-
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { AIManager } from "@/types/morvo";
+import { AIManager, ChatMessage } from "@/types/morvo";
 import { analyzeQuestion } from "@/utils/chatLogic";
 import { generateDetailedResponse } from "@/utils/managerPersonalities";
 import { ChatHeader } from './chat/ChatHeader';
@@ -13,21 +12,13 @@ interface AppSidebarProps {
   onManagerSelect: (manager: AIManager) => void;
 }
 
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-  manager?: AIManager;
-}
-
 export function AppSidebar({
   selectedManager,
   onManagerSelect
 }: AppSidebarProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
-  const [messages, setMessages] = useState<Message[]>([{
+  const [messages, setMessages] = useState<ChatMessage[]>([{
     id: '1',
     text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
     sender: 'ai',
@@ -65,7 +56,7 @@ export function AppSidebar({
 
   const sendMessage = useCallback(() => {
     if (inputMessage.trim()) {
-      const newMessage: Message = {
+      const newMessage: ChatMessage = {
         id: Date.now().toString(),
         text: inputMessage,
         sender: 'user',
@@ -85,7 +76,7 @@ export function AppSidebar({
 
       // Simulate AI response with typing delay
       setTimeout(() => {
-        const aiResponse: Message = {
+        const aiResponse: ChatMessage = {
           id: (Date.now() + 1).toString(),
           text: generateDetailedResponse(appropriateManager, question),
           sender: 'ai',

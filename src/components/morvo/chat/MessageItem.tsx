@@ -1,9 +1,9 @@
 
-import { Message, AIManager } from '@/types/morvo';
+import { ChatMessage, AIManager } from '@/types/morvo';
 import { getManagerByType } from '@/utils/managerPersonalities';
 
 interface MessageItemProps {
-  message: Message;
+  message: ChatMessage;
   getManagerColor: (manager: AIManager) => string;
   formatTime: (date: Date) => string;
 }
