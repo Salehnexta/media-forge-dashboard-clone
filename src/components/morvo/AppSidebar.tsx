@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Sidebar,
@@ -21,7 +20,7 @@ import {
   Image,
   FileText,
   TestTube,
-  PresentationChart
+  Presentation
 } from "lucide-react";
 import { AIManager } from "@/types/morvo";
 
@@ -39,7 +38,7 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
     { name: 'مولد المستندات', href: '#', icon: FileText, manager: 'executor' as AIManager },
     { name: 'التحليلات', href: '#', icon: BarChart3, manager: 'analyst' as AIManager },
     { name: 'مختبر الذكاء الاصطناعي', href: '#', icon: TestTube, manager: 'monitor' as AIManager },
-    { name: 'العروض التقديمية', href: '#', icon: PresentationChart, manager: 'executor' as AIManager },
+    { name: 'العروض التقديمية', href: '#', icon: Presentation, manager: 'executor' as AIManager },
     { name: 'الإعدادات', href: '#', icon: Settings, manager: 'strategic' as AIManager },
   ];
 

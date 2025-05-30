@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { 
-  PresentationChart, 
+  Presentation, 
   Video, 
   Mic, 
   Image, 
@@ -17,7 +16,7 @@ interface DashboardSectionProps {
 
 export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => {
   const [stats] = useState([
-    { id: 1, name: 'إجمالي المشاريع', stat: '142', icon: PresentationChart, change: '12%', changeType: 'increase' },
+    { id: 1, name: 'إجمالي المشاريع', stat: '142', icon: Presentation, change: '12%', changeType: 'increase' },
     { id: 2, name: 'مقاطع الفيديو المُولّدة', stat: '47', icon: Video, change: '8%', changeType: 'increase' },
     { id: 3, name: 'الملفات الصوتية المُولّدة', stat: '58', icon: Mic, change: '5%', changeType: 'increase' },
     { id: 4, name: 'الصور المُولّدة', stat: '215', icon: Image, change: '19%', changeType: 'increase' },
