@@ -1,16 +1,15 @@
-import { useState } from 'react';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Bot, Send, Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { AIManager } from "@/types/morvo";
-import { analyzeQuestion, getManagerResponse } from "@/utils/chatLogic";
+import { analyzeQuestion } from "@/utils/chatLogic";
 import { getManagerByType, generateDetailedResponse } from "@/utils/managerPersonalities";
+
 interface AppSidebarProps {
   selectedManager: AIManager;
   onManagerSelect: (manager: AIManager) => void;
 }
+
 interface Message {
   id: string;
   text: string;
@@ -18,10 +17,13 @@ interface Message {
   timestamp: Date;
   manager?: AIManager;
 }
+
 export function AppSidebar({
   selectedManager,
   onManagerSelect
 }: AppSidebarProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   const [messages, setMessages] = useState<Message[]>([{
     id: '1',
     text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
@@ -32,7 +34,15 @@ export function AppSidebar({
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [currentTypingManager, setCurrentTypingManager] = useState<AIManager | null>(null);
-  const sendMessage = () => {
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages, isTyping]);
+
+  const sendMessage = useCallback(() => {
     if (inputMessage.trim()) {
       const newMessage: Message = {
         id: Date.now().toString(),
@@ -66,13 +76,15 @@ export function AppSidebar({
         setCurrentTypingManager(null);
       }, 2000);
     }
-  };
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  }, [inputMessage, onManagerSelect]);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       sendMessage();
     }
-  };
-  const startNewChat = () => {
+  }, [sendMessage]);
+
+  const startNewChat = useCallback(() => {
     setMessages([{
       id: '1',
       text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
@@ -81,25 +93,30 @@ export function AppSidebar({
       manager: 'strategic'
     }]);
     onManagerSelect('strategic');
-  };
-  const getManagerColor = (manager: AIManager) => {
+  }, [onManagerSelect]);
+
+  const getManagerColor = useCallback((manager: AIManager) => {
     const colors = {
-      strategic: 'bg-blue-600',
-      monitor: 'bg-pink-600',
-      executor: 'bg-green-600',
-      creative: 'bg-purple-600',
-      analyst: 'bg-orange-600'
+      strategic: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      monitor: 'bg-gradient-to-br from-pink-500 to-pink-600',
+      executor: 'bg-gradient-to-br from-green-500 to-green-600',
+      creative: 'bg-gradient-to-br from-purple-500 to-purple-600',
+      analyst: 'bg-gradient-to-br from-orange-500 to-orange-600'
     };
     return colors[manager];
-  };
-  const getManagerInfo = (manager: AIManager) => {
+  }, []);
+
+  const getManagerInfo = useCallback((manager: AIManager) => {
     return getManagerByType(manager);
-  };
-  return <Sidebar side="right" className="border-l-0 border-r">
-      <SidebarHeader className="p-4 border-b border-gray-200">
+  }, []);
+
+  return (
+    <div className="w-80 h-screen bg-white border-l border-gray-200 flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
               <Bot className="text-white w-5 h-5" />
             </div>
             <div>
@@ -107,82 +124,130 @@ export function AppSidebar({
               <p className="text-xs text-gray-500">فريق التسويق الذكي المتكامل</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={startNewChat} className="h-8 w-8 text-gray-500 hover:text-gray-700">
-            <Plus className="h-4 w-4" />
-          </Button>
+          <button
+            onClick={startNewChat}
+            className="h-10 w-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl flex items-center justify-center transition-all duration-200"
+            aria-label="بدء محادثة جديدة"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
         </div>
-      </SidebarHeader>
+      </div>
       
-      <SidebarContent className="flex flex-col h-full p-0">
-        {/* Chat Messages */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map(message => <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                {message.sender === 'ai' && message.manager && <div className={`w-8 h-8 ${getManagerColor(message.manager)} rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0`}>
-                    <span className="text-white text-xs">
-                      {getManagerInfo(message.manager).avatar}
-                    </span>
-                  </div>}
-                <div className={`max-w-[80%] p-3 rounded-2xl ${message.sender === 'user' ? 'bg-blue-600 text-white ml-2' : 'bg-gray-100 text-gray-900'}`}>
-                  {message.sender === 'ai' && message.manager && <div className="text-xs font-medium text-gray-600 mb-1">
-                      {getManagerInfo(message.manager).name}
-                    </div>}
-                  <div className="text-sm leading-relaxed whitespace-pre-line">
-                    {message.text}
-                  </div>
-                  <p className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {message.timestamp.toLocaleTimeString('ar-SA', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-                  </p>
-                </div>
-                {message.sender === 'user' && <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center ml-2 mt-1 flex-shrink-0">
-                    <span className="text-xs text-white font-medium">م</span>
-                  </div>}
-              </div>)}
-            
-            {/* Typing indicator */}
-            {isTyping && currentTypingManager && <div className="flex justify-start">
-                <div className={`w-8 h-8 ${getManagerColor(currentTypingManager)} rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0`}>
-                  <span className="text-white text-xs">
-                    {getManagerInfo(currentTypingManager).avatar}
+      {/* Chat Messages */}
+      <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white">
+        <div 
+          ref={scrollAreaRef}
+          className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          {messages.map(message => (
+            <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} group`}>
+              {message.sender === 'ai' && message.manager && (
+                <div className={`w-10 h-10 ${getManagerColor(message.manager)} rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-lg border-2 border-white`}>
+                  <span className="text-white text-sm font-medium">
+                    {getManagerInfo(message.manager).avatar}
                   </span>
                 </div>
-                <div className="bg-gray-100 rounded-2xl p-3 max-w-[80%]">
-                  <div className="text-xs font-medium text-gray-600 mb-1">
-                    {getManagerInfo(currentTypingManager).name}
+              )}
+              
+              <div className={`max-w-[75%] relative ${message.sender === 'user' ? 'ml-3' : ''}`}>
+                {message.sender === 'ai' && message.manager && (
+                  <div className="text-xs font-semibold text-gray-700 mb-1 px-1">
+                    {getManagerInfo(message.manager).name}
                   </div>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{
-                  animationDelay: '0.1s'
-                }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{
-                  animationDelay: '0.2s'
-                }}></div>
+                )}
+                
+                <div className={`p-4 rounded-2xl shadow-sm relative transition-all duration-200 hover:shadow-md group-hover:shadow-lg ${
+                  message.sender === 'user' 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-2 rounded-br-md' 
+                    : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
+                }`}>
+                  <div className="text-sm leading-relaxed whitespace-pre-line break-words">
+                    {message.text}
+                  </div>
+                  
+                  {message.sender === 'user' && (
+                    <div className="flex items-center justify-end mt-2 gap-1">
+                      <div className="w-1 h-1 bg-blue-200 rounded-full"></div>
+                      <div className="w-1 h-1 bg-blue-200 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={`text-xs mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
+                  message.sender === 'user' ? 'text-right text-gray-500' : 'text-left text-gray-500'
+                }`}>
+                  {message.timestamp.toLocaleTimeString('ar-SA', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+              
+              {message.sender === 'user' && (
+                <div className="w-10 h-10 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center ml-3 mt-1 flex-shrink-0 shadow-lg border-2 border-white">
+                  <span className="text-sm text-white font-semibold">م</span>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {/* Typing indicator */}
+          {isTyping && currentTypingManager && (
+            <div className="flex justify-start animate-pulse">
+              <div className={`w-10 h-10 ${getManagerColor(currentTypingManager)} rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-lg border-2 border-white`}>
+                <span className="text-white text-sm font-medium">
+                  {getManagerInfo(currentTypingManager).avatar}
+                </span>
+              </div>
+              <div className="max-w-[75%]">
+                <div className="text-xs font-semibold text-gray-700 mb-1 px-1">
+                  {getManagerInfo(currentTypingManager).name}
+                </div>
+                <div className="bg-white rounded-2xl rounded-bl-md p-4 shadow-sm border border-gray-100">
+                  <div className="text-xs text-gray-600 mb-2">جاري الكتابة...</div>
+                  <div className="flex space-x-1" role="status" aria-label="جاري الكتابة">
+                    <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                   </div>
                 </div>
-              </div>}
-          </div>
-        </ScrollArea>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Message Input */}
-        <div className="p-4 border-t border-gray-200 bg-white">
-          <div className="flex gap-2 items-end">
+        <div className="p-4 border-t border-gray-200 bg-white shadow-sm">
+          <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
-              <Input value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyPress={handleKeyPress} placeholder="اسأل أي سؤال تسويقي..." className="resize-none border-gray-300 rounded-xl pr-4 pl-12 py-3 text-right focus:border-blue-500 focus:ring-blue-500" dir="rtl" disabled={isTyping} />
-              <Button onClick={sendMessage} size="icon" disabled={!inputMessage.trim() || isTyping} className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 rounded-lg">
-                <Send className="w-4 h-4" />
-              </Button>
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="اسأل أي سؤال تسويقي... ✨"
+                className="w-full border border-gray-300 rounded-2xl pr-4 pl-14 py-4 text-right focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
+                dir="rtl"
+                disabled={isTyping}
+                aria-label="رسالة جديدة"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isTyping}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-10 w-10 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 rounded-xl flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none"
+                aria-label="إرسال الرسالة"
+              >
+                <Send className="w-5 h-5 text-white" />
+              </button>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-gray-500 mt-3 text-center leading-relaxed">
             سيرد عليك المتخصص المناسب تلقائياً حسب نوع سؤالك
           </p>
         </div>
-      </SidebarContent>
-      
-      
-    </Sidebar>;
+      </div>
+    </div>
+  );
 }
