@@ -8,12 +8,9 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   Bot,
-  Target,
-  MessageSquare,
-  BarChart3,
-  Brain,
-  Users,
-  Send
+  Send,
+  Plus,
+  MessageSquare
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,63 +33,12 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنني مساعدتك في إنشاء المخططات والتحليلات، منشورات وسائل التواصل الاجتماعي، والصور. تحدث مع أي من مديرينا الخمسة المتخصصين!',
+      text: 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنني مساعدتك في إنشاء المخططات والتحليلات، منشورات وسائل التواصل الاجتماعي، والصور. كيف يمكنني مساعدتك اليوم؟',
       sender: 'ai',
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
-
-  const marketingTeam = [
-    { 
-      id: 'strategic', 
-      name: 'أحمد - الاستراتيجي', 
-      description: 'مدير التسويق الاستراتيجي', 
-      icon: Target 
-    },
-    { 
-      id: 'monitor', 
-      name: 'فاطمة - السوشال', 
-      description: 'مديرة وسائل التواصل الاجتماعي', 
-      icon: MessageSquare 
-    },
-    { 
-      id: 'executor', 
-      name: 'محمد - الحملات', 
-      description: 'مدير الحملات والأداء', 
-      icon: BarChart3 
-    },
-    { 
-      id: 'creative', 
-      name: 'نورا - المحتوى', 
-      description: 'مديرة المحتوى والإبداع', 
-      icon: Brain 
-    },
-    { 
-      id: 'analyst', 
-      name: 'خالد - التحليلات', 
-      description: 'مدير التحليلات ومراقبة العلامة التجارية', 
-      icon: Users 
-    },
-  ];
-
-  const getManagerIntro = (managerId: string) => {
-    const manager = marketingTeam.find(m => m.id === managerId);
-    switch(managerId) {
-      case 'strategic':
-        return 'مرحباً، أنا أحمد، مدير التسويق الاستراتيجي لشركتك. سأكون المسؤول عن وضع الرؤية الشاملة لتسويق علامتك التجارية.';
-      case 'monitor':
-        return 'أهلاً! أنا فاطمة، سأكون عينك وأذنك على وسائل التواصل الاجتماعي. سأراقب كل ما يُقال عن علامتك التجارية.';
-      case 'executor':
-        return 'مرحباً، أنا محمد، مسؤول الحملات والأداء. مهمتي أن أتأكد من أن كل ريال تنفقه في التسويق يحقق لك أفضل عائد ممكن.';
-      case 'creative':
-        return 'أهلاً بك! أنا نورا، مسؤولة عن المحتوى والإبداع. سأساعدك في حكي قصة علامتك التجارية بطريقة تلمس قلوب عملائك.';
-      case 'analyst':
-        return 'مرحباً، أنا خالد، خبير البيانات والتحليلات. سأكون المسؤول عن تحويل أرقامك إلى رؤى قابلة للتنفيذ.';
-      default:
-        return 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo.';
-    }
-  };
 
   const sendMessage = () => {
     if (inputMessage.trim()) {
@@ -110,7 +56,7 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
       setTimeout(() => {
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: `شكراً لك على رسالتك. ${getManagerIntro(selectedManager)} كيف يمكنني مساعدتك اليوم؟`,
+          text: `شكراً لك على رسالتك. يمكنني مساعدتك في إنشاء محتوى تسويقي متميز. ما نوع المحتوى الذي تريد إنشاؤه؟`,
           sender: 'ai',
           timestamp: new Date()
         };
@@ -126,106 +72,106 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
     }
   };
 
+  const startNewChat = () => {
+    setMessages([
+      {
+        id: '1',
+        text: 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنني مساعدتك في إنشاء المخططات والتحليلات، منشورات وسائل التواصل الاجتماعي، والصور. كيف يمكنني مساعدتك اليوم؟',
+        sender: 'ai',
+        timestamp: new Date()
+      }
+    ]);
+  };
+
   return (
     <Sidebar side="right" className="border-l-0 border-r">
-      <SidebarHeader className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Bot className="text-white w-5 h-5" />
+      <SidebarHeader className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Bot className="text-white w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">منصة Morvo</h1>
+              <p className="text-xs text-gray-500">فريق التسويق الذكي المتكامل</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">منصة Morvo</h1>
-            <p className="text-xs text-gray-500">فريق التسويق الذكي المتكامل</p>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={startNewChat}
+            className="h-8 w-8 text-gray-500 hover:text-gray-700"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="flex flex-col h-full">
-        {/* Manager Selection */}
-        <div className="p-4 border-b border-gray-200 bg-gray-50">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">
-              مرحباً بك في فريق التسويق الذكي المتكامل
-            </h3>
-            <p className="text-xs text-gray-600 mb-4">
-              يمكنك التحدث مع أي من المديرين الخمسة المتخصصين:
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            {marketingTeam.map((member) => (
-              <button
-                key={member.id}
-                onClick={() => onManagerSelect(member.id as AIManager)}
-                className={`w-full text-right p-3 rounded-lg border transition-all duration-200 ${
-                  selectedManager === member.id
-                    ? 'bg-blue-50 border-blue-200 text-blue-800'
-                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <member.icon
-                    className={`h-4 w-4 ${
-                      selectedManager === member.id ? 'text-blue-600' : 'text-gray-400'
-                    }`}
-                  />
-                  <div className="font-medium text-sm">{member.name}</div>
-                </div>
-                <div className="text-xs text-gray-500 text-right">{member.description}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
+      <SidebarContent className="flex flex-col h-full p-0">
         {/* Chat Messages */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
+                {message.sender === 'ai' && (
+                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                    <Bot className="w-3 h-3 text-white" />
+                  </div>
+                )}
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[80%] p-3 rounded-2xl ${
                     message.sender === 'user'
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'bg-blue-600 text-white'
+                      ? 'bg-blue-600 text-white ml-2'
+                      : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
-                  <p className="text-xs mt-1 opacity-70">
+                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <p className={`text-xs mt-1 ${
+                    message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
                     {message.timestamp.toLocaleTimeString('ar-SA', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
                     })}
                   </p>
                 </div>
+                {message.sender === 'user' && (
+                  <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center ml-2 mt-1 flex-shrink-0">
+                    <span className="text-xs text-white font-medium">م</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </ScrollArea>
 
         {/* Message Input */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex gap-2">
-            <Button
-              onClick={sendMessage}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="تحدث مع فريق التسويق الذكي..."
-              className="flex-1 text-right"
-              dir="rtl"
-            />
+        <div className="p-4 border-t border-gray-200 bg-white">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1 relative">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="اكتب رسالتك هنا..."
+                className="resize-none border-gray-300 rounded-xl pr-4 pl-12 py-3 text-right focus:border-blue-500 focus:ring-blue-500"
+                dir="rtl"
+              />
+              <Button
+                onClick={sendMessage}
+                size="icon"
+                disabled={!inputMessage.trim()}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 rounded-lg"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            اختر مديراً من الأعلى للتحدث معه مباشرة، أو اطلب إنشاء محتوى أو تحليلات
+            يمكن أن تحدث أخطاء. تحقق من المعلومات المهمة.
           </p>
         </div>
       </SidebarContent>
@@ -244,7 +190,7 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
             </div>
           </div>
           <div className="mt-2 text-xs text-blue-800">
-            مرحباً! اختر مديراً من الأعلى للبدء في المحادثة
+            مرحباً! ابدأ محادثة جديدة للحصول على المساعدة
           </div>
         </div>
       </SidebarFooter>
