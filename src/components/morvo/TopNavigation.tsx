@@ -1,9 +1,6 @@
-
 import { Bell, User } from "lucide-react";
-
 export const TopNavigation = () => {
-  return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+  return <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       {/* Right side - Logo and brand */}
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -17,21 +14,11 @@ export const TopNavigation = () => {
 
       {/* Center - Navigation tabs */}
       <nav className="flex items-center gap-8">
-        <a href="#" className="text-gray-900 font-medium border-b-2 border-blue-600 pb-2">
-          أحمد - الاستراتيجي
-        </a>
-        <a href="#" className="text-gray-500 hover:text-gray-900">
-          فاطمة - السوشيال
-        </a>
-        <a href="#" className="text-gray-500 hover:text-gray-900">
-          محمد - الحملات بنا
-        </a>
-        <a href="#" className="text-gray-500 hover:text-gray-900">
-          نورا - المحتوى
-        </a>
-        <a href="#" className="text-gray-500 hover:text-gray-900">
-          خالد - التحليلات
-        </a>
+        <a href="#" className="text-gray-900 font-medium border-b-2 border-blue-600 pb-2">Morvo</a>
+        <a href="#" className="text-gray-500 hover:text-gray-900">سوشال</a>
+        <a href="#" className="text-gray-500 hover:text-gray-900"> الحملات</a>
+        <a href="#" className="text-gray-500 hover:text-gray-900">المحتوى</a>
+        <a href="#" className="text-gray-500 hover:text-gray-900">التحليلات</a>
       </nav>
 
       {/* Left side - Notifications and profile */}
@@ -46,6 +33,5 @@ export const TopNavigation = () => {
           <User className="w-4 h-4 text-gray-600" />
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
