@@ -1,110 +1,181 @@
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BarChart3, Bot, Rocket, Target, Users, Zap, TrendingUp, Award, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { 
+  Sparkles, Zap, BarChart3, MessageSquare, Users, 
+  Target, Shield, ArrowLeft, Star, CheckCircle,
+  Facebook, Twitter, Instagram, Linkedin, Youtube,
+  Mail, Phone, MapPin
+} from "lucide-react";
 
 const Home = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 font-cairo" dir="rtl">
-      {/* Hero Section */}
-      <section className="px-6 py-16 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                أطلق قوة
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> الذكاء الاصطناعي </span>
-                في التسويق
-              </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                منصة Morvo تجمع خمسة خبراء ذكاء اصطناعي متخصصين لتحويل استراتيجيات التسويق إلى نتائج استثنائية
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/dashboard">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
-                  ابدأ رحلتك مجاناً
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg rounded-xl border-2 hover:bg-gray-50">
-                شاهد العرض التوضيحي
-              </Button>
-            </div>
+  const navigate = useNavigate();
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">+500%</div>
-                <div className="text-sm text-gray-600">زيادة في ROI</div>
+  const Header = () => (
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">M</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">منصة Morvo</h1>
+              <p className="text-xs text-gray-500">فريق التسويق الذكي المتكامل</p>
+            </div>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">المميزات</a>
+            <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 transition-colors">كيف يعمل</a>
+            <a href="#pricing" className="text-gray-600 hover:text-blue-600 transition-colors">الأسعار</a>
+            <a href="#contact" className="text-gray-600 hover:text-blue-600 transition-colors">تواصل معنا</a>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/auth")}
+              className="text-gray-700 border-gray-300 hover:bg-gray-50"
+            >
+              تسجيل الدخول
+            </Button>
+            <Button 
+              onClick={() => navigate("/auth")}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            >
+              ابدأ مجاناً
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+
+  const Footer = () => (
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">M</span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">24/7</div>
-                <div className="text-sm text-gray-600">عمل متواصل</div>
+              <div>
+                <h3 className="text-xl font-bold">منصة Morvo</h3>
+                <p className="text-sm text-gray-400">فريق التسويق الذكي المتكامل</p>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">98%</div>
-                <div className="text-sm text-gray-600">رضا العملاء</div>
-              </div>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              منصة التسويق الذكي الأولى في المنطقة التي تجمع بين قوة الذكاء الاصطناعي وخبرة التسويق لتقدم لك حلول تسويقية متكاملة.
+            </p>
+            <div className="flex gap-4">
+              <Facebook className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
+              <Twitter className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
+              <Instagram className="w-5 h-5 text-gray-400 hover:text-pink-400 cursor-pointer transition-colors" />
+              <Linkedin className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
+              <Youtube className="w-5 h-5 text-gray-400 hover:text-red-400 cursor-pointer transition-colors" />
             </div>
           </div>
 
-          <div className="relative">
-            <div className="relative bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-8 shadow-2xl">
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-blue-600" />
-                      الاستراتيجي
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">+85%</div>
-                    <div className="text-xs text-gray-600">كفاءة التخطيط</div>
-                  </CardContent>
-                </Card>
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold">المنتج</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><a href="#" className="hover:text-white transition-colors">المميزات</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">الأسعار</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">التحديثات</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">قصص النجاح</a></li>
+            </ul>
+          </div>
 
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Target className="h-4 w-4 text-purple-600" />
-                      المنفذ
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-purple-600">+92%</div>
-                    <div className="text-xs text-gray-600">دقة التنفيذ</div>
-                  </CardContent>
-                </Card>
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold">الدعم</h4>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><a href="#" className="hover:text-white transition-colors">مركز المساعدة</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">الأسئلة الشائعة</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">تواصل معنا</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">حالة الخدمة</a></li>
+            </ul>
+          </div>
 
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-green-600" />
-                      المبدع
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600">+78%</div>
-                    <div className="text-xs text-gray-600">جودة المحتوى</div>
-                  </CardContent>
-                </Card>
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold">تواصل معنا</h4>
+            <div className="space-y-3 text-sm text-gray-400">
+              <div className="flex items-center gap-3">
+                <Mail className="w-4 h-4" />
+                <span>support@morvo.sa</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4" />
+                <span dir="ltr">+966 50 123 4567</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4" />
+                <span>الرياض، المملكة العربية السعودية</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-orange-600" />
-                      المحلل
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-orange-600">+94%</div>
-                    <div className="text-xs text-gray-600">دقة التحليل</div>
-                  </CardContent>
-                </Card>
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-gray-400">
+            © 2024 منصة Morvo. جميع الحقوق محفوظة.
+          </p>
+          <div className="flex gap-6 text-sm text-gray-400 mt-4 md:mt-0">
+            <a href="#" className="hover:text-white transition-colors">سياسة الخصوصية</a>
+            <a href="#" className="hover:text-white transition-colors">شروط الخدمة</a>
+            <a href="#" className="hover:text-white transition-colors">ملفات تعريف الارتباط</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              فريق التسويق الذكي
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> المتكامل</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+              منصة Morvo تجمع بين قوة الذكاء الاصطناعي وخبرة التسويق لتقدم لك 5 مديري تسويق متخصصين في مكان واحد
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button 
+                size="lg"
+                onClick={() => navigate("/auth")}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-4"
+              >
+                ابدأ مجاناً الآن
+                <ArrowLeft className="w-5 h-5 mr-2" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="text-lg px-8 py-4"
+              >
+                شاهد العرض التوضيحي
+              </Button>
+            </div>
+            <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>تجربة مجانية 14 يوم</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>بدون بطاقة ائتمان</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>إلغاء في أي وقت</span>
               </div>
             </div>
           </div>
@@ -112,188 +183,162 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="px-6 py-16 bg-white">
-        <div className="max-w-7xl mx-auto">
+      <section id="features" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              خمسة خبراء ذكاء اصطناعي في خدمتك
+              5 مديري تسويق في منصة واحدة
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              كل خبير متخصص في مجاله لضمان تقديم أفضل النتائج في كل جانب من جوانب التسويق الرقمي
+              كل مدير متخصص في مجاله ومدعوم بالذكاء الاصطناعي لتقديم أفضل النتائج
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Strategic AI */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Bot className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-blue-900">الاستراتيجي</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">
-                  يخطط الرؤية الشاملة ويحدد أولويات الميزانيات بذكاء استراتيجي متقدم
-                </p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-600" />
-                    تحليل السوق والمنافسين
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-600" />
-                    وضع الاستراتيجيات طويلة المدى
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-blue-600" />
-                    تحسين توزيع الميزانيات
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Target className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">المدير الاستراتيجي</h3>
+              <p className="text-gray-600 text-center mb-4">
+                يحلل السوق والمنافسين ويضع الاستراتيجيات طويلة المدى
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تحليل السوق والمنافسين
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  وضع الاستراتيجيات
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تحديد الفرص والتهديدات
+                </li>
+              </ul>
+            </div>
 
-            {/* Social Monitor */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-pink-50 to-pink-100">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-600 to-pink-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Users className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-pink-900">المراقب الاجتماعي</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">
-                  يتابع أداء منصات التواصل الاجتماعي ويحسن التفاعل مع الجمهور
-                </p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-pink-600" />
-                    مراقبة المنصات الاجتماعية
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-pink-600" />
-                    تحليل تفاعل الجمهور
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-pink-600" />
-                    تحسين أوقات النشر
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">مدير وسائل التواصل</h3>
+              <p className="text-gray-600 text-center mb-4">
+                يدير جميع حساباتك على وسائل التواصل الاجتماعي
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  النشر المجدول
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تفاعل مع الجمهور
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  إدارة متعددة المنصات
+                </li>
+              </ul>
+            </div>
 
-            {/* Campaign Executor */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Rocket className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-green-900">منفذ الحملات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">
-                  ينجز المهام ويدير العمليات التسويقية بكفاءة وسرعة عالية
-                </p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    إدارة الحملات الإعلانية
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    تحسين الأداء التلقائي
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    مراقبة النتائج المباشرة
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Zap className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">مدير الحملات</h3>
+              <p className="text-gray-600 text-center mb-4">
+                ينشئ ويدير الحملات الإعلانية المدفوعة
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  إنشاء الحملات الإعلانية
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تحسين الميزانيات
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  استهداف دقيق
+                </li>
+              </ul>
+            </div>
 
-            {/* Creative AI */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <Zap className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-purple-900">المبدع</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">
-                  يبتكر المحتوى والوسائط الإبداعية التي تجذب وتحول الجمهور
-                </p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-purple-600" />
-                    إنتاج المحتوى الإبداعي
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-purple-600" />
-                    تصميم الوسائط البصرية
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-purple-600" />
-                    كتابة النصوص الإعلانية
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MessageSquare className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">مدير المحتوى</h3>
+              <p className="text-gray-600 text-center mb-4">
+                ينشئ محتوى إبداعي وجذاب لجميع المنصات
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  كتابة المحتوى
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تصميم الجرافيك
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تحسين SEO
+                </li>
+              </ul>
+            </div>
 
-            {/* Data Analyst */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 md:col-span-2 lg:col-span-1">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-orange-900">محلل البيانات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 mb-4">
-                  يحلل البيانات ويقدم الإحصائيات والتوصيات القائمة على البيانات
-                </p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-orange-600" />
-                    تحليل البيانات المتقدم
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-orange-600" />
-                    تقارير الأداء التفصيلية
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-orange-600" />
-                    التوصيات الذكية
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <BarChart3 className="w-8 h-8 text-yellow-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">مدير التحليلات</h3>
+              <p className="text-gray-600 text-center mb-4">
+                يحلل البيانات ويقدم التقارير والتوصيات
+              </p>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  تقارير مفصلة
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  توصيات ذكية
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  قياس ROI
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="px-6 py-16 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-4xl font-bold mb-6">
-            جاهز لتحويل استراتيجية التسويق؟
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold text-white mb-4">
+            جاهز لتحويل تسويقك؟
           </h2>
-          <p className="text-xl mb-8 opacity-90">
-            انضم إلى آلاف الشركات التي تثق في منصة Morvo لتحقيق نتائج تسويقية استثنائية
+          <p className="text-xl text-blue-100 mb-8">
+            انضم إلى آلاف الشركات التي تستخدم Morvo لتنمية أعمالها
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/dashboard">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg rounded-xl font-semibold">
-                ابدأ التجربة المجانية
-                <ArrowLeft className="mr-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg rounded-xl">
-              تحدث مع فريق المبيعات
-            </Button>
-          </div>
+          <Button 
+            size="lg"
+            onClick={() => navigate("/auth")}
+            className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
+          >
+            ابدأ تجربتك المجانية
+            <ArrowLeft className="w-5 h-5 mr-2" />
+          </Button>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

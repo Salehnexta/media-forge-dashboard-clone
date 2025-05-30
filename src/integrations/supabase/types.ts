@@ -9,7 +9,149 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          created_at: string
+          description: string | null
+          founded: string | null
+          id: string
+          industry: string | null
+          location: string | null
+          name: string
+          size: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          founded?: string | null
+          id?: string
+          industry?: string | null
+          location?: string | null
+          name: string
+          size?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          founded?: string | null
+          id?: string
+          industry?: string | null
+          location?: string | null
+          name?: string
+          size?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      company_analysis: {
+        Row: {
+          company_id: string
+          competitors: Json | null
+          created_at: string
+          id: string
+          market_insights: Json | null
+          recommendations: Json | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          competitors?: Json | null
+          created_at?: string
+          id?: string
+          market_insights?: Json | null
+          recommendations?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          competitors?: Json | null
+          created_at?: string
+          id?: string
+          market_insights?: Json | null
+          recommendations?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_analysis_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      social_accounts: {
+        Row: {
+          access_token: string | null
+          account_id: string | null
+          connected_at: string
+          id: string
+          permissions: Json | null
+          platform: string
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_id?: string | null
+          connected_at?: string
+          id?: string
+          permissions?: Json | null
+          platform: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          account_id?: string | null
+          connected_at?: string
+          id?: string
+          permissions?: Json | null
+          platform?: string
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
