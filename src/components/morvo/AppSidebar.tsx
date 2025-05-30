@@ -10,12 +10,13 @@ import {
   Bot,
   Send,
   Plus,
-  MessageSquare
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AIManager } from "@/types/morvo";
+import { analyzeQuestion, getManagerResponse } from "@/utils/chatLogic";
+import { getManagerByType, generateDetailedResponse } from "@/utils/managerPersonalities";
 
 interface AppSidebarProps {
   selectedManager: AIManager;
@@ -27,18 +28,22 @@ interface Message {
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  manager?: AIManager;
 }
 
 export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنني مساعدتك في إنشاء المخططات والتحليلات، منشورات وسائل التواصل الاجتماعي، والصور. كيف يمكنني مساعدتك اليوم؟',
+      text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
       sender: 'ai',
-      timestamp: new Date()
+      timestamp: new Date(),
+      manager: 'strategic'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentTypingManager, setCurrentTypingManager] = useState<AIManager | null>(null);
 
   const sendMessage = () => {
     if (inputMessage.trim()) {
@@ -50,19 +55,31 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
       };
       
       setMessages(prev => [...prev, newMessage]);
+      const question = inputMessage;
       setInputMessage('');
       
-      // Simulate AI response
+      // Analyze question and determine appropriate manager
+      const appropriateManager = analyzeQuestion(question);
+      setCurrentTypingManager(appropriateManager);
+      setIsTyping(true);
+      
+      // Update selected manager in parent component
+      onManagerSelect(appropriateManager);
+      
+      // Simulate AI response with typing delay
       setTimeout(() => {
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: `شكراً لك على رسالتك. يمكنني مساعدتك في إنشاء محتوى تسويقي متميز. ما نوع المحتوى الذي تريد إنشاؤه؟`,
+          text: generateDetailedResponse(appropriateManager, question),
           sender: 'ai',
-          timestamp: new Date()
+          timestamp: new Date(),
+          manager: appropriateManager
         };
         
         setMessages(prev => [...prev, aiResponse]);
-      }, 1000);
+        setIsTyping(false);
+        setCurrentTypingManager(null);
+      }, 2000);
     }
   };
 
@@ -76,11 +93,28 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
     setMessages([
       {
         id: '1',
-        text: 'مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنني مساعدتك في إنشاء المخططات والتحليلات، منشورات وسائل التواصل الاجتماعي، والصور. كيف يمكنني مساعدتك اليوم؟',
+        text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        manager: 'strategic'
       }
     ]);
+    onManagerSelect('strategic');
+  };
+
+  const getManagerColor = (manager: AIManager) => {
+    const colors = {
+      strategic: 'bg-blue-600',
+      monitor: 'bg-pink-600',
+      executor: 'bg-green-600',
+      creative: 'bg-purple-600',
+      analyst: 'bg-orange-600'
+    };
+    return colors[manager];
+  };
+
+  const getManagerInfo = (manager: AIManager) => {
+    return getManagerByType(manager);
   };
 
   return (
@@ -116,9 +150,11 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                {message.sender === 'ai' && (
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0">
-                    <Bot className="w-3 h-3 text-white" />
+                {message.sender === 'ai' && message.manager && (
+                  <div className={`w-8 h-8 ${getManagerColor(message.manager)} rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0`}>
+                    <span className="text-white text-xs">
+                      {getManagerInfo(message.manager).avatar}
+                    </span>
                   </div>
                 )}
                 <div
@@ -128,7 +164,14 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  {message.sender === 'ai' && message.manager && (
+                    <div className="text-xs font-medium text-gray-600 mb-1">
+                      {getManagerInfo(message.manager).name}
+                    </div>
+                  )}
+                  <div className="text-sm leading-relaxed whitespace-pre-line">
+                    {message.text}
+                  </div>
                   <p className={`text-xs mt-1 ${
                     message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                   }`}>
@@ -139,12 +182,33 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
                   </p>
                 </div>
                 {message.sender === 'user' && (
-                  <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center ml-2 mt-1 flex-shrink-0">
+                  <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center ml-2 mt-1 flex-shrink-0">
                     <span className="text-xs text-white font-medium">م</span>
                   </div>
                 )}
               </div>
             ))}
+            
+            {/* Typing indicator */}
+            {isTyping && currentTypingManager && (
+              <div className="flex justify-start">
+                <div className={`w-8 h-8 ${getManagerColor(currentTypingManager)} rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0`}>
+                  <span className="text-white text-xs">
+                    {getManagerInfo(currentTypingManager).avatar}
+                  </span>
+                </div>
+                <div className="bg-gray-100 rounded-2xl p-3 max-w-[80%]">
+                  <div className="text-xs font-medium text-gray-600 mb-1">
+                    {getManagerInfo(currentTypingManager).name}
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
@@ -156,14 +220,15 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="اكتب رسالتك هنا..."
+                placeholder="اسأل أي سؤال تسويقي..."
                 className="resize-none border-gray-300 rounded-xl pr-4 pl-12 py-3 text-right focus:border-blue-500 focus:ring-blue-500"
                 dir="rtl"
+                disabled={isTyping}
               />
               <Button
                 onClick={sendMessage}
                 size="icon"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isTyping}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 rounded-lg"
               >
                 <Send className="w-4 h-4" />
@@ -171,7 +236,7 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            يمكن أن تحدث أخطاء. تحقق من المعلومات المهمة.
+            سيرد عليك المتخصص المناسب تلقائياً حسب نوع سؤالك
           </p>
         </div>
       </SidebarContent>
@@ -190,7 +255,7 @@ export function AppSidebar({ selectedManager, onManagerSelect }: AppSidebarProps
             </div>
           </div>
           <div className="mt-2 text-xs text-blue-800">
-            مرحباً! ابدأ محادثة جديدة للحصول على المساعدة
+            الذكاء الاصطناعي يحدد المتخصص المناسب لك تلقائياً!
           </div>
         </div>
       </SidebarFooter>
