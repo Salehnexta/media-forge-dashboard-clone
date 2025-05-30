@@ -1,4 +1,3 @@
-
 import { ManagerInfo } from "@/types/morvo";
 
 export const aiManagers: ManagerInfo[] = [
@@ -42,19 +41,19 @@ export const aiManagers: ManagerInfo[] = [
 export const mockChartData = {
   strategic: {
     roi: [
-      { month: "يناير", actual: 150000, expected: 140000 },
-      { month: "فبراير", actual: 180000, expected: 160000 },
-      { month: "مارس", actual: 220000, expected: 180000 },
-      { month: "أبريل", actual: 280000, expected: 220000 },
-      { month: "مايو", actual: 320000, expected: 260000 },
-      { month: "يونيو", actual: 380000, expected: 300000 }
+      { month: "يناير", actual: 85000, expected: 80000 },
+      { month: "فبراير", actual: 90000, expected: 85000 },
+      { month: "مارس", actual: 95000, expected: 90000 },
+      { month: "أبريل", actual: 105000, expected: 95000 },
+      { month: "مايو", actual: 110000, expected: 100000 },
+      { month: "يونيو", actual: 120000, expected: 105000 }
     ],
     budget: [
-      { name: "وسائل التواصل", value: 35, color: "#3b82f6" },
+      { name: "السوشيال ميديا", value: 35, color: "#3b82f6" },
       { name: "البحث المدفوع", value: 25, color: "#10b981" },
-      { name: "البريد الإلكتروني", value: 20, color: "#f59e0b" },
+      { name: "البريد الإلكتروني", value: 15, color: "#f59e0b" },
       { name: "المحتوى", value: 15, color: "#8b5cf6" },
-      { name: "أخرى", value: 5, color: "#ef4444" }
+      { name: "العلاقات العامة", value: 10, color: "#ef4444" }
     ]
   },
   monitor: {
