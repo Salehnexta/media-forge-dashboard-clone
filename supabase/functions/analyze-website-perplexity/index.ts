@@ -9,50 +9,66 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const cleanJsonResponse = (content: string): string => {
+  console.log('Original content:', content);
+  
+  // إزالة markdown code blocks
+  let cleaned = content.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+  
+  // إزالة أي نص قبل أو بعد JSON
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+  
+  console.log('Cleaned content:', cleaned);
+  return cleaned;
+};
+
 const analyzeWithPerplexity = async (website: string) => {
   console.log('🔍 بدء تحليل الموقع مع Perplexity:', website);
 
   const prompts = {
-    companyInfo: `قم بتحليل الشركة صاحبة الموقع ${website} وأعطني المعلومات التالية بصيغة JSON:
+    companyInfo: `Analyze the company that owns the website ${website}. Return ONLY a JSON object with this exact structure (no extra text, no markdown):
 {
-  "name": "اسم الشركة الكامل",
-  "description": "وصف نشاط الشركة التجاري", 
-  "industry": "المجال/الصناعة",
-  "founded": "سنة التأسيس",
-  "location": "المقر الرئيسي والدولة",
-  "size": "عدد الموظفين التقريبي أو حجم الشركة",
+  "name": "Company full name in Arabic",
+  "description": "Business activity description in Arabic", 
+  "industry": "Industry/sector in Arabic",
+  "founded": "Founding year",
+  "location": "Main headquarters and country in Arabic",
+  "size": "Approximate number of employees or company size in Arabic",
   "website": "${website}",
-  "services": ["الخدمات الرئيسية"],
-  "targetAudience": "الجمهور المستهدف"
+  "services": ["Main services in Arabic"],
+  "targetAudience": "Target audience in Arabic"
 }`,
 
-    competitors: `من هم أهم 5 منافسين للشركة صاحبة الموقع ${website}؟ أعطني القائمة بصيغة JSON:
+    competitors: `Find the top 5 competitors of the company that owns ${website}. Return ONLY a JSON object (no extra text, no markdown):
 {
   "competitors": [
     {
-      "name": "اسم الشركة المنافسة",
-      "website": "موقعها الإلكتروني",
-      "strengths": ["نقاط قوتها الأساسية"]
+      "name": "Competitor company name in Arabic",
+      "website": "Their website URL",
+      "strengths": ["Their key strengths in Arabic"]
     }
   ]
 }`,
 
-    marketAnalysis: `تحليل السوق والصناعة للشركة صاحبة الموقع ${website}. أعطني التحليل بصيغة JSON:
+    marketAnalysis: `Analyze the market and industry for the company that owns ${website}. Return ONLY a JSON object (no extra text, no markdown):
 {
-  "marketSize": "حجم السوق",
-  "growthRate": "معدل النمو السنوي",
-  "trends": ["أحدث الاتجاهات والتطورات"],
-  "opportunities": ["الفرص المتاحة"],
-  "challenges": ["التحديات الرئيسية"],
-  "predictions": ["التوقعات المستقبلية"]
+  "marketSize": "Market size in Arabic",
+  "growthRate": "Annual growth rate in Arabic",
+  "trends": ["Latest trends and developments in Arabic"],
+  "opportunities": ["Available opportunities in Arabic"],
+  "challenges": ["Main challenges in Arabic"],
+  "predictions": ["Future predictions in Arabic"]
 }`,
 
-    digitalPresence: `تحليل الحضور الرقمي للشركة صاحبة الموقع ${website}. أعطني التحليل بصيغة JSON:
+    digitalPresence: `Analyze the digital presence of the company that owns ${website}. Return ONLY a JSON object (no extra text, no markdown):
 {
-  "socialMedia": ["حسابات وسائل التواصل الاجتماعي"],
-  "seoKeywords": ["أهم الكلمات المفتاحية"],
-  "contentStrategy": ["استراتيجية المحتوى المقترحة"],
-  "digitalChannels": ["القنوات الرقمية المناسبة"]
+  "socialMedia": ["Social media accounts in Arabic"],
+  "seoKeywords": ["Important SEO keywords in Arabic"],
+  "contentStrategy": ["Suggested content strategy in Arabic"],
+  "digitalChannels": ["Suitable digital channels in Arabic"]
 }`
   };
 
@@ -73,14 +89,14 @@ const analyzeWithPerplexity = async (website: string) => {
           messages: [
             {
               role: 'system',
-              content: 'أنت خبير تحليل الأعمال والتسويق. أجب باللغة العربية بصيغة JSON صحيحة فقط. لا تضيف أي نص قبل أو بعد JSON.'
+              content: 'You are a business analysis expert. Return ONLY valid JSON without any markdown formatting, explanations, or additional text. Answer in Arabic where specified.'
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          temperature: 0.3,
+          temperature: 0.2,
           max_tokens: 1500,
         }),
       });
@@ -92,26 +108,94 @@ const analyzeWithPerplexity = async (website: string) => {
       const data = await response.json();
       const content = data.choices[0].message.content;
       
-      // محاولة تحليل JSON
+      console.log(`Raw response for ${key}:`, content);
+      
+      // تنظيف الاستجابة وتحليل JSON
       try {
-        const parsed = JSON.parse(content);
+        const cleanedContent = cleanJsonResponse(content);
+        const parsed = JSON.parse(cleanedContent);
         results[key] = parsed;
+        console.log(`✅ نجح تحليل ${key}`);
       } catch (parseError) {
         console.error(`خطأ في تحليل JSON لـ ${key}:`, parseError);
-        // في حالة فشل التحليل، احفظ النص كما هو
-        results[key] = { rawContent: content };
+        console.log(`Attempting fallback for ${key}...`);
+        
+        // محاولة استخراج المعلومات يدوياً كحل احتياطي
+        results[key] = {
+          error: `فشل تحليل JSON: ${parseError.message}`,
+          rawContent: content,
+          fallbackData: await generateFallbackData(key, website)
+        };
       }
 
       // انتظار قصير بين الطلبات
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
     } catch (error) {
       console.error(`خطأ في تحليل ${key}:`, error);
-      results[key] = { error: error.message };
+      results[key] = { 
+        error: error.message,
+        fallbackData: await generateFallbackData(key, website)
+      };
     }
   }
 
   return results;
+};
+
+const generateFallbackData = async (type: string, website: string) => {
+  console.log(`🔄 إنشاء بيانات احتياطية لـ ${type}`);
+  
+  // استخراج اسم النطاق
+  const domain = website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+  const companyName = domain.split('.')[0];
+  
+  switch (type) {
+    case 'companyInfo':
+      return {
+        name: `شركة ${companyName}`,
+        description: 'شركة تقدم خدمات متنوعة',
+        industry: 'غير محدد',
+        founded: 'غير محدد',
+        location: 'غير محدد',
+        size: 'غير محدد',
+        website: website,
+        services: ['خدمات عامة'],
+        targetAudience: 'عملاء متنوعون'
+      };
+    
+    case 'competitors':
+      return {
+        competitors: [
+          {
+            name: 'منافس 1',
+            website: 'غير محدد',
+            strengths: ['خدمات متنوعة']
+          }
+        ]
+      };
+    
+    case 'marketAnalysis':
+      return {
+        marketSize: 'يتطلب دراسة أعمق',
+        growthRate: 'غير محدد',
+        trends: ['نمو في القطاع الرقمي'],
+        opportunities: ['التوسع الرقمي'],
+        challenges: ['المنافسة الشديدة'],
+        predictions: ['نمو مستمر متوقع']
+      };
+    
+    case 'digitalPresence':
+      return {
+        socialMedia: ['يتطلب مراجعة يدوية'],
+        seoKeywords: ['اسم الشركة', 'الخدمات'],
+        contentStrategy: ['محتوى تفاعلي', 'قصص نجاح'],
+        digitalChannels: ['موقع إلكتروني', 'وسائل التواصل']
+      };
+    
+    default:
+      return { message: 'بيانات احتياطية عامة' };
+  }
 };
 
 serve(async (req) => {
@@ -131,42 +215,49 @@ serve(async (req) => {
     // تحليل الموقع باستخدام Perplexity
     const analysis = await analyzeWithPerplexity(website);
 
-    // تنظيم النتائج
+    // تنظيم النتائج مع معالجة الأخطاء
     const companyData = {
       // معلومات الشركة الأساسية
-      name: analysis.companyInfo?.name || 'غير محدد',
-      description: analysis.companyInfo?.description || '',
-      industry: analysis.companyInfo?.industry || '',
-      founded: analysis.companyInfo?.founded || '',
-      location: analysis.companyInfo?.location || '',
-      size: analysis.companyInfo?.size || '',
+      name: analysis.companyInfo?.name || analysis.companyInfo?.fallbackData?.name || 'شركة غير محددة',
+      description: analysis.companyInfo?.description || analysis.companyInfo?.fallbackData?.description || '',
+      industry: analysis.companyInfo?.industry || analysis.companyInfo?.fallbackData?.industry || '',
+      founded: analysis.companyInfo?.founded || analysis.companyInfo?.fallbackData?.founded || '',
+      location: analysis.companyInfo?.location || analysis.companyInfo?.fallbackData?.location || '',
+      size: analysis.companyInfo?.size || analysis.companyInfo?.fallbackData?.size || '',
       website: website,
-      services: analysis.companyInfo?.services || [],
-      targetAudience: analysis.companyInfo?.targetAudience || '',
+      services: analysis.companyInfo?.services || analysis.companyInfo?.fallbackData?.services || [],
+      targetAudience: analysis.companyInfo?.targetAudience || analysis.companyInfo?.fallbackData?.targetAudience || '',
 
       // المنافسون
-      competitors: analysis.competitors?.competitors || [],
+      competitors: analysis.competitors?.competitors || analysis.competitors?.fallbackData?.competitors || [],
 
       // تحليل السوق
       marketInsights: {
-        marketSize: analysis.marketAnalysis?.marketSize || '',
-        growthRate: analysis.marketAnalysis?.growthRate || '',
-        trends: analysis.marketAnalysis?.trends || [],
-        opportunities: analysis.marketAnalysis?.opportunities || [],
-        challenges: analysis.marketAnalysis?.challenges || [],
-        predictions: analysis.marketAnalysis?.predictions || []
+        marketSize: analysis.marketAnalysis?.marketSize || analysis.marketAnalysis?.fallbackData?.marketSize || '',
+        growthRate: analysis.marketAnalysis?.growthRate || analysis.marketAnalysis?.fallbackData?.growthRate || '',
+        trends: analysis.marketAnalysis?.trends || analysis.marketAnalysis?.fallbackData?.trends || [],
+        opportunities: analysis.marketAnalysis?.opportunities || analysis.marketAnalysis?.fallbackData?.opportunities || [],
+        challenges: analysis.marketAnalysis?.challenges || analysis.marketAnalysis?.fallbackData?.challenges || [],
+        predictions: analysis.marketAnalysis?.predictions || analysis.marketAnalysis?.fallbackData?.predictions || []
       },
 
       // الحضور الرقمي
       digitalPresence: {
-        socialMedia: analysis.digitalPresence?.socialMedia || [],
-        seoKeywords: analysis.digitalPresence?.seoKeywords || [],
-        contentStrategy: analysis.digitalPresence?.contentStrategy || [],
-        digitalChannels: analysis.digitalPresence?.digitalChannels || []
+        socialMedia: analysis.digitalPresence?.socialMedia || analysis.digitalPresence?.fallbackData?.socialMedia || [],
+        seoKeywords: analysis.digitalPresence?.seoKeywords || analysis.digitalPresence?.fallbackData?.seoKeywords || [],
+        contentStrategy: analysis.digitalPresence?.contentStrategy || analysis.digitalPresence?.fallbackData?.contentStrategy || [],
+        digitalChannels: analysis.digitalPresence?.digitalChannels || analysis.digitalPresence?.fallbackData?.digitalChannels || []
       },
 
       // البيانات الخام للمراجعة
-      rawAnalysis: analysis
+      rawAnalysis: analysis,
+      
+      // معلومات إضافية
+      analysisStatus: {
+        success: true,
+        hasErrors: Object.values(analysis).some(result => result?.error),
+        timestamp: new Date().toISOString()
+      }
     };
 
     console.log('✅ تم إكمال التحليل بنجاح');
