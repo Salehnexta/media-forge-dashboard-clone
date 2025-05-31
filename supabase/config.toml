@@ -73,3 +73,4 @@ verify_jwt = true
 
 [functions.send-custom-email]
 verify_jwt = false
+
