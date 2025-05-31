@@ -91,13 +91,31 @@ export const useSocialAuth = () => {
 
       if (error) throw error;
 
-      const accounts = data.map(account => ({
-        platform: account.platform,
-        accountId: account.account_id || '',
-        accessToken: account.access_token || '',
-        refreshToken: account.refresh_token || '',
-        permissions: account.permissions || []
-      }));
+      const accounts = data.map(account => {
+        // Safely handle permissions conversion from Json to string[]
+        let permissions: string[] = [];
+        if (Array.isArray(account.permissions)) {
+          permissions = account.permissions.filter((p): p is string => typeof p === 'string');
+        } else if (typeof account.permissions === 'string') {
+          try {
+            const parsed = JSON.parse(account.permissions);
+            if (Array.isArray(parsed)) {
+              permissions = parsed.filter((p): p is string => typeof p === 'string');
+            }
+          } catch {
+            // If parsing fails, treat as empty array
+            permissions = [];
+          }
+        }
+
+        return {
+          platform: account.platform,
+          accountId: account.account_id || '',
+          accessToken: account.access_token || '',
+          refreshToken: account.refresh_token || '',
+          permissions
+        };
+      });
 
       setConnectedAccounts(accounts);
       return accounts;
