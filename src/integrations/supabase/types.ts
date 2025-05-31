@@ -9,6 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_results: {
+        Row: {
+          agent_id: string
+          cost_units: number | null
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          status: string | null
+          task_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          cost_units?: number | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          task_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          cost_units?: number | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          task_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      bi_reports: {
+        Row: {
+          created_at: string | null
+          data_sources: Json | null
+          generated_at: string | null
+          id: string
+          insights: Json | null
+          recommendations: Json | null
+          report_data: Json
+          report_name: string
+          report_type: string | null
+          time_period_end: string | null
+          time_period_start: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_sources?: Json | null
+          generated_at?: string | null
+          id?: string
+          insights?: Json | null
+          recommendations?: Json | null
+          report_data: Json
+          report_name: string
+          report_type?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_sources?: Json | null
+          generated_at?: string | null
+          id?: string
+          insights?: Json | null
+          recommendations?: Json | null
+          report_data?: Json
+          report_name?: string
+          report_type?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      campaign_metrics: {
+        Row: {
+          campaign_id: string | null
+          clicks: number | null
+          conversion_rate: number | null
+          conversions: number | null
+          cost: number | null
+          created_at: string | null
+          ctr: number | null
+          id: string
+          impressions: number | null
+          metric_date: string
+          quality_score: number | null
+          revenue: number | null
+          roas: number | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicks?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          cost?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          metric_date: string
+          quality_score?: number | null
+          revenue?: number | null
+          roas?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          clicks?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          cost?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          metric_date?: string
+          quality_score?: number | null
+          revenue?: number | null
+          roas?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string
@@ -89,6 +235,172 @@ export type Database = {
           },
         ]
       }
+      content_calendar: {
+        Row: {
+          campaign_id: string | null
+          content_assets: Json | null
+          content_text: string | null
+          content_type: string | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          language: string | null
+          platform: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          status: string | null
+          target_audience: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          content_assets?: Json | null
+          content_text?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          language?: string | null
+          platform?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          target_audience?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          content_assets?: Json | null
+          content_text?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          language?: string | null
+          platform?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          target_audience?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_calendar_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_performance: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          content_id: string | null
+          created_at: string | null
+          engagement_rate: number | null
+          id: string
+          likes: number | null
+          metric_date: string
+          reach: number | null
+          shares: number | null
+          user_id: string | null
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          content_id?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          likes?: number | null
+          metric_date: string
+          reach?: number | null
+          shares?: number | null
+          user_id?: string | null
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          content_id?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          likes?: number | null
+          metric_date?: string
+          reach?: number | null
+          shares?: number | null
+          user_id?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_performance_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_calendar"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_campaigns: {
+        Row: {
+          budget: number | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          goals: Json | null
+          id: string
+          kpis: Json | null
+          name: string
+          start_date: string | null
+          status: string | null
+          target_market: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          budget?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          goals?: Json | null
+          id?: string
+          kpis?: Json | null
+          name: string
+          start_date?: string | null
+          status?: string | null
+          target_market?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          budget?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          goals?: Json | null
+          id?: string
+          kpis?: Json | null
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          target_market?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -113,6 +425,135 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      semrush_competitors: {
+        Row: {
+          adwords_keywords: number | null
+          common_keywords: number | null
+          competitive_level: string | null
+          competitor_domain: string
+          domain: string
+          id: string
+          last_analyzed: string | null
+          se_keywords: number | null
+          traffic_similarity: number | null
+          user_id: string | null
+        }
+        Insert: {
+          adwords_keywords?: number | null
+          common_keywords?: number | null
+          competitive_level?: string | null
+          competitor_domain: string
+          domain: string
+          id?: string
+          last_analyzed?: string | null
+          se_keywords?: number | null
+          traffic_similarity?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          adwords_keywords?: number | null
+          common_keywords?: number | null
+          competitive_level?: string | null
+          competitor_domain?: string
+          domain?: string
+          id?: string
+          last_analyzed?: string | null
+          se_keywords?: number | null
+          traffic_similarity?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      semrush_data: {
+        Row: {
+          api_cost: number | null
+          created_at: string | null
+          data_type: string
+          database_region: string | null
+          domain: string
+          expires_at: string | null
+          fetched_at: string | null
+          id: string
+          is_cached: boolean | null
+          query_params: Json | null
+          response_data: Json
+          user_id: string | null
+        }
+        Insert: {
+          api_cost?: number | null
+          created_at?: string | null
+          data_type: string
+          database_region?: string | null
+          domain: string
+          expires_at?: string | null
+          fetched_at?: string | null
+          id?: string
+          is_cached?: boolean | null
+          query_params?: Json | null
+          response_data: Json
+          user_id?: string | null
+        }
+        Update: {
+          api_cost?: number | null
+          created_at?: string | null
+          data_type?: string
+          database_region?: string | null
+          domain?: string
+          expires_at?: string | null
+          fetched_at?: string | null
+          id?: string
+          is_cached?: boolean | null
+          query_params?: Json | null
+          response_data?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      semrush_keywords: {
+        Row: {
+          competition: number | null
+          cpc: number | null
+          difficulty_score: number | null
+          domain: string | null
+          id: string
+          keyword: string
+          last_updated: string | null
+          position: number | null
+          search_volume: number | null
+          trends: Json | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          competition?: number | null
+          cpc?: number | null
+          difficulty_score?: number | null
+          domain?: string | null
+          id?: string
+          keyword: string
+          last_updated?: string | null
+          position?: number | null
+          search_volume?: number | null
+          trends?: Json | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          competition?: number | null
+          cpc?: number | null
+          difficulty_score?: number | null
+          domain?: string | null
+          id?: string
+          keyword?: string
+          last_updated?: string | null
+          position?: number | null
+          search_volume?: number | null
+          trends?: Json | null
+          url?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -151,6 +592,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      social_mentions: {
+        Row: {
+          author_followers: number | null
+          author_handle: string | null
+          content: string | null
+          crisis_level: string | null
+          detected_at: string | null
+          engagement_count: number | null
+          id: string
+          is_crisis: boolean | null
+          mention_type: string | null
+          mentioned_at: string | null
+          platform: string
+          post_url: string | null
+          sentiment_label: string | null
+          sentiment_score: number | null
+          social_account_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          author_followers?: number | null
+          author_handle?: string | null
+          content?: string | null
+          crisis_level?: string | null
+          detected_at?: string | null
+          engagement_count?: number | null
+          id?: string
+          is_crisis?: boolean | null
+          mention_type?: string | null
+          mentioned_at?: string | null
+          platform: string
+          post_url?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          social_account_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          author_followers?: number | null
+          author_handle?: string | null
+          content?: string | null
+          crisis_level?: string | null
+          detected_at?: string | null
+          engagement_count?: number | null
+          id?: string
+          is_crisis?: boolean | null
+          mention_type?: string | null
+          mentioned_at?: string | null
+          platform?: string
+          post_url?: string | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          social_account_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_mentions_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

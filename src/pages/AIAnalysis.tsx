@@ -1,5 +1,6 @@
 
 import { AIAnalysisSystem } from '@/components/morvo/AIAnalysisSystem';
+import { Footer } from '@/components/layout/Footer';
 
 const AIAnalysis = () => {
   return (
@@ -7,6 +8,7 @@ const AIAnalysis = () => {
       <div className="container mx-auto py-8">
         <AIAnalysisSystem />
       </div>
+      <Footer />
     </div>
   );
 };
