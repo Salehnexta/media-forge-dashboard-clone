@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Loader2, Brain, Target, Rocket, CheckCircle, Globe, Users } from 'lucide-react';
+import { Loader2, Brain, Target, Rocket, CheckCircle, Globe, Users, AlertCircle } from 'lucide-react';
 import { SocialConnectStep } from './SocialConnectStep';
 
 interface SmartOnboardingProps {
@@ -26,9 +26,27 @@ interface CompanyAnalysis {
   size: string;
   location: string;
   founded: string;
-  competitors: string[];
-  marketInsights: any;
-  recommendations: any;
+  services: string[];
+  targetAudience: string;
+  competitors: Array<{
+    name: string;
+    website: string;
+    strengths: string[];
+  }>;
+  marketInsights: {
+    marketSize: string;
+    growthRate: string;
+    trends: string[];
+    opportunities: string[];
+    challenges: string[];
+    predictions: string[];
+  };
+  digitalPresence: {
+    socialMedia: string[];
+    seoKeywords: string[];
+    contentStrategy: string[];
+    digitalChannels: string[];
+  };
 }
 
 export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
@@ -37,6 +55,7 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
   const [analyzing, setAnalyzing] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [companyAnalysis, setCompanyAnalysis] = useState<CompanyAnalysis | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const totalSteps = 5;
@@ -49,38 +68,61 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
     }
 
     setAnalyzing(true);
+    setAnalysisError(null);
+
     try {
-      // محاكاة تحليل الموقع باستخدام Perplexity AI
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('🔍 بدء تحليل الموقع:', websiteUrl);
+
+      const { data, error } = await supabase.functions.invoke('analyze-website-perplexity', {
+        body: { website: websiteUrl.trim() }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'حدث خطأ في التحليل');
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'فشل في تحليل الموقع');
+      }
+
+      const analysisData = data.data;
       
-      // بيانات تحليل محاكية (سيتم استبدالها بـ API حقيقي)
-      const mockAnalysis: CompanyAnalysis = {
-        name: 'شركة التقنيات المتطورة',
-        industry: 'تكنولوجيا المعلومات',
-        description: 'شركة رائدة في تطوير الحلول التقنية المبتكرة',
+      // تنظيم البيانات
+      const analysis: CompanyAnalysis = {
+        name: analysisData.name || 'شركة غير محددة',
+        industry: analysisData.industry || '',
+        description: analysisData.description || '',
         website: websiteUrl,
-        size: 'شركة متوسطة (11-50 شخص)',
-        location: 'الرياض، السعودية',
-        founded: '2020',
-        competitors: ['شركة أ', 'شركة ب', 'شركة ج'],
+        size: analysisData.size || '',
+        location: analysisData.location || '',
+        founded: analysisData.founded || '',
+        services: Array.isArray(analysisData.services) ? analysisData.services : [],
+        targetAudience: analysisData.targetAudience || '',
+        competitors: Array.isArray(analysisData.competitors) ? analysisData.competitors : [],
         marketInsights: {
-          marketSize: '500 مليون ريال',
-          growthRate: '15% سنوياً',
-          trends: ['الذكاء الاصطناعي', 'الحوسبة السحابية', 'الأمن السيبراني']
+          marketSize: analysisData.marketInsights?.marketSize || '',
+          growthRate: analysisData.marketInsights?.growthRate || '',
+          trends: Array.isArray(analysisData.marketInsights?.trends) ? analysisData.marketInsights.trends : [],
+          opportunities: Array.isArray(analysisData.marketInsights?.opportunities) ? analysisData.marketInsights.opportunities : [],
+          challenges: Array.isArray(analysisData.marketInsights?.challenges) ? analysisData.marketInsights.challenges : [],
+          predictions: Array.isArray(analysisData.marketInsights?.predictions) ? analysisData.marketInsights.predictions : []
         },
-        recommendations: {
-          contentStrategy: ['محتوى تقني متخصص', 'دراسات حالة', 'ندوات ويب'],
-          platforms: ['LinkedIn', 'Twitter', 'YouTube'],
-          targetAudience: 'رجال الأعمال والمطورين'
+        digitalPresence: {
+          socialMedia: Array.isArray(analysisData.digitalPresence?.socialMedia) ? analysisData.digitalPresence.socialMedia : [],
+          seoKeywords: Array.isArray(analysisData.digitalPresence?.seoKeywords) ? analysisData.digitalPresence.seoKeywords : [],
+          contentStrategy: Array.isArray(analysisData.digitalPresence?.contentStrategy) ? analysisData.digitalPresence.contentStrategy : [],
+          digitalChannels: Array.isArray(analysisData.digitalPresence?.digitalChannels) ? analysisData.digitalPresence.digitalChannels : []
         }
       };
 
-      setCompanyAnalysis(mockAnalysis);
-      toast.success('تم تحليل الموقع بنجاح!');
+      setCompanyAnalysis(analysis);
+      toast.success('تم تحليل الموقع بنجاح! 🎉');
       setCurrentStep(2);
-    } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error('حدث خطأ في التحليل، يرجى المحاولة مرة أخرى');
+
+    } catch (error: any) {
+      console.error('خطأ في التحليل:', error);
+      setAnalysisError(error.message);
+      toast.error('حدث خطأ في التحليل. يمكنك المحاولة مرة أخرى أو المتابعة يدوياً');
     } finally {
       setAnalyzing(false);
     }
@@ -94,7 +136,13 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
-          ...companyAnalysis,
+          name: companyAnalysis.name,
+          industry: companyAnalysis.industry,
+          description: companyAnalysis.description,
+          website: companyAnalysis.website,
+          size: companyAnalysis.size,
+          location: companyAnalysis.location,
+          founded: companyAnalysis.founded,
           user_id: user.id
         })
         .select()
@@ -108,8 +156,12 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
         .insert({
           company_id: company.id,
           market_insights: companyAnalysis.marketInsights,
-          recommendations: companyAnalysis.recommendations,
-          competitors: companyAnalysis.competitors
+          recommendations: {
+            services: companyAnalysis.services,
+            targetAudience: companyAnalysis.targetAudience,
+            digitalPresence: companyAnalysis.digitalPresence
+          },
+          competitors: companyAnalysis.competitors.map(c => c.name)
         });
 
       if (analysisError) throw analysisError;
@@ -154,7 +206,7 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
                 <Globe className="w-10 h-10 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">تحليل ذكي لشركتك 🚀</h2>
-              <p className="text-gray-600">فقط أدخل رابط موقعك وسنحلل كل شيء تلقائياً!</p>
+              <p className="text-gray-600">فقط أدخل رابط موقعك وسنحلل كل شيء تلقائياً باستخدام Perplexity AI!</p>
             </div>
             
             <Card className="border-2 border-blue-200 bg-blue-50">
@@ -194,24 +246,50 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
                 />
               </div>
               
-              <Button 
-                onClick={analyzeWebsite}
-                disabled={!websiteUrl.trim() || analyzing}
-                className="w-full"
-                size="lg"
-              >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                    جاري التحليل الذكي...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="w-4 h-4 ml-2" />
-                    ابدأ التحليل الذكي
-                  </>
+              {analysisError && (
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-amber-800">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{analysisError}</span>
+                    </div>
+                    <p className="text-xs text-amber-600 mt-1">
+                      يمكنك المحاولة مرة أخرى أو المتابعة لإدخال البيانات يدوياً
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              <div className="flex gap-3">
+                <Button 
+                  onClick={analyzeWebsite}
+                  disabled={!websiteUrl.trim() || analyzing}
+                  className="flex-1"
+                  size="lg"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                      جاري التحليل الذكي...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="w-4 h-4 ml-2" />
+                      ابدأ التحليل الذكي
+                    </>
+                  )}
+                </Button>
+                
+                {analysisError && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => setCurrentStep(2)}
+                    size="lg"
+                  >
+                    متابعة يدوياً
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
 
             {analyzing && (
@@ -300,39 +378,59 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: SmartOnboardingPro
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>المنافسون</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {companyAnalysis.competitors.map((competitor, index) => (
-                        <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                          {competitor}
-                        </span>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {companyAnalysis.competitors.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>المنافسون</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {companyAnalysis.competitors.map((competitor, index) => (
+                          <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                            <h4 className="font-semibold">{competitor.name}</h4>
+                            {competitor.website && (
+                              <p className="text-sm text-blue-600">{competitor.website}</p>
+                            )}
+                            {competitor.strengths.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {competitor.strengths.map((strength, i) => (
+                                  <span key={i} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                    {strength}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card>
                   <CardHeader>
                     <CardTitle>رؤى السوق</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <p><strong>حجم السوق:</strong> {companyAnalysis.marketInsights.marketSize}</p>
-                      <p><strong>معدل النمو:</strong> {companyAnalysis.marketInsights.growthRate}</p>
-                      <div>
-                        <strong>الاتجاهات:</strong>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {companyAnalysis.marketInsights.trends.map((trend: string, index: number) => (
-                            <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                              {trend}
-                            </span>
-                          ))}
+                    <div className="space-y-3">
+                      {companyAnalysis.marketInsights.marketSize && (
+                        <p><strong>حجم السوق:</strong> {companyAnalysis.marketInsights.marketSize}</p>
+                      )}
+                      {companyAnalysis.marketInsights.growthRate && (
+                        <p><strong>معدل النمو:</strong> {companyAnalysis.marketInsights.growthRate}</p>
+                      )}
+                      {companyAnalysis.marketInsights.trends.length > 0 && (
+                        <div>
+                          <strong>الاتجاهات:</strong>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {companyAnalysis.marketInsights.trends.map((trend, index) => (
+                              <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                                {trend}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
