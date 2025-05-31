@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { SmartOnboarding } from './SmartOnboarding';
+import { EnhancedSmartOnboarding } from './EnhancedSmartOnboarding';
 
 interface OnboardingTriggerProps {
   user: User;
@@ -19,7 +19,7 @@ export const OnboardingTrigger = ({ user, children }: OnboardingTriggerProps) =>
 
   const checkOnboardingStatus = async () => {
     try {
-      // Check if user has any companies
+      // التحقق من وجود شركات للمستخدم
       const { data: companies, error } = await supabase
         .from('companies')
         .select('id')
@@ -30,7 +30,7 @@ export const OnboardingTrigger = ({ user, children }: OnboardingTriggerProps) =>
         console.error('Error checking onboarding status:', error);
         setNeedsOnboarding(false);
       } else {
-        // If no companies exist, user needs onboarding
+        // إذا لم توجد شركات، المستخدم يحتاج onboarding
         setNeedsOnboarding(!companies || companies.length === 0);
       }
     } catch (error) {
@@ -59,7 +59,7 @@ export const OnboardingTrigger = ({ user, children }: OnboardingTriggerProps) =>
   }
 
   if (needsOnboarding) {
-    return <SmartOnboarding user={user} onComplete={handleOnboardingComplete} />;
+    return <EnhancedSmartOnboarding user={user} onComplete={handleOnboardingComplete} />;
   }
 
   return <>{children}</>;
