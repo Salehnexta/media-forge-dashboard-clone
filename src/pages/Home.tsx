@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Sparkles, Zap, BarChart3, MessageSquare, Users, 
-  Target, Shield, ArrowLeft, Star, CheckCircle,
-  Facebook, Twitter, Instagram, Linkedin, Youtube,
-  Mail, Phone, MapPin
+  Target, Shield, ArrowLeft, Star, CheckCircle
 } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -51,85 +50,6 @@ const Home = () => {
         </div>
       </div>
     </header>
-  );
-
-  const Footer = () => (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">منصة Morvo</h3>
-                <p className="text-sm text-gray-400">فريق التسويق الذكي المتكامل</p>
-              </div>
-            </div>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              منصة التسويق الذكي الأولى في المنطقة التي تجمع بين قوة الذكاء الاصطناعي وخبرة التسويق لتقدم لك حلول تسويقية متكاملة.
-            </p>
-            <div className="flex gap-4">
-              <Facebook className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-              <Twitter className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-              <Instagram className="w-5 h-5 text-gray-400 hover:text-pink-400 cursor-pointer transition-colors" />
-              <Linkedin className="w-5 h-5 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-              <Youtube className="w-5 h-5 text-gray-400 hover:text-red-400 cursor-pointer transition-colors" />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">المنتج</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">المميزات</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">الأسعار</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">التحديثات</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">قصص النجاح</a></li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">الدعم</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">مركز المساعدة</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">الأسئلة الشائعة</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">تواصل معنا</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">حالة الخدمة</a></li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">تواصل معنا</h4>
-            <div className="space-y-3 text-sm text-gray-400">
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4" />
-                <span>support@morvo.sa</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4" />
-                <span dir="ltr">+966 50 123 4567</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4" />
-                <span>الرياض، المملكة العربية السعودية</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">
-            © 2024 منصة Morvo. جميع الحقوق محفوظة.
-          </p>
-          <div className="flex gap-6 text-sm text-gray-400 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">سياسة الخصوصية</a>
-            <a href="#" className="hover:text-white transition-colors">شروط الخدمة</a>
-            <a href="#" className="hover:text-white transition-colors">ملفات تعريف الارتباط</a>
-          </div>
-        </div>
-      </div>
-    </footer>
   );
 
   return (
