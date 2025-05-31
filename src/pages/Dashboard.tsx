@@ -11,6 +11,7 @@ import { SocialDashboard } from "@/components/morvo/dashboards/SocialDashboard";
 import { CampaignsDashboard } from "@/components/morvo/dashboards/CampaignsDashboard";
 import { ContentDashboard } from "@/components/morvo/dashboards/ContentDashboard";
 import { AnalyticsDashboard } from "@/components/morvo/dashboards/AnalyticsDashboard";
+import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
 import { AIManager } from "@/types/morvo";
 
 const Dashboard = () => {
@@ -86,23 +87,25 @@ const Dashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-gray-50 flex w-full" dir="rtl">
-        <AppSidebar 
-          selectedManager={selectedManager}
-          onManagerSelect={setSelectedManager}
-        />
-        <div className="flex-1 flex flex-col">
-          <TopNavigation 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
+    <OnboardingTrigger user={user}>
+      <SidebarProvider>
+        <div className="min-h-screen bg-gray-50 flex w-full" dir="rtl">
+          <AppSidebar 
+            selectedManager={selectedManager}
+            onManagerSelect={setSelectedManager}
           />
-          <main className="flex-1 overflow-auto">
-            {renderDashboard()}
-          </main>
+          <div className="flex-1 flex flex-col">
+            <TopNavigation 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+            <main className="flex-1 overflow-auto">
+              {renderDashboard()}
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </OnboardingTrigger>
   );
 };
 
