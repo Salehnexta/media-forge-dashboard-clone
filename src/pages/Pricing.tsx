@@ -11,6 +11,7 @@ const Pricing = () => {
     {
       name: "الباقة الأساسية",
       price: "مجاني",
+      amount: 0,
       period: "",
       description: "للشركات الناشئة والأفراد",
       features: [
@@ -20,11 +21,13 @@ const Pricing = () => {
         "دعم عبر البريد الإلكتروني"
       ],
       popular: false,
-      buttonText: "ابدأ مجاناً"
+      buttonText: "ابدأ مجاناً",
+      buttonLink: "/auth"
     },
     {
       name: "الباقة المتقدمة",
       price: "299",
+      amount: 299,
       period: "شهرياً",
       description: "للشركات الصغيرة والمتوسطة",
       features: [
@@ -36,11 +39,13 @@ const Pricing = () => {
         "تكامل مع أدوات التسويق"
       ],
       popular: true,
-      buttonText: "ابدأ التجربة"
+      buttonText: "ابدأ الاشتراك",
+      buttonLink: "/payment?plan=الباقة المتقدمة&amount=299"
     },
     {
       name: "باقة المؤسسات",
       price: "تواصل معنا",
+      amount: 0,
       period: "",
       description: "للشركات الكبيرة والمؤسسات",
       features: [
@@ -52,7 +57,8 @@ const Pricing = () => {
         "اتفاقية مستوى الخدمة SLA"
       ],
       popular: false,
-      buttonText: "تواصل معنا"
+      buttonText: "تواصل معنا",
+      buttonLink: "/contact"
     }
   ];
 
@@ -97,7 +103,7 @@ const Pricing = () => {
                     variant={plan.popular ? "default" : "outline"}
                     asChild
                   >
-                    <Link to={plan.name === "باقة المؤسسات" ? "/contact" : "/auth"}>
+                    <Link to={plan.buttonLink}>
                       {plan.buttonText}
                       <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
                     </Link>
@@ -105,6 +111,39 @@ const Pricing = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </section>
+
+        {/* Payment Security Section */}
+        <section className="mt-16 bg-gray-50 rounded-lg p-8">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4">دفع آمن ومضمون</h3>
+            <p className="text-gray-600 mb-6">
+              نستخدم أحدث تقنيات الأمان لحماية بياناتك المالية
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <h4 className="font-semibold">تشفير SSL</h4>
+                <p className="text-sm text-gray-600">جميع المعاملات محمية بتشفير 256-bit</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <ArrowRight className="w-8 h-8 text-blue-600" />
+                </div>
+                <h4 className="font-semibold">دفع سريع</h4>
+                <p className="text-sm text-gray-600">معالجة فورية للدفعات</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-8 h-8 text-purple-600" />
+                </div>
+                <h4 className="font-semibold">ضمان الاسترداد</h4>
+                <p className="text-sm text-gray-600">ضمان استرداد خلال 30 يوم</p>
+              </div>
+            </div>
           </div>
         </section>
       </div>

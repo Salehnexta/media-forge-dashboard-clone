@@ -12,6 +12,8 @@ import AIAnalysis from "./pages/AIAnalysis";
 import Product from "./pages/Product";
 import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
+import Payment from "./pages/Payment";
+import PaymentCallback from "./pages/PaymentCallback";
 import HowItWorks from "./pages/HowItWorks";
 import SuccessStories from "./pages/SuccessStories";
 import Updates from "./pages/Updates";
@@ -42,6 +44,8 @@ const App = () => {
               <Route path="/product" element={<Product />} />
               <Route path="/features" element={<Features />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/payment-callback" element={<PaymentCallback />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/success-stories" element={<SuccessStories />} />
               <Route path="/updates" element={<Updates />} />
