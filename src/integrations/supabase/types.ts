@@ -12,6 +12,8 @@ export type Database = {
       agent_results: {
         Row: {
           agent_id: string
+          chart_configs: Json | null
+          company_id: string | null
           cost_units: number | null
           created_at: string | null
           execution_time_ms: number | null
@@ -25,6 +27,8 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          chart_configs?: Json | null
+          company_id?: string | null
           cost_units?: number | null
           created_at?: string | null
           execution_time_ms?: number | null
@@ -38,6 +42,8 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          chart_configs?: Json | null
+          company_id?: string | null
           cost_units?: number | null
           created_at?: string | null
           execution_time_ms?: number | null
@@ -49,7 +55,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_results_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analytics_access: {
         Row: {
@@ -97,43 +111,55 @@ export type Database = {
       }
       bi_reports: {
         Row: {
+          cohort_analysis: Json | null
           created_at: string | null
+          customer_segments: Json | null
           data_sources: Json | null
           generated_at: string | null
           id: string
           insights: Json | null
+          predictive_models: Json | null
           recommendations: Json | null
           report_data: Json
           report_name: string
           report_type: string | null
+          roi_calculator: Json | null
           time_period_end: string | null
           time_period_start: string | null
           user_id: string | null
         }
         Insert: {
+          cohort_analysis?: Json | null
           created_at?: string | null
+          customer_segments?: Json | null
           data_sources?: Json | null
           generated_at?: string | null
           id?: string
           insights?: Json | null
+          predictive_models?: Json | null
           recommendations?: Json | null
           report_data: Json
           report_name: string
           report_type?: string | null
+          roi_calculator?: Json | null
           time_period_end?: string | null
           time_period_start?: string | null
           user_id?: string | null
         }
         Update: {
+          cohort_analysis?: Json | null
           created_at?: string | null
+          customer_segments?: Json | null
           data_sources?: Json | null
           generated_at?: string | null
           id?: string
           insights?: Json | null
+          predictive_models?: Json | null
           recommendations?: Json | null
           report_data?: Json
           report_name?: string
           report_type?: string | null
+          roi_calculator?: Json | null
           time_period_end?: string | null
           time_period_start?: string | null
           user_id?: string | null
@@ -286,6 +312,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chart_templates: {
+        Row: {
+          agent_type: string
+          chart_config: Json
+          created_at: string
+          id: string
+          is_system_template: boolean | null
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          agent_type: string
+          chart_config?: Json
+          created_at?: string
+          id?: string
+          is_system_template?: boolean | null
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          agent_type?: string
+          chart_config?: Json
+          created_at?: string
+          id?: string
+          is_system_template?: boolean | null
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -466,15 +522,18 @@ export type Database = {
           content_text: string | null
           content_type: string | null
           created_at: string | null
+          distribution_metrics: Json | null
           hashtags: string[] | null
           id: string
           language: string | null
           platform: string | null
           published_at: string | null
           scheduled_at: string | null
+          seo_performance: Json | null
           status: string | null
           target_audience: string | null
           title: string
+          topic_clusters: Json | null
           updated_at: string | null
           user_id: string | null
         }
@@ -484,15 +543,18 @@ export type Database = {
           content_text?: string | null
           content_type?: string | null
           created_at?: string | null
+          distribution_metrics?: Json | null
           hashtags?: string[] | null
           id?: string
           language?: string | null
           platform?: string | null
           published_at?: string | null
           scheduled_at?: string | null
+          seo_performance?: Json | null
           status?: string | null
           target_audience?: string | null
           title: string
+          topic_clusters?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -502,15 +564,18 @@ export type Database = {
           content_text?: string | null
           content_type?: string | null
           created_at?: string | null
+          distribution_metrics?: Json | null
           hashtags?: string[] | null
           id?: string
           language?: string | null
           platform?: string | null
           published_at?: string | null
           scheduled_at?: string | null
+          seo_performance?: Json | null
           status?: string | null
           target_audience?: string | null
           title?: string
+          topic_clusters?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -577,6 +642,47 @@ export type Database = {
           },
         ]
       }
+      dashboard_layouts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          layout_config: Json
+          layout_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          layout_config?: Json
+          layout_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          layout_config?: Json
+          layout_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_layouts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       language_preferences: {
         Row: {
           company_id: string | null
@@ -620,7 +726,11 @@ export type Database = {
       }
       marketing_campaigns: {
         Row: {
+          ab_testing_results: Json | null
+          attribution_data: Json | null
           budget: number | null
+          budget_allocation: Json | null
+          conversion_funnel: Json | null
           created_at: string | null
           description: string | null
           end_date: string | null
@@ -628,6 +738,7 @@ export type Database = {
           id: string
           kpis: Json | null
           name: string
+          performance_data: Json | null
           start_date: string | null
           status: string | null
           target_market: string | null
@@ -635,7 +746,11 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          ab_testing_results?: Json | null
+          attribution_data?: Json | null
           budget?: number | null
+          budget_allocation?: Json | null
+          conversion_funnel?: Json | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -643,6 +758,7 @@ export type Database = {
           id?: string
           kpis?: Json | null
           name: string
+          performance_data?: Json | null
           start_date?: string | null
           status?: string | null
           target_market?: string | null
@@ -650,7 +766,11 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          ab_testing_results?: Json | null
+          attribution_data?: Json | null
           budget?: number | null
+          budget_allocation?: Json | null
+          conversion_funnel?: Json | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -658,6 +778,7 @@ export type Database = {
           id?: string
           kpis?: Json | null
           name?: string
+          performance_data?: Json | null
           start_date?: string | null
           status?: string | null
           target_market?: string | null
@@ -990,6 +1111,106 @@ export type Database = {
           },
         ]
       }
+      social_monitoring: {
+        Row: {
+          audience_insights: Json | null
+          company_id: string | null
+          created_at: string
+          engagement_metrics: Json | null
+          follower_growth: Json | null
+          id: string
+          monitoring_date: string
+          platform_comparison: Json | null
+          sentiment_analysis: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audience_insights?: Json | null
+          company_id?: string | null
+          created_at?: string
+          engagement_metrics?: Json | null
+          follower_growth?: Json | null
+          id?: string
+          monitoring_date?: string
+          platform_comparison?: Json | null
+          sentiment_analysis?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audience_insights?: Json | null
+          company_id?: string | null
+          created_at?: string
+          engagement_metrics?: Json | null
+          follower_growth?: Json | null
+          id?: string
+          monitoring_date?: string
+          platform_comparison?: Json | null
+          sentiment_analysis?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_monitoring_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategic_analyses: {
+        Row: {
+          analysis_date: string
+          company_id: string | null
+          competitor_data: Json | null
+          created_at: string
+          id: string
+          kpi_metrics: Json | null
+          market_trends: Json | null
+          positioning_map: Json | null
+          swot_analysis: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_date?: string
+          company_id?: string | null
+          competitor_data?: Json | null
+          created_at?: string
+          id?: string
+          kpi_metrics?: Json | null
+          market_trends?: Json | null
+          positioning_map?: Json | null
+          swot_analysis?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_date?: string
+          company_id?: string | null
+          competitor_data?: Json | null
+          created_at?: string
+          id?: string
+          kpi_metrics?: Json | null
+          market_trends?: Json | null
+          positioning_map?: Json | null
+          swot_analysis?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_analyses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       target_audiences: {
         Row: {
           company_id: string | null
@@ -1067,6 +1288,33 @@ export type Database = {
           update_frequency?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      visualization_preferences: {
+        Row: {
+          chart_type: string
+          created_at: string
+          id: string
+          preferences: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chart_type: string
+          created_at?: string
+          id?: string
+          preferences?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chart_type?: string
+          created_at?: string
+          id?: string
+          preferences?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

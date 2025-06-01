@@ -1,172 +1,181 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, 
-  ScatterChart, Scatter, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from "recharts";
-
-const marketShareData = [
-  { name: 'منتجاتنا', value: 35, color: '#3b82f6' },
-  { name: 'المنافس أ', value: 25, color: '#ef4444' },
-  { name: 'المنافس ب', value: 20, color: '#f59e0b' },
-  { name: 'آخرون', value: 20, color: '#94a3b8' }
-];
-
-const marketGrowthData = [
-  { month: 'يناير', growth: 12 },
-  { month: 'فبراير', growth: 15 },
-  { month: 'مارس', growth: 18 },
-  { month: 'أبريل', growth: 22 },
-  { month: 'مايو', growth: 28 },
-  { month: 'يونيو', growth: 32 }
-];
-
-const revenueData = [
-  { sector: 'التجارة الإلكترونية', revenue: 450000 },
-  { sector: 'الخدمات المالية', revenue: 380000 },
-  { sector: 'التعليم', revenue: 320000 },
-  { sector: 'الصحة', revenue: 280000 },
-  { sector: 'السياحة', revenue: 250000 }
-];
-
-const productPositionData = [
-  { rating: 4.2, marketSize: 85, name: 'منتج أ' },
-  { rating: 3.8, marketSize: 65, name: 'منتج ب' },
-  { rating: 4.5, marketSize: 45, name: 'منتج ج' },
-  { rating: 3.2, marketSize: 35, name: 'منتج د' },
-  { rating: 4.0, marketSize: 55, name: 'منتج هـ' }
-];
-
-const swotData = [
-  { factor: 'نقاط القوة', value: 85 },
-  { factor: 'نقاط الضعف', value: 45 },
-  { factor: 'الفرص', value: 75 },
-  { factor: 'التهديدات', value: 35 },
-  { factor: 'الابتكار', value: 80 },
-  { factor: 'الخبرة', value: 90 }
-];
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { ChartRenderer } from '@/components/visualization/ChartRenderer';
+import { useVisualizationData } from '@/hooks/useVisualizationData';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TrendingUp, Users, Target, BarChart3 } from 'lucide-react';
 
 export const StrategicCharts = () => {
+  const [strategicData, setStrategicData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { getTemplatesByAgent } = useVisualizationData();
+
+  useEffect(() => {
+    loadStrategicData();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('strategic_charts_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'strategic_analyses'
+      }, () => {
+        loadStrategicData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadStrategicData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('strategic_analyses')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setStrategicData(data);
+    } catch (error) {
+      console.error('Error loading strategic data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const templates = getTemplatesByAgent('M1_STRATEGIC');
+
+  // Mock data for demonstration
+  const mockSwotData = {
+    strengths: ['تقنية متقدمة', 'فريق خبير', 'موقع استراتيجي'],
+    weaknesses: ['محدودية الموارد', 'ضعف في التسويق'],
+    opportunities: ['نمو السوق', 'شراكات جديدة', 'تقنيات ناشئة'],
+    threats: ['منافسة قوية', 'تغيرات تنظيمية']
+  };
+
+  const mockCompetitorData = [
+    { name: 'المنافس أ', metrics: { الجودة: 85, السعر: 70, الخدمة: 90, الابتكار: 75, الوصول: 80 } },
+    { name: 'المنافس ب', metrics: { الجودة: 75, السعر: 85, الخدمة: 70, الابتكار: 80, الوصول: 75 } },
+    { name: 'شركتنا', metrics: { الجودة: 90, السعر: 60, الخدمة: 85, الابتكار: 85, الوصول: 70 } }
+  ];
+
+  const mockTrendData = [
+    { date: '2024-01', value: 1200, forecast: null },
+    { date: '2024-02', value: 1350, forecast: null },
+    { date: '2024-03', value: 1280, forecast: null },
+    { date: '2024-04', value: 1450, forecast: null },
+    { date: '2024-05', value: null, forecast: 1520 },
+    { date: '2024-06', value: null, forecast: 1600 }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="h-96">
+            <CardContent className="flex items-center justify-center h-full">
+              <div className="animate-pulse bg-gray-200 w-full h-full rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 font-cairo">
-      <div>
-        <h2 className="text-3xl font-bold text-blue-600 mb-2">مخططات الاستراتيجي</h2>
-        <p className="text-gray-600 mb-8">تحليل شامل للوضع الاستراتيجي وحصة السوق</p>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Market Share Pie Chart */}
-        <Card className="bg-white border border-gray-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-800 text-right font-cairo">حصة السوق</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={marketShareData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}%`}
-                >
-                  {marketShareData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value}%`, 'النسبة']} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <Tabs defaultValue="swot" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="swot" className="flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            تحليل SWOT
+          </TabsTrigger>
+          <TabsTrigger value="competitors" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            المنافسون
+          </TabsTrigger>
+          <TabsTrigger value="trends" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            الاتجاهات
+          </TabsTrigger>
+          <TabsTrigger value="kpis" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            مؤشرات الأداء
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Market Growth Line Chart */}
-        <Card className="bg-white border border-gray-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-800 text-right font-cairo">نمو السوق عبر الزمن</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={marketGrowthData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
-                <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="growth" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3}
-                  name="النمو %" 
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <TabsContent value="swot" className="mt-6">
+          <ChartRenderer
+            config={{
+              type: 'quadrant',
+              title: 'تحليل SWOT الشامل',
+              theme: 'light',
+              rtl: true
+            }}
+            data={strategicData?.swot_analysis || mockSwotData}
+            className="w-full"
+          />
+        </TabsContent>
 
-        {/* Revenue Bar Chart */}
-        <Card className="bg-white border border-gray-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-800 text-right font-cairo">الإيرادات حسب القطاع</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="sector" type="category" width={120} />
-                <Tooltip formatter={(value) => [value.toLocaleString(), 'الإيرادات']} />
-                <Bar dataKey="revenue" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <TabsContent value="competitors" className="mt-6">
+          <ChartRenderer
+            config={{
+              type: 'radar',
+              title: 'مقارنة تنافسية شاملة',
+              options: {
+                axes: ['الجودة', 'السعر', 'الخدمة', 'الابتكار', 'الوصول']
+              },
+              theme: 'light',
+              rtl: true
+            }}
+            data={strategicData?.competitor_data || mockCompetitorData}
+            className="w-full"
+          />
+        </TabsContent>
 
-        {/* Product Position Scatter Plot */}
-        <Card className="bg-white border border-gray-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-800 text-right font-cairo">تموضع المنتجات</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <ScatterChart data={productPositionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="rating" name="التقييم" />
-                <YAxis dataKey="marketSize" name="حجم السوق" />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Scatter dataKey="marketSize" fill="#3b82f6" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <TabsContent value="trends" className="mt-6">
+          <ChartRenderer
+            config={{
+              type: 'line',
+              title: 'اتجاهات السوق والتوقعات',
+              options: {
+                forecast: true
+              },
+              theme: 'light',
+              rtl: true
+            }}
+            data={strategicData?.market_trends || mockTrendData}
+            className="w-full"
+          />
+        </TabsContent>
 
-        {/* SWOT Radar Chart */}
-        <Card className="bg-white border border-gray-200 shadow-lg lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-gray-800 text-right font-cairo">تحليل SWOT</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-              <RadarChart data={swotData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="factor" />
-                <PolarRadiusAxis angle={0} domain={[0, 100]} />
-                <Radar
-                  name="التقييم"
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
-                <Tooltip />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="kpis" className="mt-6">
+          <ChartRenderer
+            config={{
+              type: 'bullet',
+              title: 'مؤشرات الأداء الرئيسية',
+              theme: 'light',
+              rtl: true
+            }}
+            data={strategicData?.kpi_metrics || [
+              { name: 'الإيرادات', current: 85, target: 100, previousPeriod: 78 },
+              { name: 'نمو العملاء', current: 92, target: 100, previousPeriod: 85 },
+              { name: 'الحصة السوقية', current: 78, target: 100, previousPeriod: 72 }
+            ]}
+            className="w-full"
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
