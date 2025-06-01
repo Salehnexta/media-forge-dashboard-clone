@@ -6,8 +6,9 @@ export function analyzeQuestion(question: string): AIManager {
   
   // تحليل دقيق للسؤال لتوجيهه للخبير المناسب
   
-  // أسئلة حول الشركة والبيانات الأساسية
-  if (lowerQuestion.includes('شركة') || 
+  // أسئلة حول الشركة والبيانات الأساسية - أولوية عالية
+  if (lowerQuestion.includes('شركتي') || 
+      lowerQuestion.includes('شركة') || 
       lowerQuestion.includes('اسم') || 
       lowerQuestion.includes('ملف') || 
       lowerQuestion.includes('بيانات') ||
@@ -15,7 +16,10 @@ export function analyzeQuestion(question: string): AIManager {
       lowerQuestion.includes('تأسيس') ||
       lowerQuestion.includes('خلفية') ||
       lowerQuestion.includes('نبذة') ||
-      lowerQuestion.includes('تعريف')) {
+      lowerQuestion.includes('تعريف') ||
+      lowerQuestion.includes('هوية') ||
+      lowerQuestion.includes('ماهو') ||
+      lowerQuestion.includes('ما هو')) {
     return 'strategic';
   }
   
@@ -105,6 +109,6 @@ export function analyzeQuestion(question: string): AIManager {
     return 'strategic';
   }
   
-  // إذا كان السؤال عام أو غير واضح، ارجع للوكيل الاستراتيجي
+  // إذا كان السؤال قصير جداً أو غير واضح، ارجع للوكيل الاستراتيجي
   return 'strategic';
 }
