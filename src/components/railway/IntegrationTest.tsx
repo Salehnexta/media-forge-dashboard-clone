@@ -163,7 +163,7 @@ export const IntegrationTest = () => {
         };
 
         // This is a test run - we expect it might fail but we're testing the connection
-        await executeAgent('M1_STRATEGIC', testCompanyData, { noRetry: true });
+        await executeAgent('M1_STRATEGIC', testCompanyData);
         
         updateTest(4, { 
           status: 'success', 
