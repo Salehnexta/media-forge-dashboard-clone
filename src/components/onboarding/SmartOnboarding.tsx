@@ -11,7 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Loader2, Brain, Target, Rocket, CheckCircle } from 'lucide-react';
+import { Loader2, Brain, Target, Rocket, CheckCircle, Building2, TrendingUp, Wallet, Upload } from 'lucide-react';
+import { SalesDataStep } from './SalesDataStep';
+import { BudgetStep } from './BudgetStep';
+import { DocumentUploadStep } from './DocumentUploadStep';
 
 interface SmartOnboardingProps {
   user: User;
@@ -26,6 +29,28 @@ interface CompanyData {
   size: string;
   location: string;
   founded: string;
+}
+
+interface SalesData {
+  annual_revenue: string;
+  monthly_average_sales: string;
+  top_selling_products: string[];
+  sales_channels: string[];
+  customer_acquisition_cost: string;
+  customer_lifetime_value: string;
+  conversion_rate: string;
+  sales_team_size: string;
+  sales_process_description: string;
+}
+
+interface BudgetData {
+  total_marketing_budget: string;
+  monthly_marketing_budget: string;
+  budget_allocation: Record<string, number>;
+  budget_period: string;
+  priority_channels: string[];
+  budget_constraints: string;
+  expected_roi: string;
 }
 
 const industryOptions = [
@@ -55,6 +80,8 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  
   const [companyData, setCompanyData] = useState<CompanyData>({
     name: '',
     industry: '',
@@ -64,9 +91,33 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
     location: '',
     founded: ''
   });
+
+  const [salesData, setSalesData] = useState<SalesData>({
+    annual_revenue: '',
+    monthly_average_sales: '',
+    top_selling_products: [],
+    sales_channels: [],
+    customer_acquisition_cost: '',
+    customer_lifetime_value: '',
+    conversion_rate: '',
+    sales_team_size: '',
+    sales_process_description: ''
+  });
+
+  const [budgetData, setBudgetData] = useState<BudgetData>({
+    total_marketing_budget: '',
+    monthly_marketing_budget: '',
+    budget_allocation: {},
+    budget_period: 'monthly',
+    priority_channels: [],
+    budget_constraints: '',
+    expected_roi: ''
+  });
+
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  const totalSteps = 4;
+  const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleInputChange = (field: keyof CompanyData, value: string) => {
@@ -88,7 +139,7 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Save company data
+      // حفظ بيانات الشركة
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
@@ -99,12 +150,53 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
         .single();
 
       if (companyError) throw companyError;
+      setCompanyId(company.id);
+
+      // حفظ بيانات المبيعات
+      if (salesData.annual_revenue || salesData.monthly_average_sales) {
+        const { error: salesError } = await supabase
+          .from('sales_data')
+          .insert({
+            company_id: company.id,
+            user_id: user.id,
+            annual_revenue: salesData.annual_revenue ? parseFloat(salesData.annual_revenue) : null,
+            monthly_average_sales: salesData.monthly_average_sales ? parseFloat(salesData.monthly_average_sales) : null,
+            top_selling_products: salesData.top_selling_products,
+            sales_channels: salesData.sales_channels,
+            customer_acquisition_cost: salesData.customer_acquisition_cost ? parseFloat(salesData.customer_acquisition_cost) : null,
+            customer_lifetime_value: salesData.customer_lifetime_value ? parseFloat(salesData.customer_lifetime_value) : null,
+            conversion_rate: salesData.conversion_rate ? parseFloat(salesData.conversion_rate) : null,
+            sales_team_size: salesData.sales_team_size ? parseInt(salesData.sales_team_size) : null,
+            sales_process_description: salesData.sales_process_description
+          });
+
+        if (salesError) throw salesError;
+      }
+
+      // حفظ بيانات الميزانية
+      if (budgetData.total_marketing_budget || budgetData.monthly_marketing_budget) {
+        const { error: budgetError } = await supabase
+          .from('budget_info')
+          .insert({
+            company_id: company.id,
+            user_id: user.id,
+            total_marketing_budget: budgetData.total_marketing_budget ? parseFloat(budgetData.total_marketing_budget) : null,
+            monthly_marketing_budget: budgetData.monthly_marketing_budget ? parseFloat(budgetData.monthly_marketing_budget) : null,
+            budget_allocation: budgetData.budget_allocation,
+            budget_period: budgetData.budget_period,
+            priority_channels: budgetData.priority_channels,
+            budget_constraints: budgetData.budget_constraints,
+            expected_roi: budgetData.expected_roi ? parseFloat(budgetData.expected_roi) : null
+          });
+
+        if (budgetError) throw budgetError;
+      }
 
       toast.success('تم حفظ بيانات الشركة بنجاح!');
       
-      // Start AI analysis
+      // بدء التحليل الذكي
       setAnalyzing(true);
-      setCurrentStep(4);
+      setCurrentStep(6);
       
       const { data: analysisResult, error: analysisError } = await supabase.functions
         .invoke('analyze-company', {
@@ -118,7 +210,7 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
         toast.success('تم إكمال التحليل الذكي بنجاح! 🎉');
       }
 
-      // Complete onboarding
+      // إكمال عملية التسجيل
       setTimeout(() => {
         if (onComplete) {
           onComplete();
@@ -143,9 +235,9 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Rocket className="w-10 h-10 text-white" />
+                <Building2 className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">أهلاً بك في Morvo! 🎉</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">معلومات الشركة الأساسية</h2>
               <p className="text-gray-600">دعنا نتعرف على شركتك لنقدم لك أفضل الخدمات</p>
             </div>
             
@@ -257,53 +349,21 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
         );
 
       case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Brain className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">جاهز للتحليل الذكي!</h2>
-              <p className="text-gray-600">سنقوم بتحليل شركتك والسوق باستخدام الذكاء الاصطناعي</p>
-            </div>
-            
-            <Card className="border-2 border-blue-200 bg-blue-50">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-blue-900 mb-3">ما سنقوم بتحليله:</h3>
-                <ul className="space-y-2 text-blue-800">
-                  <li className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-blue-600 ml-2" />
-                    تحليل المنافسين في السوق
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-blue-600 ml-2" />
-                    اتجاهات السوق والفرص المتاحة
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-blue-600 ml-2" />
-                    استراتيجيات التسويق المناسبة
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-blue-600 ml-2" />
-                    توصيات مخصصة لشركتك
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">ملخص بيانات شركتك:</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p><strong>الاسم:</strong> {companyData.name}</p>
-                <p><strong>الصناعة:</strong> {companyData.industry}</p>
-                {companyData.website && <p><strong>الموقع:</strong> {companyData.website}</p>}
-                {companyData.size && <p><strong>الحجم:</strong> {companyData.size}</p>}
-              </div>
-            </div>
-          </div>
-        );
+        return <SalesDataStep salesData={salesData} onSalesDataChange={setSalesData} />;
 
       case 4:
+        return <BudgetStep budgetData={budgetData} onBudgetDataChange={setBudgetData} />;
+
+      case 5:
+        return (
+          <DocumentUploadStep 
+            userId={user.id} 
+            companyId={companyId}
+            onFilesChange={setUploadedFiles}
+          />
+        );
+
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -315,12 +375,12 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
                 )}
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {analyzing ? 'جاري التحليل...' : 'تم إكمال التحليل! 🎉'}
+                {analyzing ? 'جاري التحليل الشامل...' : 'تم إكمال التحليل! 🎉'}
               </h2>
               <p className="text-gray-600">
                 {analyzing 
-                  ? 'نحن نحلل شركتك والسوق باستخدام أحدث تقنيات الذكاء الاصطناعي'
-                  : 'مرحباً بك في Morvo! ستجد التحليل المفصل في لوحة التحكم'
+                  ? 'نحن نحلل جميع البيانات والملفات باستخدام أحدث تقنيات الذكاء الاصطناعي'
+                  : 'مرحباً بك في Morvo! ستجد التحليل المفصل والتوصيات في لوحة التحكم'
                 }
               </p>
             </div>
@@ -331,7 +391,15 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
                   <div className="space-y-4">
                     <div className="flex items-center text-blue-800">
                       <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                      <span>تحليل السوق والمنافسين...</span>
+                      <span>تحليل بيانات الشركة والسوق...</span>
+                    </div>
+                    <div className="flex items-center text-blue-800">
+                      <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                      <span>معالجة بيانات المبيعات والميزانية...</span>
+                    </div>
+                    <div className="flex items-center text-blue-800">
+                      <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                      <span>تحليل الملفات المرفوعة...</span>
                     </div>
                     <div className="flex items-center text-blue-800">
                       <Loader2 className="w-4 h-4 animate-spin ml-2" />
@@ -339,7 +407,7 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
                     </div>
                     <div className="flex items-center text-blue-800">
                       <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                      <span>إعداد لوحة التحكم...</span>
+                      <span>إعداد لوحة التحكم الشخصية...</span>
                     </div>
                   </div>
                 </CardContent>
@@ -358,17 +426,30 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
       case 1:
         return companyData.name.trim() && companyData.industry;
       case 2:
-        return true; // Optional fields
       case 3:
-        return true;
+      case 4:
+      case 5:
+        return true; // الخطوات الاختيارية
       default:
         return false;
     }
   };
 
+  const getStepIcon = (step: number) => {
+    switch (step) {
+      case 1: return Building2;
+      case 2: return Target;
+      case 3: return TrendingUp;
+      case 4: return Wallet;
+      case 5: return Upload;
+      case 6: return Brain;
+      default: return Building2;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-4xl">
         <CardHeader className="text-center">
           <div className="mb-4">
             <Progress value={progress} className="w-full" />
@@ -388,14 +469,14 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
               السابق
             </Button>
             
-            {currentStep < 3 ? (
+            {currentStep < 5 ? (
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || loading}
               >
                 التالي
               </Button>
-            ) : currentStep === 3 ? (
+            ) : currentStep === 5 ? (
               <Button
                 onClick={handleSubmit}
                 disabled={loading || !canProceed()}
@@ -406,7 +487,7 @@ export const SmartOnboarding = ({ user, onComplete }: SmartOnboardingProps) => {
                     جاري البدء...
                   </>
                 ) : (
-                  'ابدأ التحليل الذكي'
+                  'ابدأ التحليل الشامل'
                 )}
               </Button>
             ) : null}

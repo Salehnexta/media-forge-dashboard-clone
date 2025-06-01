@@ -246,6 +246,59 @@ export type Database = {
           },
         ]
       }
+      budget_info: {
+        Row: {
+          budget_allocation: Json | null
+          budget_constraints: string | null
+          budget_period: string | null
+          company_id: string | null
+          created_at: string
+          expected_roi: number | null
+          id: string
+          monthly_marketing_budget: number | null
+          priority_channels: Json | null
+          total_marketing_budget: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          budget_allocation?: Json | null
+          budget_constraints?: string | null
+          budget_period?: string | null
+          company_id?: string | null
+          created_at?: string
+          expected_roi?: number | null
+          id?: string
+          monthly_marketing_budget?: number | null
+          priority_channels?: Json | null
+          total_marketing_budget?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          budget_allocation?: Json | null
+          budget_constraints?: string | null
+          budget_period?: string | null
+          company_id?: string | null
+          created_at?: string
+          expected_roi?: number | null
+          id?: string
+          monthly_marketing_budget?: number | null
+          priority_channels?: Json | null
+          total_marketing_budget?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_info_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_goals: {
         Row: {
           company_id: string | null
@@ -452,6 +505,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "company_analysis_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_documents: {
+        Row: {
+          analysis_results: Json | null
+          analysis_status: string | null
+          analyzed_at: string | null
+          company_id: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          uploaded_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis_results?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
+          company_id?: string | null
+          document_name: string
+          document_type: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis_results?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
+          company_id?: string | null
+          document_name?: string
+          document_type?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_documents_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -917,6 +1023,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sales_data: {
+        Row: {
+          annual_revenue: number | null
+          company_id: string | null
+          conversion_rate: number | null
+          created_at: string
+          customer_acquisition_cost: number | null
+          customer_lifetime_value: number | null
+          id: string
+          monthly_average_sales: number | null
+          sales_channels: Json | null
+          sales_process_description: string | null
+          sales_team_size: number | null
+          top_selling_products: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          annual_revenue?: number | null
+          company_id?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          customer_acquisition_cost?: number | null
+          customer_lifetime_value?: number | null
+          id?: string
+          monthly_average_sales?: number | null
+          sales_channels?: Json | null
+          sales_process_description?: string | null
+          sales_team_size?: number | null
+          top_selling_products?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          annual_revenue?: number | null
+          company_id?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          customer_acquisition_cost?: number | null
+          customer_lifetime_value?: number | null
+          id?: string
+          monthly_average_sales?: number | null
+          sales_channels?: Json | null
+          sales_process_description?: string | null
+          sales_team_size?: number | null
+          top_selling_products?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_data_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       semrush_competitors: {
         Row: {
