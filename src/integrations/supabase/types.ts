@@ -51,6 +51,50 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_access: {
+        Row: {
+          access_scope: string | null
+          account_id: string | null
+          api_key: string | null
+          company_id: string | null
+          created_at: string | null
+          encrypted: boolean | null
+          id: string
+          platform_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_scope?: string | null
+          account_id?: string | null
+          api_key?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          encrypted?: boolean | null
+          id?: string
+          platform_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_scope?: string | null
+          account_id?: string | null
+          api_key?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          encrypted?: boolean | null
+          id?: string
+          platform_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bi_reports: {
         Row: {
           created_at: string | null
@@ -95,6 +139,94 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      brand_positioning: {
+        Row: {
+          brand_voice: string | null
+          company_id: string | null
+          core_values: string[] | null
+          created_at: string | null
+          id: string
+          mission_statement: string | null
+          unique_selling_points: string[] | null
+          updated_at: string | null
+          vision_statement: string | null
+        }
+        Insert: {
+          brand_voice?: string | null
+          company_id?: string | null
+          core_values?: string[] | null
+          created_at?: string | null
+          id?: string
+          mission_statement?: string | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          vision_statement?: string | null
+        }
+        Update: {
+          brand_voice?: string | null
+          company_id?: string | null
+          core_values?: string[] | null
+          created_at?: string | null
+          id?: string
+          mission_statement?: string | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          vision_statement?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_positioning_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_goals: {
+        Row: {
+          company_id: string | null
+          conversion_targets: Json | null
+          created_at: string | null
+          id: string
+          key_performance_indicators: string[] | null
+          long_term_goals: Json | null
+          revenue_targets: Json | null
+          short_term_objectives: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          conversion_targets?: Json | null
+          created_at?: string | null
+          id?: string
+          key_performance_indicators?: string[] | null
+          long_term_goals?: Json | null
+          revenue_targets?: Json | null
+          short_term_objectives?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          conversion_targets?: Json | null
+          created_at?: string | null
+          id?: string
+          key_performance_indicators?: string[] | null
+          long_term_goals?: Json | null
+          revenue_targets?: Json | null
+          short_term_objectives?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_goals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaign_metrics: {
         Row: {
@@ -235,6 +367,98 @@ export type Database = {
           },
         ]
       }
+      company_profiles: {
+        Row: {
+          company_description: string | null
+          company_name: string
+          company_size: number
+          created_at: string | null
+          headquarters: string | null
+          id: string
+          industry: string
+          logo_url: string | null
+          target_markets: string[] | null
+          updated_at: string | null
+          user_id: string | null
+          website_url: string | null
+          years_in_business: number | null
+        }
+        Insert: {
+          company_description?: string | null
+          company_name: string
+          company_size: number
+          created_at?: string | null
+          headquarters?: string | null
+          id?: string
+          industry: string
+          logo_url?: string | null
+          target_markets?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
+          years_in_business?: number | null
+        }
+        Update: {
+          company_description?: string | null
+          company_name?: string
+          company_size?: number
+          created_at?: string | null
+          headquarters?: string | null
+          id?: string
+          industry?: string
+          logo_url?: string | null
+          target_markets?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          website_url?: string | null
+          years_in_business?: number | null
+        }
+        Relationships: []
+      }
+      competitors: {
+        Row: {
+          company_id: string | null
+          competitor_name: string
+          created_at: string | null
+          id: string
+          market_share: number | null
+          strengths: string[] | null
+          updated_at: string | null
+          weaknesses: string[] | null
+          website_url: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          competitor_name: string
+          created_at?: string | null
+          id?: string
+          market_share?: number | null
+          strengths?: string[] | null
+          updated_at?: string | null
+          weaknesses?: string[] | null
+          website_url?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          competitor_name?: string
+          created_at?: string | null
+          id?: string
+          market_share?: number | null
+          strengths?: string[] | null
+          updated_at?: string | null
+          weaknesses?: string[] | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitors_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_calendar: {
         Row: {
           campaign_id: string | null
@@ -353,6 +577,47 @@ export type Database = {
           },
         ]
       }
+      language_preferences: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          cultural_considerations: Json | null
+          id: string
+          primary_language: string
+          regional_regulations: string[] | null
+          secondary_languages: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          cultural_considerations?: Json | null
+          id?: string
+          primary_language: string
+          regional_regulations?: string[] | null
+          secondary_languages?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          cultural_considerations?: Json | null
+          id?: string
+          primary_language?: string
+          regional_regulations?: string[] | null
+          secondary_languages?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "language_preferences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_campaigns: {
         Row: {
           budget: number | null
@@ -400,6 +665,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      marketing_context: {
+        Row: {
+          active_channels: string[] | null
+          annual_budget: number | null
+          available_content_assets: string[] | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          marketing_tools: string[] | null
+          successful_campaigns: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_channels?: string[] | null
+          annual_budget?: number | null
+          available_content_assets?: string[] | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          marketing_tools?: string[] | null
+          successful_campaigns?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_channels?: string[] | null
+          annual_budget?: number | null
+          available_content_assets?: string[] | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          marketing_tools?: string[] | null
+          successful_campaigns?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_context_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -560,38 +869,61 @@ export type Database = {
       social_accounts: {
         Row: {
           access_token: string | null
+          account_handle: string | null
           account_id: string | null
+          company_id: string | null
           connected_at: string
+          engagement_metrics: Json | null
+          goals: string[] | null
           id: string
           permissions: Json | null
           platform: string
+          posting_frequency: string | null
           refresh_token: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           access_token?: string | null
+          account_handle?: string | null
           account_id?: string | null
+          company_id?: string | null
           connected_at?: string
+          engagement_metrics?: Json | null
+          goals?: string[] | null
           id?: string
           permissions?: Json | null
           platform: string
+          posting_frequency?: string | null
           refresh_token?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           access_token?: string | null
+          account_handle?: string | null
           account_id?: string | null
+          company_id?: string | null
           connected_at?: string
+          engagement_metrics?: Json | null
+          goals?: string[] | null
           id?: string
           permissions?: Json | null
           platform?: string
+          posting_frequency?: string | null
           refresh_token?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_mentions: {
         Row: {
@@ -658,12 +990,95 @@ export type Database = {
           },
         ]
       }
+      target_audiences: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          decision_makers: string[] | null
+          demographics: Json
+          id: string
+          pain_points: string[] | null
+          sales_cycle_length: string | null
+          segment_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          decision_makers?: string[] | null
+          demographics: Json
+          id?: string
+          pain_points?: string[] | null
+          sales_cycle_length?: string | null
+          segment_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          decision_makers?: string[] | null
+          demographics?: Json
+          id?: string
+          pain_points?: string[] | null
+          sales_cycle_length?: string | null
+          segment_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_audiences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          communication_style: string | null
+          created_at: string | null
+          focus_areas: string[] | null
+          id: string
+          notification_preferences: Json | null
+          reporting_format: string | null
+          update_frequency: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          communication_style?: string | null
+          created_at?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          notification_preferences?: Json | null
+          reporting_format?: string | null
+          update_frequency?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          communication_style?: string | null
+          created_at?: string | null
+          focus_areas?: string[] | null
+          id?: string
+          notification_preferences?: Json | null
+          reporting_format?: string | null
+          update_frequency?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_owns_company: {
+        Args: { company_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { OnboardingSystem } from '@/components/auth/OnboardingSystem';
+import { FreeAnalysisOnboarding } from '@/components/onboarding/FreeAnalysisOnboarding';
 import { toast } from 'sonner';
 
 const Auth = () => {
@@ -11,8 +12,13 @@ const Auth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  const [showFreeAnalysis, setShowFreeAnalysis] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // التحقق من وجود معاملات التحليل المجاني
+  const isFreeAnalysis = searchParams.get('type') === 'free-analysis';
 
   useEffect(() => {
     // Handle email verification from URL fragments
@@ -41,7 +47,13 @@ const Auth = () => {
             toast.success('تم تأكيد البريد الإلكتروني بنجاح!');
             // Clear the URL hash
             window.history.replaceState(null, '', window.location.pathname);
-            navigate('/dashboard');
+            
+            // إذا كان المستخدم جاء من التحليل المجاني، أظهر نموذج البيانات
+            if (isFreeAnalysis) {
+              setShowFreeAnalysis(true);
+            } else {
+              navigate('/dashboard');
+            }
             return;
           }
         } catch (error) {
@@ -63,9 +75,13 @@ const Auth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Redirect authenticated users to dashboard
+        // إذا كان المستخدم مسجل دخول وجاء من التحليل المجاني
         if (session?.user && !verifying) {
-          navigate('/dashboard');
+          if (isFreeAnalysis) {
+            setShowFreeAnalysis(true);
+          } else {
+            navigate('/dashboard');
+          }
         }
       }
     );
@@ -77,12 +93,20 @@ const Auth = () => {
       setLoading(false);
       
       if (session?.user && !verifying) {
-        navigate('/dashboard');
+        if (isFreeAnalysis) {
+          setShowFreeAnalysis(true);
+        } else {
+          navigate('/dashboard');
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, location.hash, verifying]);
+  }, [navigate, location.hash, verifying, isFreeAnalysis]);
+
+  const handleFreeAnalysisComplete = () => {
+    navigate('/ai-analysis');
+  };
 
   if (loading || verifying) {
     return (
@@ -97,6 +121,11 @@ const Auth = () => {
         </div>
       </div>
     );
+  }
+
+  // إذا كان المستخدم مسجل دخول ويريد التحليل المجاني
+  if (user && showFreeAnalysis) {
+    return <FreeAnalysisOnboarding user={user} onComplete={handleFreeAnalysisComplete} />;
   }
 
   return <OnboardingSystem />;
