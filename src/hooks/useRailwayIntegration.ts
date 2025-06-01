@@ -132,14 +132,14 @@ export const useRailwayIntegration = () => {
       // Clear progress simulation
       clearInterval(progressInterval);
 
-      // Save result to Supabase
+      // Save result to Supabase - fix the field names and JSON casting
       const { error: dbError } = await supabase
         .from('agent_results')
         .insert({
           agent_id: agentType,
           task_type: 'agent_execution',
-          input_data: companyData,
-          output_data: result,
+          input_data: companyData as any, // Cast to any to satisfy Json type
+          output_data: result as any, // Cast to any to satisfy Json type
           status: 'completed',
           execution_time_ms: estimatedTime
         });
@@ -208,14 +208,14 @@ export const useRailwayIntegration = () => {
 
       clearInterval(progressInterval);
 
-      // Save result to Supabase
+      // Save result to Supabase - fix the field names and JSON casting
       const { error: dbError } = await supabase
         .from('agent_results')
         .insert({
           agent_id: crewType,
           task_type: 'crew_execution',
-          input_data: companyData,
-          output_data: result,
+          input_data: companyData as any, // Cast to any to satisfy Json type
+          output_data: result as any, // Cast to any to satisfy Json type
           status: 'completed',
           execution_time_ms: estimatedTime
         });
