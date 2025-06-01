@@ -5,7 +5,6 @@ import { SocialDashboard } from "./dashboards/SocialDashboard";
 import { CampaignsDashboard } from "./dashboards/CampaignsDashboard";
 import { ContentDashboard } from "./dashboards/ContentDashboard";
 import { AnalyticsDashboard } from "./dashboards/AnalyticsDashboard";
-import { PerformanceDashboard } from "./PerformanceDashboard";
 
 interface DashboardSectionProps {
   selectedManager: AIManager;
@@ -24,8 +23,6 @@ export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => 
         return <ContentDashboard />;
       case "analyst":
         return <AnalyticsDashboard />;
-      case "performance":
-        return <PerformanceDashboard />;
       default:
         return <MorvoDashboard />;
     }

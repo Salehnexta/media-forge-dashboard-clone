@@ -1,4 +1,5 @@
-export type AIManager = "strategic" | "monitor" | "executor" | "creative" | "analyst" | "performance";
+
+export type AIManager = "strategic" | "monitor" | "executor" | "creative" | "analyst";
 
 export interface ManagerInfo {
   id: AIManager;

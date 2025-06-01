@@ -45,13 +45,6 @@ export const smartSuggestions: Record<AIManager, SmartSuggestion[]> = {
     { question: 'حلل سلوك العملاء وأنماط الشراء', category: 'analysis' },
     { question: 'ما أهم المؤشرات لقياس نجاح استراتيجيتي؟', category: 'strategy' },
     { question: 'اقترح تحسينات بناءً على البيانات الحالية', category: 'action' }
-  ],
-  performance: [
-    { question: 'أنشئ تقرير حالة النظام والأداء', category: 'chart' },
-    { question: 'اعرض استخدام الذاكرة وحالة الأمان', category: 'chart' },
-    { question: 'كيف أحسن أداء النظام؟', category: 'action' },
-    { question: 'ما هي أفضل ممارسات الأمان؟', category: 'strategy' },
-    { question: 'حلل استهلاك الموارد وسرعة الاستجابة', category: 'analysis' }
   ]
 };
 
