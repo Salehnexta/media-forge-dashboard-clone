@@ -1,20 +1,28 @@
 
-// Main Railway API client
+// Main Railway API client with performance optimizations
 import axios from 'axios';
 import { AGENT_ENDPOINTS, CREW_ENDPOINTS, AgentType, CrewType } from './agentEndpoints';
 import { getAuthHeaders, isTokenValid, initializeAuth } from './authService';
 import { handleApiError, isRetryableError, ProcessedError } from './errorHandling';
 
-const RAILWAY_BASE_URL = import.meta.env.VITE_RAILWAY_API_URL || 'https://crewai-production-d99a.up.railway.app';
-const DEFAULT_TIMEOUT = parseInt(import.meta.env.VITE_RAILWAY_TIMEOUT || '120000');
+const RAILWAY_BASE_URL = 'https://crewai-production-d99a.up.railway.app:8000';
+const DEFAULT_TIMEOUT = 120000; // 2 minutes for long-running operations
+
+// Connection pooling and request batching
+const connectionPool = new Map<string, Promise<any>>();
+const requestBatch = new Map<string, Array<{ resolve: Function, reject: Function }>>();
 
 // Initialize auth on module load
 initializeAuth();
 
-// Create axios instance with default config
+// Create axios instance with optimized config
 const railwayClient = axios.create({
   baseURL: RAILWAY_BASE_URL,
   timeout: DEFAULT_TIMEOUT,
+  headers: {
+    'Keep-Alive': 'timeout=120, max=1000',
+    'Connection': 'keep-alive'
+  }
 });
 
 // Add request interceptor for auth headers
@@ -24,7 +32,6 @@ railwayClient.interceptors.request.use(
       return Promise.reject(new Error('No valid Railway token available'));
     }
     
-    // Add auth headers to every request
     const authHeaders = getAuthHeaders();
     Object.keys(authHeaders).forEach(key => {
       config.headers.set(key, authHeaders[key]);
@@ -35,7 +42,23 @@ railwayClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Retry logic for failed requests
+// Cache for frequently accessed data
+const cache = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 300000; // 5 minutes
+
+const getCachedData = (key: string) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any) => {
+  cache.set(key, { data, timestamp: Date.now() });
+};
+
+// Retry logic with exponential backoff
 const retryRequest = async (errorConfig: any, maxRetries = 3) => {
   let retryCount = 0;
   let lastError = null;
@@ -43,7 +66,6 @@ const retryRequest = async (errorConfig: any, maxRetries = 3) => {
   while (retryCount < maxRetries) {
     try {
       retryCount++;
-      // Exponential backoff: 1s, 2s, 4s
       const delay = Math.pow(2, retryCount - 1) * 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
       
@@ -52,7 +74,6 @@ const retryRequest = async (errorConfig: any, maxRetries = 3) => {
       lastError = error;
       const processedError = handleApiError(error);
       
-      // Only retry if it's a retryable error
       if (!isRetryableError(processedError.type)) {
         break;
       }
@@ -78,11 +99,39 @@ interface AgentOptions {
   additionalParams?: Record<string, any>;
 }
 
-// API functions
+// Batch similar requests together
+const batchRequest = async (key: string, requestFn: () => Promise<any>) => {
+  if (requestBatch.has(key)) {
+    return new Promise((resolve, reject) => {
+      requestBatch.get(key)!.push({ resolve, reject });
+    });
+  }
+
+  requestBatch.set(key, []);
+  
+  try {
+    const result = await requestFn();
+    requestBatch.get(key)?.forEach(({ resolve }) => resolve(result));
+    requestBatch.delete(key);
+    return result;
+  } catch (error) {
+    requestBatch.get(key)?.forEach(({ reject }) => reject(error));
+    requestBatch.delete(key);
+    throw error;
+  }
+};
+
+// API functions with performance optimizations
 export const checkRailwayHealth = async () => {
+  const cacheKey = 'railway_health';
+  const cached = getCachedData(cacheKey);
+  if (cached) return cached;
+  
   try {
     const response = await railwayClient.get('/health');
-    return { status: response.status === 200 ? 'online' : 'offline' };
+    const result = { status: response.status === 200 ? 'online' : 'offline' };
+    setCachedData(cacheKey, result);
+    return result;
   } catch (error) {
     const processedError = handleApiError(error);
     return { status: 'offline', error: processedError };
@@ -103,12 +152,16 @@ export const runAgent = async (agentType: AgentType, companyData: CompanyData, o
       ...options.additionalParams
     };
     
-    const response = await railwayClient.post(endpoint, payload);
-    return response.data;
+    // Use batching for similar requests
+    const batchKey = `agent_${agentType}_${JSON.stringify(payload)}`;
+    
+    return await batchRequest(batchKey, async () => {
+      const response = await railwayClient.post(endpoint, payload);
+      return response.data;
+    });
   } catch (error) {
     const processedError = handleApiError(error);
     
-    // Retry logic for certain errors
     if (isRetryableError(processedError.type) && !options.noRetry) {
       return retryRequest({
         method: 'post',
@@ -145,7 +198,6 @@ export const runCrew = async (crewType: CrewType, companyData: CompanyData, opti
   } catch (error) {
     const processedError = handleApiError(error);
     
-    // Retry logic for certain errors
     if (isRetryableError(processedError.type) && !options.noRetry) {
       return retryRequest({
         method: 'post',

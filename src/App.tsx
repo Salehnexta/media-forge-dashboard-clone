@@ -9,7 +9,6 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AIAnalysis from "./pages/AIAnalysis";
-import RailwayDashboard from "./pages/RailwayDashboard";
 import Product from "./pages/Product";
 import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
@@ -42,7 +41,6 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/ai-analysis" element={<AIAnalysis />} />
-              <Route path="/railway-dashboard" element={<RailwayDashboard />} />
               <Route path="/product" element={<Product />} />
               <Route path="/features" element={<Features />} />
               <Route path="/pricing" element={<Pricing />} />
