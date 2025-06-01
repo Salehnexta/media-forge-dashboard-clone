@@ -65,9 +65,9 @@ const Dashboard = () => {
 
   return (
     <OnboardingTrigger user={user}>
-      <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+      <div className="min-h-screen bg-gray-50 flex w-full" dir="rtl">
         {/* Chat Section on the left */}
-        <div className="w-1/3 bg-white border-r border-gray-200">
+        <div className="w-1/3 bg-white border-l border-gray-200">
           <ChatSection 
             selectedManager={selectedManager}
             onManagerSelect={setSelectedManager}
