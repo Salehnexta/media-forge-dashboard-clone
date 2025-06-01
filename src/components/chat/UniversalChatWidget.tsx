@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User, BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import { useMCPContext } from '@/contexts/MCPContext';
 import { ChatMessage, AIManager } from '@/types/morvo';
 
@@ -19,6 +19,12 @@ interface ContextualResponse {
     action: () => void;
   };
   shareWithAgents?: AIManager[];
+}
+
+interface SmartSuggestion {
+  question: string;
+  category: 'analysis' | 'chart' | 'strategy' | 'action';
+  icon?: React.ReactNode;
 }
 
 export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
@@ -39,33 +45,52 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
     analyst: { name: 'المحلل', color: 'bg-red-500', description: 'تحليل البيانات والتقارير' }
   };
 
-  const suggestedQuestions = {
+  // الأسئلة المقترحة الذكية مع أوامر الرسوم البيانية
+  const smartSuggestions: Record<AIManager, SmartSuggestion[]> = {
     strategic: [
-      'ما هي الاستراتيجية التسويقية المثلى لشركتي؟',
-      'كيف يمكنني تحسين موقعي التنافسي؟',
-      'ما هي الفرص الجديدة في السوق؟'
+      { question: 'أنشئ رسم بياني لتحليل SWOT لشركتي', category: 'chart', icon: <BarChart3 className="w-3 h-3" /> },
+      { question: 'اعرض خارطة الطريق الاستراتيجية لـ 6 أشهر', category: 'chart', icon: <TrendingUp className="w-3 h-3" /> },
+      { question: 'ما هي أفضل استراتيجية لدخول السوق الجديد؟', category: 'strategy' },
+      { question: 'حلل موقعي التنافسي مقارنة بالمنافسين', category: 'analysis' },
+      { question: 'اقترح أهداف KPI قابلة للقياس', category: 'action' }
     ],
     monitor: [
-      'كيف أداء حملاتي الحالية؟',
-      'ما هي المؤشرات التي تحتاج انتباه؟',
-      'أظهر لي تقرير الأداء اليومي'
+      { question: 'أنشئ رسم بياني لأداء منصات التواصل الاجتماعي', category: 'chart', icon: <BarChart3 className="w-3 h-3" /> },
+      { question: 'اعرض تطور معدل التفاعل خلال الشهر الماضي', category: 'chart', icon: <TrendingUp className="w-3 h-3" /> },
+      { question: 'كيف أحسن معدل الوصول على انستغرام؟', category: 'action' },
+      { question: 'ما أفضل أوقات النشر لجمهوري؟', category: 'analysis' },
+      { question: 'حلل أداء الهاشتاجات الأخيرة', category: 'analysis' }
     ],
     executor: [
-      'ساعدني في إنشاء حملة جديدة',
-      'كيف يمكنني تحسين معدل التحويل؟',
-      'ما أفضل قنوات التوزيع لمنتجي؟'
+      { question: 'أنشئ رسم بياني لأداء الحملات الإعلانية', category: 'chart', icon: <PieChart className="w-3 h-3" /> },
+      { question: 'اعرض مقارنة تكلفة النقرة بين المنصات', category: 'chart', icon: <BarChart3 className="w-3 h-3" /> },
+      { question: 'كيف أقلل تكلفة الحصول على عميل جديد؟', category: 'action' },
+      { question: 'ما أفضل استهداف لحملة المنتج الجديد؟', category: 'strategy' },
+      { question: 'حلل معدل التحويل لحملاتي الحالية', category: 'analysis' }
     ],
     creative: [
-      'اقترح أفكار محتوى جديدة',
-      'ساعدني في كتابة إعلان جذاب',
-      'ما هي الاتجاهات الإبداعية الحديثة؟'
+      { question: 'أنشئ رسم بياني لأداء أنواع المحتوى المختلفة', category: 'chart', icon: <BarChart3 className="w-3 h-3" /> },
+      { question: 'اعرض اتجاهات المحتوى الرائج حسب المنصة', category: 'chart', icon: <TrendingUp className="w-3 h-3" /> },
+      { question: 'اقترح أفكار محتوى لحملة رمضان', category: 'action' },
+      { question: 'ما الألوان الأنسب لهوية علامتي التجارية؟', category: 'strategy' },
+      { question: 'حلل أداء الفيديوهات مقابل الصور', category: 'analysis' }
     ],
     analyst: [
-      'حلل بيانات المبيعات الأخيرة',
-      'ما هي توقعات نمو العمل؟',
-      'أظهر لي رؤى عن العملاء'
+      { question: 'أنشئ لوحة تحكم تفاعلية لمؤشرات الأداء', category: 'chart', icon: <BarChart3 className="w-3 h-3" /> },
+      { question: 'اعرض توقعات المبيعات للربع القادم', category: 'chart', icon: <TrendingUp className="w-3 h-3" /> },
+      { question: 'حلل سلوك العملاء وأنماط الشراء', category: 'analysis' },
+      { question: 'ما أهم المؤشرات لقياس نجاح استراتيجيتي؟', category: 'strategy' },
+      { question: 'اقترح تحسينات بناءً على البيانات الحالية', category: 'action' }
     ]
   };
+
+  // أوامر الرسوم البيانية السريعة
+  const quickChartCommands = [
+    { command: '/رسم-دائري', description: 'إنشاء رسم بياني دائري', icon: <PieChart className="w-3 h-3" /> },
+    { command: '/رسم-أعمدة', description: 'إنشاء رسم أعمدة بيانية', icon: <BarChart3 className="w-3 h-3" /> },
+    { command: '/رسم-خطي', description: 'إنشاء رسم بياني خطي', icon: <TrendingUp className="w-3 h-3" /> },
+    { command: '/لوحة-تحكم', description: 'إنشاء لوحة تحكم شاملة', icon: <BarChart3 className="w-3 h-3" /> }
+  ];
 
   useEffect(() => {
     scrollToBottom();
@@ -136,6 +161,11 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
   };
 
   const generateContextualResponse = (userMessage: string, agent: AIManager, memories: any[]): ContextualResponse => {
+    // Check if message contains chart commands
+    if (userMessage.includes('/رسم') || userMessage.includes('أنشئ رسم') || userMessage.includes('اعرض')) {
+      return generateChartResponse(userMessage, agent);
+    }
+
     const responses: Record<AIManager, ContextualResponse> = {
       strategic: {
         text: `بناءً على تحليل الوضع الحالي وسياق المحادثات السابقة، أنصح بالتركيز على تطوير استراتيجية تسويقية متكاملة تأخذ في الاعتبار نقاط القوة والضعف الحالية. يمكنني مساعدتك في تحديد الأولويات وإنشاء خطة عمل محددة.`,
@@ -179,8 +209,32 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
     return responses[agent] || responses.strategic;
   };
 
+  const generateChartResponse = (userMessage: string, agent: AIManager): ContextualResponse => {
+    return {
+      text: `ممتاز! سأقوم بإنشاء الرسم البياني المطلوب بناءً على البيانات المتاحة. سيتضمن الرسم تحليلاً تفاعلياً يمكنك استخدامه لاتخاذ قرارات مدروسة.
+
+📊 **نوع الرسم**: ${userMessage.includes('دائري') ? 'رسم دائري' : userMessage.includes('أعمدة') ? 'رسم أعمدة' : 'رسم بياني متقدم'}
+🎯 **البيانات**: ستُحدث تلقائياً من مصادرك المتصلة
+📈 **التحليل**: يشمل الاتجاهات والرؤى الذكية`,
+      actionButton: {
+        label: 'إنشاء الرسم البياني',
+        action: () => console.log('Creating chart...')
+      }
+    };
+  };
+
   const handleSuggestedQuestion = (question: string) => {
     setMessage(question);
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'chart': return '📊';
+      case 'analysis': return '🔍';
+      case 'strategy': return '🎯';
+      case 'action': return '⚡';
+      default: return '💡';
+    }
   };
 
   if (!isOpen) {
@@ -275,15 +329,43 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
             <p className="text-sm">
               مرحباً! أنا {agentInfo[currentAgent].name}. كيف يمكنني مساعدتك اليوم؟
             </p>
+            
+            {/* أوامر الرسوم البيانية السريعة */}
             <div className="space-y-2">
-              <p className="text-xs font-medium">أسئلة مقترحة:</p>
-              {suggestedQuestions[currentAgent].map((question, index) => (
+              <p className="text-xs font-medium text-blue-600">أوامر الرسوم البيانية السريعة:</p>
+              <div className="grid grid-cols-2 gap-1">
+                {quickChartCommands.map((cmd, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestedQuestion(cmd.command)}
+                    className="flex items-center gap-1 text-xs p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                  >
+                    {cmd.icon}
+                    <span className="truncate">{cmd.command}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* الأسئلة المقترحة الذكية */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium">اقتراحات ذكية:</p>
+              {smartSuggestions[currentAgent].map((suggestion, index) => (
                 <button
                   key={index}
-                  onClick={() => handleSuggestedQuestion(question)}
-                  className="block w-full text-xs text-right p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSuggestedQuestion(suggestion.question)}
+                  className="flex items-start gap-2 w-full text-xs text-right p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  {question}
+                  <span className="text-lg">{getCategoryIcon(suggestion.category)}</span>
+                  <div className="flex-1">
+                    <span className="block">{suggestion.question}</span>
+                    {suggestion.icon && (
+                      <div className="flex items-center gap-1 mt-1 text-blue-500">
+                        {suggestion.icon}
+                        <span className="text-xs">رسم بياني</span>
+                      </div>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
@@ -310,7 +392,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
                   <User className="w-4 h-4 mt-1 flex-shrink-0" />
                 )}
                 <div className="flex-1">
-                  <p className="text-sm">{msg.text}</p>
+                  <p className="text-sm whitespace-pre-line">{msg.text}</p>
                   {msg.actionButton && (
                     <Button
                       onClick={msg.actionButton.action}
@@ -351,7 +433,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="اكتب رسالتك هنا..."
+            placeholder="اكتب رسالتك أو استخدم أوامر مثل /رسم-دائري..."
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             className="text-sm"
           />
