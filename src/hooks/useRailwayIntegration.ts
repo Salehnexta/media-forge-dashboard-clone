@@ -1,7 +1,10 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { runAgent, runCrew, checkRailwayHealth } from '@/api/railway';
-import { AgentType, CrewType } from '@/api/railway/agentEndpoints';
+import { enhancedRailwayClient } from '@/api/railway/enhancedClient';
+import { AGENT_ENDPOINTS, CREW_ENDPOINTS, AgentType, CrewType } from '@/api/railway/agentEndpoints';
+import { useOptimisticMutation } from './useOptimisticMutation';
+import { useDebouncedCallback } from './useDebounce';
 import { toast } from 'sonner';
 
 export interface RailwayExecutionState {
@@ -35,55 +38,55 @@ export const useRailwayIntegration = () => {
     railwayConnected: false
   });
 
-  // Check Railway connection on mount
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const health = await checkRailwayHealth();
-        setState(prev => ({
-          ...prev,
-          railwayConnected: health.status === 'online'
-        }));
-      } catch (error) {
-        setState(prev => ({
-          ...prev,
-          railwayConnected: false
-        }));
-      }
-    };
+  // Debounced health check to avoid excessive requests
+  const debouncedHealthCheck = useDebouncedCallback(async () => {
+    try {
+      const health = await enhancedRailwayClient.get('/health');
+      setState(prev => ({
+        ...prev,
+        railwayConnected: health.status === 'online' || health === 'OK'
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        railwayConnected: false
+      }));
+    }
+  }, 1000);
 
-    checkConnection();
-    // Check connection every 30 seconds
-    const interval = setInterval(checkConnection, 30000);
+  // Check Railway connection on mount and periodically
+  useEffect(() => {
+    debouncedHealthCheck();
+    const interval = setInterval(debouncedHealthCheck, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [debouncedHealthCheck]);
 
   // Get estimated completion time based on agent type
   const getEstimatedTime = (agentType: AgentType | CrewType): number => {
     const estimations = {
-      'M1_STRATEGIC': 15000,      // 15 seconds
-      'M2_SOCIAL': 10000,         // 10 seconds
-      'M3_CAMPAIGN': 20000,       // 20 seconds
-      'M4_CONTENT': 12000,        // 12 seconds
-      'M5_ANALYTICS': 18000,      // 18 seconds
-      'MARKET_ANALYSIS': 25000,   // 25 seconds (M1 + M5)
-      'CONTENT_SOCIAL': 22000,    // 22 seconds (M2 + M4)
-      'CAMPAIGN_EXECUTION': 35000, // 35 seconds (M3 + M2 + M5)
-      'COMPLETE_AUTOMATION': 60000 // 60 seconds (All agents)
+      'M1_STRATEGIC': 15000,
+      'M2_SOCIAL': 10000,
+      'M3_CAMPAIGN': 20000,
+      'M4_CONTENT': 12000,
+      'M5_ANALYTICS': 18000,
+      'MARKET_ANALYSIS': 25000,
+      'CONTENT_SOCIAL': 22000,
+      'CAMPAIGN_EXECUTION': 35000,
+      'COMPLETE_AUTOMATION': 60000
     };
     return estimations[agentType] || 15000;
   };
 
-  // Progress simulation based on estimated time
+  // Progress simulation with smoother updates
   const simulateProgress = (estimatedTime: number) => {
-    const interval = 100; // Update every 100ms
+    const interval = 200; // Update every 200ms for smoother animation
     const steps = estimatedTime / interval;
-    const increment = 100 / steps;
+    const increment = 95 / steps; // Stop at 95% to wait for actual completion
     let currentProgress = 0;
 
     const progressInterval = setInterval(() => {
       currentProgress += increment;
-      if (currentProgress >= 95) { // Stop at 95% to wait for actual completion
+      if (currentProgress >= 95) {
         clearInterval(progressInterval);
         return;
       }
@@ -97,20 +100,19 @@ export const useRailwayIntegration = () => {
     return progressInterval;
   };
 
-  // Enhanced function to save agent results with proper data distribution
+  // Enhanced function to save agent results
   const saveAgentResults = async (agentType: AgentType | CrewType, companyData: CompanyData, result: any, estimatedTime: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get company profile
       const { data: company } = await supabase
         .from('company_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      // Save to main agent_results table
+      // Save to main agent_results table with better error handling
       const { error: agentError } = await supabase
         .from('agent_results')
         .insert({
@@ -221,6 +223,36 @@ export const useRailwayIntegration = () => {
     }
   };
 
+  // Optimistic mutation for better UX
+  const agentMutation = useOptimisticMutation({
+    mutationFn: async ({ agentType, companyData, options }: {
+      agentType: AgentType,
+      companyData: CompanyData,
+      options?: { analysisMode?: string; language?: string }
+    }) => {
+      const endpoint = AGENT_ENDPOINTS[agentType];
+      if (!endpoint) {
+        throw new Error(`Unknown agent type: ${agentType}`);
+      }
+
+      const payload = {
+        company_info: companyData,
+        analysis_mode: options?.analysisMode || 'comprehensive',
+        language: options?.language || 'ar'
+      };
+
+      return enhancedRailwayClient.post(endpoint, payload);
+    },
+    queryKey: ['agentResults'],
+    optimisticUpdate: (oldData, variables) => ({
+      ...oldData,
+      isLoading: true,
+      agentType: variables.agentType
+    }),
+    successMessage: 'تم تشغيل الوكيل الذكي بنجاح',
+    errorMessage: 'حدث خطأ في تشغيل الوكيل الذكي'
+  });
+
   const executeAgent = useCallback(async (
     agentType: AgentType,
     companyData: CompanyData,
@@ -245,16 +277,13 @@ export const useRailwayIntegration = () => {
     const progressInterval = simulateProgress(estimatedTime);
 
     try {
-      console.log(`Executing agent ${agentType} with data:`, companyData);
-      
-      const result = await runAgent(agentType, companyData, {
-        analysisMode: options?.analysisMode || 'comprehensive',
-        language: options?.language || 'ar'
+      const result = await agentMutation.mutateAsync({
+        agentType,
+        companyData,
+        options
       });
 
       clearInterval(progressInterval);
-
-      // Save enhanced results
       await saveAgentResults(agentType, companyData, result, estimatedTime);
 
       setState(prev => ({
@@ -266,11 +295,9 @@ export const useRailwayIntegration = () => {
         executionId: result.execution_id || null
       }));
 
-      toast.success('تم تشغيل الوكيل الذكي بنجاح');
       return result;
     } catch (error: any) {
       clearInterval(progressInterval);
-      console.error(`Error executing agent ${agentType}:`, error);
       
       setState(prev => ({
         ...prev,
@@ -279,11 +306,11 @@ export const useRailwayIntegration = () => {
         error: error.message || 'حدث خطأ في تشغيل الوكيل الذكي'
       }));
 
-      toast.error(error.message || 'حدث خطأ في تشغيل الوكيل الذكي');
       throw error;
     }
-  }, [state.railwayConnected]);
+  }, [state.railwayConnected, agentMutation]);
 
+  // Similar implementation for executeCrew with optimizations
   const executeCrew = useCallback(async (
     crewType: CrewType,
     companyData: CompanyData,
@@ -308,16 +335,20 @@ export const useRailwayIntegration = () => {
     const progressInterval = simulateProgress(estimatedTime);
 
     try {
-      console.log(`Executing crew ${crewType} with data:`, companyData);
-      
-      const result = await runCrew(crewType, companyData, {
-        analysisMode: options?.analysisMode || 'comprehensive',
+      const endpoint = CREW_ENDPOINTS[crewType];
+      if (!endpoint) {
+        throw new Error(`Unknown crew type: ${crewType}`);
+      }
+
+      const payload = {
+        company_info: companyData,
+        analysis_mode: options?.analysisMode || 'comprehensive',
         language: options?.language || 'ar'
-      });
+      };
+
+      const result = await enhancedRailwayClient.post(endpoint, payload);
 
       clearInterval(progressInterval);
-
-      // Save enhanced results
       await saveAgentResults(crewType, companyData, result, estimatedTime);
 
       setState(prev => ({
@@ -333,7 +364,6 @@ export const useRailwayIntegration = () => {
       return result;
     } catch (error: any) {
       clearInterval(progressInterval);
-      console.error(`Error executing crew ${crewType}:`, error);
       
       setState(prev => ({
         ...prev,
