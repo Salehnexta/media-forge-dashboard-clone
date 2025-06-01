@@ -9,16 +9,23 @@ interface ClusterChartProps {
   config: ChartConfig;
 }
 
+interface ClusterPoint {
+  x: number;
+  y: number;
+  cluster?: number;
+  [key: string]: any;
+}
+
 export const ClusterChart: React.FC<ClusterChartProps> = ({ data, config }) => {
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
   
-  // Group data by cluster
-  const clusters = data.reduce((acc, point) => {
+  // Group data by cluster with proper typing
+  const clusters = data.reduce((acc: Record<number, ClusterPoint[]>, point: ClusterPoint) => {
     const clusterId = point.cluster || 0;
     if (!acc[clusterId]) acc[clusterId] = [];
     acc[clusterId].push(point);
     return acc;
-  }, {} as Record<number, any[]>);
+  }, {} as Record<number, ClusterPoint[]>);
 
   return (
     <Card className="w-full">
