@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User, ChevronDown } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User } from 'lucide-react';
 import { useMCPContext } from '@/contexts/MCPContext';
 import { ChatMessage, AIManager } from '@/types/morvo';
 

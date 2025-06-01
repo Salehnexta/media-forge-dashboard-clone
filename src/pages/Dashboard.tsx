@@ -5,18 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/morvo/AppSidebar";
-import { TopNavigation } from "@/components/morvo/TopNavigation";
-import { MorvoDashboard } from "@/components/morvo/dashboards/MorvoDashboard";
-import { SocialDashboard } from "@/components/morvo/dashboards/SocialDashboard";
-import { CampaignsDashboard } from "@/components/morvo/dashboards/CampaignsDashboard";
-import { ContentDashboard } from "@/components/morvo/dashboards/ContentDashboard";
-import { AnalyticsDashboard } from "@/components/morvo/dashboards/AnalyticsDashboard";
+import { DashboardSection } from "@/components/morvo/DashboardSection";
 import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
+import { UniversalChatWidget } from "@/components/chat/UniversalChatWidget";
 import { AIManager } from "@/types/morvo";
 
 const Dashboard = () => {
   const [selectedManager, setSelectedManager] = useState<AIManager>("strategic");
-  const [activeTab, setActiveTab] = useState("morvo");
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,23 +64,6 @@ const Dashboard = () => {
     return null; // Will redirect to auth
   }
 
-  const renderDashboard = () => {
-    switch (activeTab) {
-      case 'morvo':
-        return <MorvoDashboard />;
-      case 'social':
-        return <SocialDashboard />;
-      case 'campaigns':
-        return <CampaignsDashboard />;
-      case 'content':
-        return <ContentDashboard />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      default:
-        return <MorvoDashboard />;
-    }
-  };
-
   return (
     <OnboardingTrigger user={user}>
       <SidebarProvider>
@@ -94,12 +72,10 @@ const Dashboard = () => {
             selectedManager={selectedManager}
             onManagerSelect={setSelectedManager}
           />
-          <div className="flex-1 flex flex-col">
-            <TopNavigation />
-            <main className="flex-1 overflow-auto">
-              {renderDashboard()}
-            </main>
+          <div className="flex-1">
+            <DashboardSection selectedManager={selectedManager} />
           </div>
+          <UniversalChatWidget />
         </div>
       </SidebarProvider>
     </OnboardingTrigger>
