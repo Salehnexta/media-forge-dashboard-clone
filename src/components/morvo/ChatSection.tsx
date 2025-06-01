@@ -1,11 +1,9 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Send, Bot, User, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { AIManager, ChatMessage } from "@/types/morvo";
-import { aiManagers } from "@/data/morvoData";
 import { useChatLogic } from "@/components/chat/hooks/useChatLogic";
 
 interface ChatSectionProps {
@@ -37,17 +35,6 @@ export const ChatSection = ({
     // يمكن إضافة وظيفة مسح المحادثة هنا
   };
 
-  const getManagerColor = (manager: AIManager) => {
-    const colors = {
-      strategic: 'bg-blue-500',
-      monitor: 'bg-pink-500',
-      executor: 'bg-green-500',
-      creative: 'bg-purple-500',
-      analyst: 'bg-orange-500'
-    };
-    return colors[manager];
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('ar-SA', { 
       hour: '2-digit', 
@@ -56,13 +43,15 @@ export const ChatSection = ({
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-white">
       {/* Chat header */}
       <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Bot className="w-6 h-6 text-blue-600" />
-            <span className="font-semibold text-gray-900">فريق Morvo AI</span>
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">m1</span>
+            </div>
+            <span className="font-semibold text-gray-900">مدير التسويق الذكي</span>
           </div>
           <Button
             onClick={clearChat}
@@ -74,40 +63,6 @@ export const ChatSection = ({
             محادثة جديدة
           </Button>
         </div>
-
-        {/* AI Manager Selection */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">اختر المدير المختص:</p>
-          <div className="grid grid-cols-1 gap-2">
-            {aiManagers.map((manager) => (
-              <button
-                key={manager.id}
-                onClick={() => onManagerSelect(manager.id)}
-                className={`p-3 rounded-lg border text-right transition-all ${
-                  selectedManager === manager.id
-                    ? `${getManagerColor(manager.id)} text-white shadow-md`
-                    : 'bg-white hover:bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    selectedManager === manager.id ? 'bg-white/20' : getManagerColor(manager.id)
-                  } ${selectedManager === manager.id ? 'text-white' : 'text-white'}`}>
-                    {manager.name.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{manager.name}</p>
-                    <p className={`text-xs ${
-                      selectedManager === manager.id ? 'text-white/80' : 'text-gray-500'
-                    }`}>
-                      {manager.description}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Chat messages area */}
@@ -115,17 +70,16 @@ export const ChatSection = ({
         <div className="space-y-4">
           {chatHistory.length === 0 && (
             <div className="text-center py-8">
-              <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">m1</span>
+              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">مرحباً بك في Morvo AI</h3>
               <p className="text-gray-600 text-sm mb-4">
-                اختر أحد المديرين من الأعلى وابدأ محادثتك معه
+                أنا m1، مدير التسويق الذكي. كيف يمكنني مساعدتك اليوم؟
               </p>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <Badge className={`${getManagerColor(selectedManager)} text-white mb-2`}>
-                  {aiManagers.find(m => m.id === selectedManager)?.name}
-                </Badge>
                 <p className="text-sm text-gray-600">
-                  {aiManagers.find(m => m.id === selectedManager)?.description}
+                  يمكنني مساعدتك في جميع جوانب التسويق الرقمي والاستراتيجيات التسويقية
                 </p>
               </div>
             </div>
@@ -137,16 +91,12 @@ export const ChatSection = ({
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div className={`max-w-[85%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                {msg.sender === 'ai' && msg.manager && (
+                {msg.sender === 'ai' && (
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-6 h-6 ${getManagerColor(msg.manager)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">
-                        {aiManagers.find(m => m.id === msg.manager)?.name.charAt(0)}
-                      </span>
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">m1</span>
                     </div>
-                    <Badge className={`${getManagerColor(msg.manager)} text-white text-xs`}>
-                      {aiManagers.find(m => m.id === msg.manager)?.name}
-                    </Badge>
+                    <span className="text-xs text-gray-500">مدير التسويق</span>
                   </div>
                 )}
                 
@@ -190,14 +140,10 @@ export const ChatSection = ({
             <div className="flex justify-start">
               <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-6 h-6 ${getManagerColor(selectedManager)} rounded-full flex items-center justify-center`}>
-                    <span className="text-white text-xs font-bold">
-                      {aiManagers.find(m => m.id === selectedManager)?.name.charAt(0)}
-                    </span>
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">m1</span>
                   </div>
-                  <Badge className={`${getManagerColor(selectedManager)} text-white text-xs`}>
-                    {aiManagers.find(m => m.id === selectedManager)?.name}
-                  </Badge>
+                  <span className="text-xs text-gray-500">مدير التسويق</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Bot className="w-4 h-4 text-blue-600" />
@@ -237,11 +183,11 @@ export const ChatSection = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <Badge className={`${getManagerColor(selectedManager)} text-white text-xs`}>
-            {aiManagers.find(m => m.id === selectedManager)?.name}
-          </Badge>
+          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">m1</span>
+          </div>
           <p className="text-xs text-gray-500">
-            جاهز للمساعدة في {aiManagers.find(m => m.id === selectedManager)?.description}
+            مدير التسويق الذكي جاهز للمساعدة
           </p>
         </div>
       </div>
