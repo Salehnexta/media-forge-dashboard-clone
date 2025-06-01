@@ -12,6 +12,15 @@ interface ChatWidgetProps {
   className?: string;
 }
 
+interface ContextualResponse {
+  text: string;
+  actionButton?: {
+    label: string;
+    action: () => void;
+  };
+  shareWithAgents?: AIManager[];
+}
+
 export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -126,15 +135,15 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
     }, 1500);
   };
 
-  const generateContextualResponse = (userMessage: string, agent: AIManager, memories: any[]) => {
-    const responses = {
+  const generateContextualResponse = (userMessage: string, agent: AIManager, memories: any[]): ContextualResponse => {
+    const responses: Record<AIManager, ContextualResponse> = {
       strategic: {
         text: `بناءً على تحليل الوضع الحالي وسياق المحادثات السابقة، أنصح بالتركيز على تطوير استراتيجية تسويقية متكاملة تأخذ في الاعتبار نقاط القوة والضعف الحالية. يمكنني مساعدتك في تحديد الأولويات وإنشاء خطة عمل محددة.`,
         actionButton: {
           label: 'إنشاء استراتيجية',
           action: () => console.log('Creating strategy...')
         },
-        shareWithAgents: ['analyst', 'executor'] as AIManager[]
+        shareWithAgents: ['analyst', 'executor']
       },
       monitor: {
         text: `من خلال مراجعة البيانات المتاحة والسياق السابق، يبدو أن هناك نقاط تحتاج متابعة. سأقوم بإنشاء تقرير مفصل يتضمن المؤشرات الحالية والتوصيات للتحسين.`,
@@ -163,7 +172,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
           label: 'عرض التحليل',
           action: () => console.log('Showing analysis...')
         },
-        shareWithAgents: ['strategic', 'monitor'] as AIManager[]
+        shareWithAgents: ['strategic', 'monitor']
       }
     };
 
@@ -178,7 +187,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 left-6 z-50 rounded-full w-14 h-14 shadow-lg ${className}`}
+        className={`fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg ${className}`}
       >
         <MessageCircle className="w-6 h-6" />
       </Button>
@@ -187,7 +196,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
 
   if (isMinimized) {
     return (
-      <Card className="fixed bottom-6 left-6 z-50 w-80 shadow-lg">
+      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -220,7 +229,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
   }
 
   return (
-    <Card className="fixed bottom-6 left-6 z-50 w-96 h-[600px] shadow-lg flex flex-col">
+    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[600px] shadow-lg flex flex-col">
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-blue-600" />
@@ -272,7 +281,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
                 <button
                   key={index}
                   onClick={() => handleSuggestedQuestion(question)}
-                  className="block w-full text-xs text-left p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="block w-full text-xs text-right p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   {question}
                 </button>

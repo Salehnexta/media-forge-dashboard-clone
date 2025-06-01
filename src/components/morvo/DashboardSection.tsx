@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AIManager } from "@/types/morvo";
 import { StrategicCharts } from './charts/StrategicCharts';
 import { SocialCharts } from './charts/SocialCharts';
