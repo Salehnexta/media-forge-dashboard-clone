@@ -32,22 +32,29 @@ export const useFileUpload = (userId: string, companyId?: string) => {
     setFiles(prev => [...prev, newFile]);
 
     try {
+      // Update progress to show upload starting
+      setFiles(prev => 
+        prev.map(f => 
+          f.id === fileId 
+            ? { ...f, progress: 50 }
+            : f
+        )
+      );
+
       const { data, error } = await supabase.storage
         .from('company-documents')
-        .upload(fileName, file, {
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100;
-            setFiles(prev => 
-              prev.map(f => 
-                f.id === fileId 
-                  ? { ...f, progress: percentage }
-                  : f
-              )
-            );
-          }
-        });
+        .upload(fileName, file);
 
       if (error) throw error;
+
+      // Update progress to show upload complete
+      setFiles(prev => 
+        prev.map(f => 
+          f.id === fileId 
+            ? { ...f, progress: 100 }
+            : f
+        )
+      );
 
       const { error: dbError } = await supabase
         .from('company_documents')

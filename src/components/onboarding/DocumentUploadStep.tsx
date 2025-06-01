@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -82,23 +82,30 @@ export const DocumentUploadStep = ({ userId, companyId, onFilesChange }: Documen
     setUploadedFiles(prev => [...prev, newFile]);
 
     try {
+      // Update progress to show upload starting
+      setUploadedFiles(prev => 
+        prev.map(f => 
+          f.id === fileId 
+            ? { ...f, progress: 50 }
+            : f
+        )
+      );
+
       // رفع الملف إلى Supabase Storage
       const { data, error } = await supabase.storage
         .from('company-documents')
-        .upload(fileName, file, {
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100;
-            setUploadedFiles(prev => 
-              prev.map(f => 
-                f.id === fileId 
-                  ? { ...f, progress: percentage }
-                  : f
-              )
-            );
-          }
-        });
+        .upload(fileName, file);
 
       if (error) throw error;
+
+      // Update progress to show upload complete
+      setUploadedFiles(prev => 
+        prev.map(f => 
+          f.id === fileId 
+            ? { ...f, progress: 100 }
+            : f
+        )
+      );
 
       // حفظ بيانات الملف في قاعدة البيانات
       const { error: dbError } = await supabase
