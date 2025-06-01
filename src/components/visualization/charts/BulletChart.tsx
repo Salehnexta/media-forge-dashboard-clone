@@ -8,7 +8,41 @@ interface BulletChartProps {
   config: ChartConfig;
 }
 
+interface ValidatedBulletData {
+  name: string;
+  current: number;
+  target: number;
+  previousPeriod?: number;
+}
+
 export const BulletChart: React.FC<BulletChartProps> = ({ data, config }) => {
+  // Validate and sanitize bullet chart data
+  const validData: ValidatedBulletData[] = Array.isArray(data)
+    ? data.filter(item => item && typeof item === 'object' && item.name)
+        .map(item => ({
+          name: String(item.name),
+          current: typeof item.current === 'number' ? Math.max(0, item.current) : 0,
+          target: typeof item.target === 'number' ? Math.max(1, item.target) : 100,
+          previousPeriod: typeof item.previousPeriod === 'number' ? item.previousPeriod : undefined
+        }))
+    : [];
+
+  // Handle empty data
+  if (validData.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد بيانات للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -16,12 +50,12 @@ export const BulletChart: React.FC<BulletChartProps> = ({ data, config }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {data.map((metric, index) => {
+          {validData.map((metric, index) => {
             const percentage = (metric.current / metric.target) * 100;
             const isOverTarget = percentage > 100;
             
             return (
-              <div key={index} className="space-y-2">
+              <div key={`${metric.name}-${index}`} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">{metric.name}</span>
                   <span className="text-sm text-gray-600">
@@ -79,15 +113,17 @@ export const BulletChart: React.FC<BulletChartProps> = ({ data, config }) => {
                   </div>
                 </div>
                 
-                {metric.previousPeriod && (
+                {metric.previousPeriod !== undefined && (
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span>الفترة السابقة: {metric.previousPeriod}</span>
-                    <span className={`${
-                      metric.current > metric.previousPeriod ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      ({metric.current > metric.previousPeriod ? '+' : ''}
-                      {((metric.current - metric.previousPeriod) / metric.previousPeriod * 100).toFixed(1)}%)
-                    </span>
+                    {metric.previousPeriod > 0 && (
+                      <span className={`${
+                        metric.current > metric.previousPeriod ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        ({metric.current > metric.previousPeriod ? '+' : ''}
+                        {((metric.current - metric.previousPeriod) / metric.previousPeriod * 100).toFixed(1)}%)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

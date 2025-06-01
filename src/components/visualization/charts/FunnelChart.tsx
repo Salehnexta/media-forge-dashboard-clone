@@ -8,8 +8,68 @@ interface FunnelChartProps {
   config: ChartConfig;
 }
 
+interface ValidatedFunnelData {
+  name: string;
+  value: number;
+}
+
 export const FunnelChart: React.FC<FunnelChartProps> = ({ data, config }) => {
-  const maxValue = Math.max(...data.map(item => item.value));
+  // Validate and sanitize funnel data
+  const validData: ValidatedFunnelData[] = Array.isArray(data)
+    ? data.filter(item => item && typeof item === 'object' && item.name)
+        .map(item => ({
+          name: String(item.name),
+          value: typeof item.value === 'number' && item.value >= 0 ? item.value : 0
+        }))
+    : [];
+
+  // Handle empty data
+  if (validData.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد بيانات للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const maxValue = Math.max(...validData.map(item => item.value));
+  
+  // Prevent division by zero
+  if (maxValue === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            جميع القيم صفر
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculate conversion metrics safely
+  const totalConversionRate = validData.length > 1 && validData[0].value > 0
+    ? ((validData[validData.length - 1].value / validData[0].value) * 100).toFixed(1)
+    : '0.0';
+
+  const biggestDrop = validData.reduce((biggest, current, index) => {
+    if (index === 0) return biggest;
+    const previousValue = validData[index - 1].value;
+    if (previousValue === 0) return biggest;
+    
+    const dropRate = ((previousValue - current.value) / previousValue) * 100;
+    return dropRate > biggest.rate ? { stage: current.name, rate: dropRate } : biggest;
+  }, { stage: '', rate: 0 });
   
   return (
     <Card className="w-full">
@@ -18,9 +78,11 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({ data, config }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {data.map((stage, index) => {
+          {validData.map((stage, index) => {
             const percentage = (stage.value / maxValue) * 100;
-            const conversionRate = index > 0 ? ((stage.value / data[index - 1].value) * 100).toFixed(1) : '100.0';
+            const conversionRate = index > 0 && validData[index - 1].value > 0
+              ? ((stage.value / validData[index - 1].value) * 100).toFixed(1)
+              : '100.0';
             
             return (
               <div key={stage.name} className="relative">
@@ -42,7 +104,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({ data, config }) => {
                   )}
                 </div>
                 
-                {index < data.length - 1 && (
+                {index < validData.length - 1 && (
                   <div className="flex justify-center my-2">
                     <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-gray-300"></div>
                   </div>
@@ -55,18 +117,12 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({ data, config }) => {
         <div className="mt-6 grid grid-cols-2 gap-4 text-center">
           <div>
             <p className="text-sm text-gray-600">معدل التحويل الإجمالي</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {((data[data.length - 1]?.value / data[0]?.value) * 100 || 0).toFixed(1)}%
-            </p>
+            <p className="text-2xl font-bold text-blue-600">{totalConversionRate}%</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">أكبر نقطة تسرب</p>
             <p className="text-lg font-bold text-red-600">
-              {data.reduce((biggest, current, index) => {
-                if (index === 0) return biggest;
-                const dropRate = ((data[index - 1].value - current.value) / data[index - 1].value) * 100;
-                return dropRate > biggest.rate ? { stage: current.name, rate: dropRate } : biggest;
-              }, { stage: '', rate: 0 }).stage || 'غير متوفر'}
+              {biggestDrop.stage || 'غير متوفر'}
             </p>
           </div>
         </div>

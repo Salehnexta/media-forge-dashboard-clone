@@ -9,15 +9,46 @@ interface SentimentChartProps {
   config: ChartConfig;
 }
 
+interface ValidatedSentimentData {
+  positive: number;
+  neutral: number;
+  negative: number;
+}
+
 export const SentimentChart: React.FC<SentimentChartProps> = ({ data, config }) => {
+  // Validate sentiment data with defaults
+  const validatedData: ValidatedSentimentData = {
+    positive: typeof data?.positive === 'number' ? data.positive : 0,
+    neutral: typeof data?.neutral === 'number' ? data.neutral : 0,
+    negative: typeof data?.negative === 'number' ? data.negative : 0
+  };
+
+  const total = validatedData.positive + validatedData.neutral + validatedData.negative;
+
   const chartData = [
-    { name: 'إيجابي', value: data.positive, color: '#22c55e' },
-    { name: 'محايد', value: data.neutral, color: '#64748b' },
-    { name: 'سلبي', value: data.negative, color: '#ef4444' }
+    { name: 'إيجابي', value: validatedData.positive, color: '#22c55e' },
+    { name: 'محايد', value: validatedData.neutral, color: '#64748b' },
+    { name: 'سلبي', value: validatedData.negative, color: '#ef4444' }
   ];
 
+  // Handle empty data
+  if (total === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد بيانات للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const renderLabel = (entry: any) => {
-    const percentage = ((entry.value / (data.positive + data.neutral + data.negative)) * 100).toFixed(1);
+    const percentage = ((entry.value / total) * 100).toFixed(1);
     return `${percentage}%`;
   };
 

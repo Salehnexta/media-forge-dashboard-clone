@@ -9,8 +9,66 @@ interface TimelineChartProps {
   config: ChartConfig;
 }
 
+interface ValidatedTimelineData {
+  title: string;
+  description?: string;
+  date: string;
+  time?: string;
+  status: 'completed' | 'in-progress' | 'scheduled' | 'pending';
+  platform?: string;
+}
+
 export const TimelineChart: React.FC<TimelineChartProps> = ({ data, config }) => {
-  const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Validate and sanitize timeline data
+  const validData: ValidatedTimelineData[] = Array.isArray(data)
+    ? data.filter(item => item && typeof item === 'object' && item.title && item.date)
+        .map(item => ({
+          title: String(item.title),
+          description: item.description ? String(item.description) : undefined,
+          date: String(item.date),
+          time: item.time ? String(item.time) : undefined,
+          status: ['completed', 'in-progress', 'scheduled', 'pending'].includes(item.status) 
+            ? item.status 
+            : 'pending',
+          platform: item.platform ? String(item.platform) : undefined
+        }))
+    : [];
+
+  // Handle empty data
+  if (validData.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center flex items-center justify-center gap-2">
+            <Calendar className="w-5 h-5" />
+            {config.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد أحداث للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Sort data by date safely
+  const sortedData = [...validData].sort((a, b) => {
+    try {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    } catch {
+      return 0;
+    }
+  });
+
+  // Calculate status counts
+  const statusCounts = {
+    completed: sortedData.filter(item => item.status === 'completed').length,
+    inProgress: sortedData.filter(item => item.status === 'in-progress').length,
+    scheduled: sortedData.filter(item => item.status === 'scheduled').length,
+    pending: sortedData.filter(item => item.status === 'pending').length
+  };
   
   return (
     <Card className="w-full">
@@ -27,7 +85,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({ data, config }) =>
           
           <div className="space-y-6">
             {sortedData.map((item, index) => (
-              <div key={index} className="relative flex items-start gap-4">
+              <div key={`${item.title}-${index}`} className="relative flex items-start gap-4">
                 {/* Timeline dot */}
                 <div className="relative z-10 flex-shrink-0">
                   <div className={`w-3 h-3 rounded-full ${
@@ -42,12 +100,20 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({ data, config }) =>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                      {item.description && (
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                      )}
                       
                       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {new Date(item.date).toLocaleDateString('ar-SA')}
+                          {(() => {
+                            try {
+                              return new Date(item.date).toLocaleDateString('ar-SA');
+                            } catch {
+                              return item.date;
+                            }
+                          })()}
                         </div>
                         {item.time && (
                           <div className="flex items-center gap-1">
@@ -80,24 +146,22 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({ data, config }) =>
           </div>
         </div>
         
-        <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+        <div className="mt-6 grid grid-cols-4 gap-4 text-center">
           <div>
             <p className="text-sm text-gray-600">مكتمل</p>
-            <p className="text-lg font-bold text-green-600">
-              {sortedData.filter(item => item.status === 'completed').length}
-            </p>
+            <p className="text-lg font-bold text-green-600">{statusCounts.completed}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">قيد التنفيذ</p>
-            <p className="text-lg font-bold text-blue-600">
-              {sortedData.filter(item => item.status === 'in-progress').length}
-            </p>
+            <p className="text-lg font-bold text-blue-600">{statusCounts.inProgress}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">مجدول</p>
-            <p className="text-lg font-bold text-yellow-600">
-              {sortedData.filter(item => item.status === 'scheduled').length}
-            </p>
+            <p className="text-lg font-bold text-yellow-600">{statusCounts.scheduled}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">معلق</p>
+            <p className="text-lg font-bold text-gray-600">{statusCounts.pending}</p>
           </div>
         </div>
       </CardContent>

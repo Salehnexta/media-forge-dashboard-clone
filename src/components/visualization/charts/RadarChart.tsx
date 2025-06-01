@@ -10,16 +10,38 @@ interface RadarChartProps {
 }
 
 export const RadarChart: React.FC<RadarChartProps> = ({ data, config }) => {
-  // Transform data for radar chart
-  const radarData = config.options?.axes?.map((axis: string) => {
+  // Validate input data
+  const validData: CompetitorData[] = Array.isArray(data) ? data : [];
+  const validAxes = Array.isArray(config.options?.axes) ? config.options.axes : [];
+  
+  // Transform data for radar chart with validation
+  const radarData = validAxes.map((axis: string) => {
     const dataPoint: any = { axis };
-    data.forEach((competitor, index) => {
-      dataPoint[competitor.name] = competitor.metrics[axis] || 0;
+    validData.forEach((competitor) => {
+      if (competitor && competitor.metrics && typeof competitor.metrics === 'object') {
+        dataPoint[competitor.name] = competitor.metrics[axis] || 0;
+      }
     });
     return dataPoint;
-  }) || [];
+  });
 
   const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+
+  // Handle empty data gracefully
+  if (validData.length === 0 || validAxes.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد بيانات للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -32,11 +54,11 @@ export const RadarChart: React.FC<RadarChartProps> = ({ data, config }) => {
             <PolarGrid />
             <PolarAngleAxis dataKey="axis" className="text-sm" />
             <PolarRadiusAxis angle={90} domain={[0, 100]} className="text-xs" />
-            {data.map((competitor, index) => (
+            {validData.map((competitor, index) => (
               <Radar
-                key={competitor.name}
-                name={competitor.name}
-                dataKey={competitor.name}
+                key={competitor.name || `competitor-${index}`}
+                name={competitor.name || `منافس ${index + 1}`}
+                dataKey={competitor.name || `competitor-${index}`}
                 stroke={colors[index % colors.length]}
                 fill={colors[index % colors.length]}
                 fillOpacity={0.1}

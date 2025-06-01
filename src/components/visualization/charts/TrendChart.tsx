@@ -9,8 +9,37 @@ interface TrendChartProps {
   config: ChartConfig;
 }
 
+interface TrendDataPoint {
+  date: string;
+  value?: number;
+  actual?: number;
+  forecast?: number;
+  [key: string]: any;
+}
+
 export const TrendChart: React.FC<TrendChartProps> = ({ data, config }) => {
   const isForecast = config.options?.forecast;
+  
+  // Validate and type the input data
+  const validData: TrendDataPoint[] = Array.isArray(data) ? data.filter(
+    item => item && typeof item === 'object' && item.date
+  ) : [];
+  
+  // Handle empty data
+  if (validData.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-center">{config.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            لا توجد بيانات للعرض
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="w-full">
@@ -20,7 +49,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, config }) => {
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
           {isForecast ? (
-            <AreaChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <AreaChart data={validData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
@@ -47,7 +76,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, config }) => {
               />
             </AreaChart>
           ) : (
-            <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <LineChart data={validData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
@@ -65,10 +94,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({ data, config }) => {
           )}
         </ResponsiveContainer>
         
-        <div className="mt-4 flex justify-between text-sm text-gray-600">
-          <span>نقطة البداية: {data[0]?.date}</span>
-          <span>نقطة النهاية: {data[data.length - 1]?.date}</span>
-        </div>
+        {validData.length > 0 && (
+          <div className="mt-4 flex justify-between text-sm text-gray-600">
+            <span>نقطة البداية: {validData[0]?.date || 'غير متوفر'}</span>
+            <span>نقطة النهاية: {validData[validData.length - 1]?.date || 'غير متوفر'}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
