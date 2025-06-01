@@ -1,32 +1,59 @@
 
-// Authentication service for Railway API
-let railwayToken = import.meta.env.VITE_RAILWAY_TOKEN;
+// Authentication service for Railway API with proper token management
+import { supabase } from '@/integrations/supabase/client';
 
-export const getToken = (): string | undefined => {
+let railwayToken: string | null = null;
+
+// Load Railway token from Supabase secrets
+const loadRailwayToken = async (): Promise<string | null> => {
+  try {
+    // First try to get from environment (for development)
+    const envToken = import.meta.env.VITE_RAILWAY_TOKEN;
+    if (envToken) {
+      railwayToken = envToken;
+      return envToken;
+    }
+
+    // Try to get from Supabase Edge Function (production)
+    const { data, error } = await supabase.functions.invoke('get-railway-token');
+    if (data?.token && !error) {
+      railwayToken = data.token;
+      return data.token;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error loading Railway token:', error);
+    return null;
+  }
+};
+
+export const getToken = async (): Promise<string | null> => {
+  if (!railwayToken) {
+    railwayToken = await loadRailwayToken();
+  }
   return railwayToken;
 };
 
 export const setToken = (token: string): void => {
   railwayToken = token;
-  // Store in localStorage for persistence if needed
   localStorage.setItem('railway_token', token);
 };
 
-export const getAuthHeaders = () => {
+export const getAuthHeaders = async () => {
+  const token = await getToken();
   return {
-    'Authorization': `Bearer ${getToken()}`,
-    'Content-Type': 'application/json'
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'X-API-Key': token || ''
   };
 };
 
-export const isTokenValid = (): boolean => {
-  return !!railwayToken && railwayToken.length > 20;
+export const isTokenValid = async (): Promise<boolean> => {
+  const token = await getToken();
+  return !!token && token.length > 20;
 };
 
-// Load token from localStorage on startup
-export const initializeAuth = (): void => {
-  const storedToken = localStorage.getItem('railway_token');
-  if (storedToken) {
-    railwayToken = storedToken;
-  }
+export const initializeAuth = async (): Promise<void> => {
+  await loadRailwayToken();
 };

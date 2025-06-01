@@ -25,12 +25,12 @@ class EnhancedRailwayClient {
   private setupInterceptors() {
     // Request interceptor
     this.client.interceptors.request.use(
-      (config) => {
-        if (!isTokenValid()) {
+      async (config) => {
+        if (!(await isTokenValid())) {
           throw new Error('No valid Railway token available');
         }
 
-        const authHeaders = getAuthHeaders();
+        const authHeaders = await getAuthHeaders();
         Object.assign(config.headers, authHeaders);
 
         // Add connection ID for tracking
@@ -93,7 +93,6 @@ class EnhancedRailwayClient {
     return this.client(config);
   }
 
-  // Request deduplication
   private getDedupKey(config: AxiosRequestConfig): string {
     const { method, url, data } = config;
     return `${method}:${url}:${JSON.stringify(data)}`;

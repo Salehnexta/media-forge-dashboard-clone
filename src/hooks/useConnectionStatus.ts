@@ -1,53 +1,46 @@
 
-// Hook for monitoring Railway connection status
 import { useState, useEffect, useCallback } from 'react';
-import { checkRailwayHealth } from '../api/railway';
+import { enhancedRailwayClient } from '@/api/railway/enhancedClient';
+import { toast } from 'sonner';
 
-interface ConnectionStatus {
-  status: 'checking' | 'online' | 'offline';
-  lastChecked: Date | null;
-  error: any;
-  checkConnection: () => Promise<string>;
-}
+export type ConnectionStatus = 'online' | 'offline' | 'checking' | 'unknown';
 
-export const useConnectionStatus = (checkInterval = 60000): ConnectionStatus => {
-  const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+export const useConnectionStatus = () => {
+  const [status, setStatus] = useState<ConnectionStatus>('unknown');
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
-  const [error, setError] = useState<any>(null);
-  
+
   const checkConnection = useCallback(async () => {
+    setStatus('checking');
+    
     try {
-      const result = await checkRailwayHealth();
-      setStatus(result.status as 'online' | 'offline');
-      setLastChecked(new Date());
-      setError(null);
-      return result.status;
+      const response = await enhancedRailwayClient.get('/health');
+      
+      if (response === 'OK' || response?.status === 'online') {
+        setStatus('online');
+        setLastChecked(new Date());
+      } else {
+        setStatus('offline');
+      }
     } catch (error) {
+      console.error('Railway connection check failed:', error);
       setStatus('offline');
-      setError(error);
       setLastChecked(new Date());
-      return 'offline';
     }
   }, []);
-  
-  // Initial check on mount
+
+  // Check connection on mount and periodically
   useEffect(() => {
     checkConnection();
-  }, [checkConnection]);
-  
-  // Set up periodic checking
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkConnection();
-    }, checkInterval);
+    
+    // Check every 30 seconds
+    const interval = setInterval(checkConnection, 30000);
     
     return () => clearInterval(interval);
-  }, [checkInterval, checkConnection]);
-  
+  }, [checkConnection]);
+
   return {
     status,
     lastChecked,
-    error,
     checkConnection
   };
 };
