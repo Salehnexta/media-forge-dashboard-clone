@@ -159,7 +159,7 @@ export const MorvoDashboard = () => {
         {/* إعادة تشغيل الإعداد */}
         {user && (
           <div className="mt-8">
-            <OnboardingRestart />
+            <OnboardingRestart user={user} />
           </div>
         )}
       </div>
