@@ -1,149 +1,130 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { AIManager, ChatMessage } from "@/types/morvo";
-import { analyzeQuestion } from "@/utils/chatLogic";
-import { generateDetailedResponse } from "@/utils/managerPersonalities";
-import { ChatHeader } from './chat/ChatHeader';
-import { MessageItem } from './chat/MessageItem';
-import { TypingIndicator } from './chat/TypingIndicator';
-import { ChatInput } from './chat/ChatInput';
+
+import { useState } from "react";
+import { AIManager } from "@/types/morvo";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { 
+  MessageSquare, 
+  BarChart3, 
+  Megaphone, 
+  PenTool, 
+  TrendingUp, 
+  Eye,
+  Activity,
+  Database
+} from "lucide-react";
+import { ChatSection } from "./ChatSection";
 
 interface AppSidebarProps {
   selectedManager: AIManager;
   onManagerSelect: (manager: AIManager) => void;
 }
 
-export function AppSidebar({
-  selectedManager,
-  onManagerSelect
-}: AppSidebarProps) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  
-  const [messages, setMessages] = useState<ChatMessage[]>([{
-    id: '1',
-    text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
-    sender: 'ai',
-    timestamp: new Date(),
-    manager: 'strategic'
-  }]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [currentTypingManager, setCurrentTypingManager] = useState<AIManager | null>(null);
+const MANAGER_CONFIG = {
+  strategic: {
+    icon: TrendingUp,
+    label: "المدير الاستراتيجي",
+    color: "bg-blue-500",
+    description: "التخطيط والاستراتيجية"
+  },
+  monitor: {
+    icon: Eye,
+    label: "مراقبة وسائل التواصل",
+    color: "bg-purple-500",
+    description: "مراقبة المنصات الاجتماعية"
+  },
+  executor: {
+    icon: Megaphone,
+    label: "مدير الحملات",
+    color: "bg-green-500",
+    description: "تنفيذ الحملات الإعلانية"
+  },
+  creative: {
+    icon: PenTool,
+    label: "مبدعة المحتوى",
+    color: "bg-pink-500",
+    description: "إنتاج المحتوى الإبداعي"
+  },
+  analyst: {
+    icon: BarChart3,
+    label: "محلل البيانات",
+    color: "bg-orange-500",
+    description: "تحليل الأرقام والأداء"
+  },
+  performance: {
+    icon: Activity,
+    label: "الأداء والأمان",
+    color: "bg-red-500",
+    description: "مراقبة النظام والذاكرة"
+  }
+} as const;
 
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages, isTyping]);
-
-  const getManagerColor = useCallback((manager: AIManager) => {
-    const colors = {
-      strategic: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      monitor: 'bg-gradient-to-br from-pink-500 to-pink-600',
-      executor: 'bg-gradient-to-br from-green-500 to-green-600',
-      creative: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      analyst: 'bg-gradient-to-br from-orange-500 to-orange-600'
-    };
-    return colors[manager];
-  }, []);
-
-  const formatTime = useCallback((date: Date) => {
-    return date.toLocaleTimeString('ar-SA', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }, []);
-
-  const sendMessage = useCallback(() => {
-    if (inputMessage.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        text: inputMessage,
-        sender: 'user',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, newMessage]);
-      const question = inputMessage;
-      setInputMessage('');
-
-      // Analyze question and determine appropriate manager
-      const appropriateManager = analyzeQuestion(question);
-      setCurrentTypingManager(appropriateManager);
-      setIsTyping(true);
-
-      // Update selected manager in parent component
-      onManagerSelect(appropriateManager);
-
-      // Simulate AI response with typing delay
-      setTimeout(() => {
-        const aiResponse: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          text: generateDetailedResponse(appropriateManager, question),
-          sender: 'ai',
-          timestamp: new Date(),
-          manager: appropriateManager
-        };
-        setMessages(prev => [...prev, aiResponse]);
-        setIsTyping(false);
-        setCurrentTypingManager(null);
-      }, 2000);
-    }
-  }, [inputMessage, onManagerSelect]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  }, [sendMessage]);
-
-  const startNewChat = useCallback(() => {
-    setMessages([{
-      id: '1',
-      text: 'مرحباً! نحن فريق التسويق الذكي المتكامل في منصة Morvo. اسأل أي سؤال وسيجيب عليك المتخصص المناسب تلقائياً! 🚀',
-      sender: 'ai',
-      timestamp: new Date(),
-      manager: 'strategic'
-    }]);
-    onManagerSelect('strategic');
-  }, [onManagerSelect]);
+export const AppSidebar = ({ selectedManager, onManagerSelect }: AppSidebarProps) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="w-80 h-screen bg-white border-l border-gray-200 flex flex-col">
-      <ChatHeader onStartNewChat={startNewChat} />
-      
-      {/* Chat Messages */}
-      <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-white">
-        <div 
-          ref={scrollAreaRef}
-          className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          {messages.map(message => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              getManagerColor={getManagerColor}
-              formatTime={formatTime}
-            />
-          ))}
-          
-          {/* Typing indicator */}
-          {isTyping && currentTypingManager && (
-            <TypingIndicator
-              currentTypingManager={currentTypingManager}
-              getManagerColor={getManagerColor}
-            />
+    <Sidebar className="border-r bg-card" collapsible="icon">
+      <SidebarHeader className="p-4">
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">M</span>
+          </div>
+          {!isCollapsed && (
+            <div>
+              <h2 className="font-bold text-lg">Morvo</h2>
+              <p className="text-xs text-muted-foreground">فريق التسويق الذكي</p>
+            </div>
           )}
         </div>
+      </SidebarHeader>
 
-        <ChatInput
-          inputMessage={inputMessage}
-          setInputMessage={setInputMessage}
-          onSendMessage={sendMessage}
-          onKeyPress={handleKeyPress}
-          isTyping={isTyping}
-        />
-      </div>
-    </div>
+      <SidebarContent className="px-2">
+        <div className="space-y-2">
+          {Object.entries(MANAGER_CONFIG).map(([key, config]) => {
+            const Icon = config.icon;
+            const isSelected = selectedManager === key;
+            
+            return (
+              <Button
+                key={key}
+                variant={isSelected ? "default" : "ghost"}
+                className={`w-full justify-start h-auto p-3 ${
+                  isSelected ? config.color + " text-white" : ""
+                }`}
+                onClick={() => onManagerSelect(key as AIManager)}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {!isCollapsed && (
+                  <div className="ml-3 rtl:mr-3 rtl:ml-0 text-right rtl:text-right flex-1 min-w-0">
+                    <div className="font-medium text-sm">{config.label}</div>
+                    <div className="text-xs opacity-80 truncate">{config.description}</div>
+                  </div>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-sm font-medium">المحادثة</span>
+            {selectedManager && (
+              <Badge variant="secondary" className="text-xs">
+                {MANAGER_CONFIG[selectedManager].label}
+              </Badge>
+            )}
+          </div>
+          
+          <Card className="p-3">
+            <ChatSection selectedManager={selectedManager} />
+          </Card>
+        </div>
+      </SidebarContent>
+    </Sidebar>
   );
-}
+};
