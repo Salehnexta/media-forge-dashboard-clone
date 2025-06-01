@@ -19,8 +19,11 @@ interface ClusterPoint {
 export const ClusterChart: React.FC<ClusterChartProps> = ({ data, config }) => {
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
   
+  // Ensure data is an array and has proper typing
+  const validData: ClusterPoint[] = Array.isArray(data) ? data : [];
+  
   // Group data by cluster with proper typing
-  const clusters = data.reduce((acc: Record<number, ClusterPoint[]>, point: ClusterPoint) => {
+  const clusters = validData.reduce((acc: Record<number, ClusterPoint[]>, point: ClusterPoint) => {
     const clusterId = point.cluster || 0;
     if (!acc[clusterId]) acc[clusterId] = [];
     acc[clusterId].push(point);
@@ -71,7 +74,7 @@ export const ClusterChart: React.FC<ClusterChartProps> = ({ data, config }) => {
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600">إجمالي النقاط</p>
-            <p className="text-2xl font-bold text-green-600">{data.length}</p>
+            <p className="text-2xl font-bold text-green-600">{validData.length}</p>
           </div>
         </div>
         
