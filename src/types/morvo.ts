@@ -30,4 +30,8 @@ export interface ChatMessage {
   sender: "user" | "ai";
   timestamp: Date;
   manager?: AIManager;
+  actionButton?: {
+    label: string;
+    action: () => void;
+  };
 }
