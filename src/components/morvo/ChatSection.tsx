@@ -26,10 +26,10 @@ export const ChatSection = ({ selectedManager, onManagerSelect }: ChatSectionPro
       {/* Chat header */}
       <div className="p-4 border-b border-gray-200">
         <h3 className="font-semibold text-gray-900">
-          مرحباً بنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo
+          مرحباً بك مع فريق التسويق الذكي المتكامل في منصة Morvo
         </h3>
         <p className="text-sm text-gray-500 mt-1">
-          .Morvo مرحباً بنا جزء من فريق التسويق الذكي المتكامل في منصة
+          يمكنني مساعدتك في إنشاء المخططات والاستراتيجيات ووسائل التواصل الاجتماعي والصور
         </p>
         <p className="text-xs text-gray-400 mt-2">11:31 م</p>
       </div>
@@ -37,7 +37,7 @@ export const ChatSection = ({ selectedManager, onManagerSelect }: ChatSectionPro
       {/* Manager selection */}
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <p className="text-sm text-gray-700 mb-3">
-          مرحباً بنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. يمكنك مساعدتك في إنشاء المخططات والاستراتيجيات وسائل التواصل الاجتماعي. والصور تحدث مع أي من المديرينا الخمسة المتخصصين:
+          تحدث مع أي من المديرين الخمسة المتخصصين:
         </p>
         <div className="space-y-2">
           {aiManagers.map((manager) => (
@@ -62,7 +62,7 @@ export const ChatSection = ({ selectedManager, onManagerSelect }: ChatSectionPro
         <div className="space-y-4">
           <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
             <p className="text-sm text-blue-800">
-              مرحباً! أنا الاستراتيجي، مستعد لمساعدتك في وضع الخطط والاستراتيجيات. كيف يمكنني مساعدتك اليوم؟
+              مرحباً! أنا {aiManagers.find(m => m.id === selectedManager)?.name}، مستعد لمساعدتك. كيف يمكنني مساعدتك اليوم؟
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export const ChatSection = ({ selectedManager, onManagerSelect }: ChatSectionPro
           />
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          اختر مدیراً من الأعلى للتحدث معه عملیاً، أو اطلب إنشاء محتوى أو تحلیلات
+          اختر مديراً من الأعلى للتحدث معه، أو اطلب إنشاء محتوى أو تحليلات
         </p>
       </div>
     </div>
