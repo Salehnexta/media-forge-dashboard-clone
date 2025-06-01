@@ -25,10 +25,10 @@ railwayClient.interceptors.request.use(
     }
     
     // Add auth headers to every request
-    config.headers = {
-      ...config.headers,
-      ...getAuthHeaders(),
-    };
+    const authHeaders = getAuthHeaders();
+    Object.keys(authHeaders).forEach(key => {
+      config.headers.set(key, authHeaders[key]);
+    });
     
     return config;
   },
