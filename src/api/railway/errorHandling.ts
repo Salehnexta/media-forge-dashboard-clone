@@ -11,6 +11,9 @@ export const ERROR_TYPES = {
 
 export type ErrorType = typeof ERROR_TYPES[keyof typeof ERROR_TYPES];
 
+// Define retryable error types specifically
+type RetryableErrorType = typeof ERROR_TYPES.CONNECTION | typeof ERROR_TYPES.TIMEOUT | typeof ERROR_TYPES.SERVER;
+
 export interface ProcessedError {
   type: ErrorType;
   message: string;
@@ -68,6 +71,7 @@ export const handleApiError = (error: any): ProcessedError => {
   };
 };
 
-export const isRetryableError = (errorType: ErrorType): boolean => {
-  return [ERROR_TYPES.CONNECTION, ERROR_TYPES.TIMEOUT, ERROR_TYPES.SERVER].includes(errorType);
+export const isRetryableError = (errorType: ErrorType): errorType is RetryableErrorType => {
+  const retryableTypes: RetryableErrorType[] = [ERROR_TYPES.CONNECTION, ERROR_TYPES.TIMEOUT, ERROR_TYPES.SERVER];
+  return retryableTypes.includes(errorType as RetryableErrorType);
 };
