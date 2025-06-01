@@ -19,7 +19,7 @@ export interface SmartSuggestion {
 export interface QuickChartCommand {
   command: string;
   description: string;
-  icon: React.ReactNode;
+  iconName: string;
 }
 
 export interface ChatWidgetProps {

@@ -1,7 +1,10 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { AIManager } from '@/types/morvo';
 import { agentInfo, smartSuggestions, quickChartCommands } from '../constants';
+import { PieChart, BarChart3, TrendingUp } from 'lucide-react';
 
 interface WelcomeMessageProps {
   currentAgent: AIManager;
@@ -9,58 +12,80 @@ interface WelcomeMessageProps {
 }
 
 export const WelcomeMessage = ({ currentAgent, onSuggestedQuestion }: WelcomeMessageProps) => {
+  const getIconComponent = (iconName: string) => {
+    const iconMap = {
+      PieChart: PieChart,
+      BarChart3: BarChart3,
+      TrendingUp: TrendingUp
+    };
+    const IconComponent = iconMap[iconName as keyof typeof iconMap] || BarChart3;
+    return <IconComponent className="w-3 h-3" />;
+  };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'chart': return '📊';
-      case 'analysis': return '🔍';
-      case 'strategy': return '🎯';
-      case 'action': return '⚡';
-      default: return '💡';
+      case 'chart':
+        return <BarChart3 className="w-3 h-3" />;
+      case 'analysis':
+        return <TrendingUp className="w-3 h-3" />;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="text-center text-gray-500 space-y-4">
-      <p className="text-sm">
-        مرحباً! أنا {agentInfo[currentAgent].name}. كيف يمكنني مساعدتك اليوم؟
-      </p>
-      
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-blue-600">أوامر الرسوم البيانية السريعة:</p>
-        <div className="grid grid-cols-2 gap-1">
-          {quickChartCommands.map((cmd, index) => (
-            <button
+    <div className="space-y-4">
+      <div className="text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold">M</span>
+          </div>
+          <div>
+            <h3 className="font-semibold">مرحباً بك في Morvo AI</h3>
+            <Badge className={`${agentInfo[currentAgent].color} text-white text-xs`}>
+              {agentInfo[currentAgent].name}
+            </Badge>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600">
+          كيف يمكنني مساعدتك في {agentInfo[currentAgent].description}؟
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-700">أسئلة مقترحة:</h4>
+        <div className="space-y-2">
+          {smartSuggestions[currentAgent].slice(0, 3).map((suggestion, index) => (
+            <Button
               key={index}
-              onClick={() => onSuggestedQuestion(cmd.command)}
-              className="flex items-center gap-1 text-xs p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+              variant="outline"
+              className="w-full text-right justify-start text-sm h-auto py-2 px-3"
+              onClick={() => onSuggestedQuestion(suggestion.question)}
             >
-              {cmd.icon}
-              <span className="truncate">{cmd.command}</span>
-            </button>
+              <div className="flex items-center gap-2">
+                {getCategoryIcon(suggestion.category)}
+                <span>{suggestion.question}</span>
+              </div>
+            </Button>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-medium">اقتراحات ذكية:</p>
-        {smartSuggestions[currentAgent].map((suggestion, index) => (
-          <button
-            key={index}
-            onClick={() => onSuggestedQuestion(suggestion.question)}
-            className="flex items-start gap-2 w-full text-xs text-right p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <span className="text-lg">{getCategoryIcon(suggestion.category)}</span>
-            <div className="flex-1">
-              <span className="block">{suggestion.question}</span>
-              {suggestion.icon && (
-                <div className="flex items-center gap-1 mt-1 text-blue-500">
-                  {suggestion.icon}
-                  <span className="text-xs">رسم بياني</span>
-                </div>
-              )}
-            </div>
-          </button>
-        ))}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-700">أوامر سريعة:</h4>
+        <div className="grid grid-cols-2 gap-2">
+          {quickChartCommands.map((command, index) => (
+            <Button
+              key={index}
+              variant="ghost"
+              className="text-xs h-auto py-2 px-2 flex flex-col items-center gap-1"
+              onClick={() => onSuggestedQuestion(command.command)}
+            >
+              {getIconComponent(command.iconName)}
+              <span className="text-center">{command.description}</span>
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   );
