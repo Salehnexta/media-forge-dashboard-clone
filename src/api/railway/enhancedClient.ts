@@ -1,4 +1,3 @@
-
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { connectionPool } from './connectionPool';
 import { handleApiError, isRetryableError } from './errorHandling';
