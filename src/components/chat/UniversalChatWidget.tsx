@@ -4,317 +4,275 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Maximize2, Minimize2, Brain, ChevronDown } from 'lucide-react';
-import { analyzeQuestion } from '@/utils/chatLogic';
-import { generateDetailedResponse } from '@/utils/managerPersonalities';
-import { AIManager, ChatMessage } from '@/types/morvo';
-import { useMCPMemory } from '@/hooks/useMCPMemory';
-import { useCrossAgentContext } from '@/hooks/useCrossAgentContext';
-import { useRailwayIntegration } from '@/hooks/useRailwayIntegration';
-import { toast } from 'sonner';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User, ChevronDown } from 'lucide-react';
+import { useMCPContext } from '@/contexts/MCPContext';
+import { ChatMessage, AIManager } from '@/types/morvo';
 
-interface UniversalChatWidgetProps {
+interface ChatWidgetProps {
   className?: string;
-  initialPosition?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 }
 
-export const UniversalChatWidget = ({ 
-  className = '', 
-  initialPosition = 'bottom-right' 
-}: UniversalChatWidgetProps) => {
+export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [currentAgent, setCurrentAgent] = useState<AIManager>('strategic');
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
-  
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { shareInsight } = useCrossAgentContext();
-  const { memories } = useMCPMemory({ agentType: `M1_${currentAgent.toUpperCase()}` });
-  const { executeAgent } = useRailwayIntegration();
+  const { storeMemory, retrieveMemory, shareContext } = useMCPContext();
+
+  const agentInfo = {
+    strategic: { name: 'المدير الاستراتيجي', color: 'bg-blue-500', description: 'تحليل استراتيجي وتخطيط' },
+    monitor: { name: 'مراقب الأداء', color: 'bg-green-500', description: 'مراقبة ومتابعة الأداء' },
+    executor: { name: 'منفذ الحملات', color: 'bg-purple-500', description: 'تنفيذ وإدارة الحملات' },
+    creative: { name: 'المبدع', color: 'bg-orange-500', description: 'إنتاج المحتوى الإبداعي' },
+    analyst: { name: 'المحلل', color: 'bg-red-500', description: 'تحليل البيانات والتقارير' }
+  };
+
+  const suggestedQuestions = {
+    strategic: [
+      'ما هي الاستراتيجية التسويقية المثلى لشركتي؟',
+      'كيف يمكنني تحسين موقعي التنافسي؟',
+      'ما هي الفرص الجديدة في السوق؟'
+    ],
+    monitor: [
+      'كيف أداء حملاتي الحالية؟',
+      'ما هي المؤشرات التي تحتاج انتباه؟',
+      'أظهر لي تقرير الأداء اليومي'
+    ],
+    executor: [
+      'ساعدني في إنشاء حملة جديدة',
+      'كيف يمكنني تحسين معدل التحويل؟',
+      'ما أفضل قنوات التوزيع لمنتجي؟'
+    ],
+    creative: [
+      'اقترح أفكار محتوى جديدة',
+      'ساعدني في كتابة إعلان جذاب',
+      'ما هي الاتجاهات الإبداعية الحديثة؟'
+    ],
+    analyst: [
+      'حلل بيانات المبيعات الأخيرة',
+      'ما هي توقعات نمو العمل؟',
+      'أظهر لي رؤى عن العملاء'
+    ]
+  };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
-
-  useEffect(() => {
-    generateSuggestedQuestions();
-  }, [currentAgent, memories]);
+  }, [chatHistory]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const generateSuggestedQuestions = () => {
-    const suggestions = {
-      strategic: [
-        'ما هي أفضل استراتيجية لشركتي؟',
-        'كيف يمكنني تحليل المنافسين؟',
-        'ما هي أهداف KPI المناسبة؟'
-      ],
-      monitor: [
-        'كيف أداء وسائل التواصل الاجتماعي؟',
-        'ما هو تحليل المشاعر الحالي؟',
-        'كيف يمكنني تحسين التفاعل؟'
-      ],
-      executor: [
-        'كيف يمكنني إنشاء حملة إعلانية؟',
-        'ما هو أداء الحملات الحالية؟',
-        'كيف أحسن معدل التحويل؟'
-      ],
-      creative: [
-        'أريد أفكار محتوى جديدة',
-        'كيف أنشئ استراتيجية محتوى؟',
-        'ما هي أفضل أوقات النشر؟'
-      ],
-      analyst: [
-        'أريد تقرير تحليلي شامل',
-        'ما هي التوقعات المستقبلية؟',
-        'كيف أقيس عائد الاستثمار؟'
-      ]
-    };
-    setSuggestedQuestions(suggestions[currentAgent] || []);
-  };
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
 
-  const handleSendMessage = async (messageText?: string) => {
-    const text = messageText || inputMessage.trim();
-    if (!text) return;
-
-    const newMessage: ChatMessage = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      text,
+      text: message,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      manager: currentAgent
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    setInputMessage('');
+    setChatHistory(prev => [...prev, userMessage]);
+    setMessage('');
     setIsTyping(true);
 
-    try {
-      // Analyze question and route to appropriate agent
-      const detectedAgent = analyzeQuestion(text);
-      setCurrentAgent(detectedAgent);
+    // Store user message in MCP memory
+    await storeMemory(currentAgent, 'context', {
+      type: 'user_message',
+      message: message,
+      timestamp: new Date().toISOString()
+    });
 
-      // Check for chart generation requests
-      if (text.includes('رسم') || text.includes('مخطط') || text.includes('chart')) {
-        await handleChartRequest(text, detectedAgent);
-        return;
-      }
-
-      // Check for Railway agent execution requests
-      if (text.includes('تحليل') || text.includes('تشغيل') || text.includes('وكيل')) {
-        await handleRailwayExecution(text, detectedAgent);
-        return;
-      }
-
-      // Generate contextual response using MCP memory
-      const contextualResponse = await generateContextualResponse(text, detectedAgent);
+    // Simulate AI response with context from memory
+    setTimeout(async () => {
+      const memories = await retrieveMemory(currentAgent, 'context');
+      const contextualResponse = generateContextualResponse(message, currentAgent, memories);
       
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: contextualResponse,
+        text: contextualResponse.text,
         sender: 'ai',
         timestamp: new Date(),
-        manager: detectedAgent
+        manager: currentAgent,
+        actionButton: contextualResponse.actionButton
       };
 
-      setMessages(prev => [...prev, aiResponse]);
-
-      // Share insight with other agents if valuable
-      if (text.length > 50) {
-        await shareInsight(detectedAgent, 'CROSS_AGENT', {
-          question: text,
-          response: contextualResponse,
-          context: 'chat_interaction'
-        });
-      }
-
-    } catch (error) {
-      console.error('خطأ في المحادثة:', error);
-      toast.error('حدث خطأ في معالجة الرسالة');
-    } finally {
+      setChatHistory(prev => [...prev, aiResponse]);
       setIsTyping(false);
-    }
-  };
 
-  const generateContextualResponse = async (question: string, agent: AIManager) => {
-    // Get relevant memories for context
-    const relevantMemories = memories.slice(0, 3);
-    const memoryContext = relevantMemories.map(m => m.content).join('\n');
-    
-    // Generate enhanced response with memory context
-    const baseResponse = generateDetailedResponse(agent, question);
-    
-    if (memoryContext) {
-      return `${baseResponse}\n\nبناءً على التحليلات السابقة:\n${memoryContext}`;
-    }
-    
-    return baseResponse;
-  };
+      // Store AI response in memory
+      await storeMemory(currentAgent, 'insight', {
+        type: 'ai_response',
+        message: contextualResponse.text,
+        user_question: message,
+        timestamp: new Date().toISOString()
+      });
 
-  const handleChartRequest = async (request: string, agent: AIManager) => {
-    setIsTyping(false);
-    
-    const response: ChatMessage = {
-      id: Date.now().toString(),
-      text: 'سأقوم بإنشاء الرسم البياني المطلوب...',
-      sender: 'ai',
-      timestamp: new Date(),
-      manager: agent,
-      actionButton: {
-        label: 'عرض الرسم البياني',
-        action: () => {
-          // Navigate to charts section
-          window.location.hash = '#charts';
-          toast.success('تم الانتقال إلى قسم الرسوم البيانية');
+      // Share insights with other agents if relevant
+      if (contextualResponse.shareWithAgents) {
+        for (const agent of contextualResponse.shareWithAgents) {
+          await shareContext(currentAgent, agent, {
+            type: 'insight',
+            data: contextualResponse.text,
+            original_question: message
+          });
         }
       }
-    };
-    
-    setMessages(prev => [...prev, response]);
+    }, 1500);
   };
 
-  const handleRailwayExecution = async (request: string, agent: AIManager) => {
-    try {
-      const response: ChatMessage = {
-        id: Date.now().toString(),
-        text: 'سأقوم بتشغيل التحليل الذكي...',
-        sender: 'ai',
-        timestamp: new Date(),
-        manager: agent,
+  const generateContextualResponse = (userMessage: string, agent: AIManager, memories: any[]) => {
+    const responses = {
+      strategic: {
+        text: `بناءً على تحليل الوضع الحالي وسياق المحادثات السابقة، أنصح بالتركيز على تطوير استراتيجية تسويقية متكاملة تأخذ في الاعتبار نقاط القوة والضعف الحالية. يمكنني مساعدتك في تحديد الأولويات وإنشاء خطة عمل محددة.`,
         actionButton: {
-          label: 'عرض النتائج',
-          action: () => {
-            window.location.hash = '#railway';
-            toast.success('تم الانتقال إلى منصة Railway');
-          }
+          label: 'إنشاء استراتيجية',
+          action: () => console.log('Creating strategy...')
+        },
+        shareWithAgents: ['analyst', 'executor'] as AIManager[]
+      },
+      monitor: {
+        text: `من خلال مراجعة البيانات المتاحة والسياق السابق، يبدو أن هناك نقاط تحتاج متابعة. سأقوم بإنشاء تقرير مفصل يتضمن المؤشرات الحالية والتوصيات للتحسين.`,
+        actionButton: {
+          label: 'عرض التقرير',
+          action: () => console.log('Showing report...')
         }
-      };
-      
-      setMessages(prev => [...prev, response]);
-    } catch (error) {
-      console.error('خطأ في تشغيل Railway:', error);
-    } finally {
-      setIsTyping(false);
-    }
+      },
+      executor: {
+        text: `بناءً على الاستراتيجية المقترحة والتحليلات السابقة، يمكنني مساعدتك في تنفيذ حملة فعالة. سأحتاج لبعض التفاصيل الإضافية حول الجمهور المستهدف والميزانية المتاحة.`,
+        actionButton: {
+          label: 'بدء الحملة',
+          action: () => console.log('Starting campaign...')
+        }
+      },
+      creative: {
+        text: `استناداً إلى الاتجاهات الحالية وسياق عملك، لدي عدة أفكار إبداعية مميزة. سأقوم بإنتاج محتوى يتماشى مع هوية علامتك التجارية ويجذب جمهورك المستهدف.`,
+        actionButton: {
+          label: 'إنتاج المحتوى',
+          action: () => console.log('Creating content...')
+        }
+      },
+      analyst: {
+        text: `بعد تحليل البيانات المتاحة والسياق التاريخي، تظهر النتائج اتجاهات مثيرة للاهتمام. سأقوم بإنشاء تقرير تحليلي شامل مع توقعات مستقبلية ورؤى قابلة للتنفيذ.`,
+        actionButton: {
+          label: 'عرض التحليل',
+          action: () => console.log('Showing analysis...')
+        },
+        shareWithAgents: ['strategic', 'monitor'] as AIManager[]
+      }
+    };
+
+    return responses[agent] || responses.strategic;
   };
 
-  const getPositionClasses = () => {
-    const positions = {
-      'bottom-right': 'bottom-4 left-4',
-      'bottom-left': 'bottom-4 right-4',
-      'top-right': 'top-4 left-4',
-      'top-left': 'top-4 right-4'
-    };
-    return positions[initialPosition];
+  const handleSuggestedQuestion = (question: string) => {
+    setMessage(question);
   };
 
   if (!isOpen) {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className={`fixed ${getPositionClasses()} z-50 rounded-full w-14 h-14 shadow-lg bg-blue-600 hover:bg-blue-700 ${className}`}
-        size="lg"
+        className={`fixed bottom-6 left-6 z-50 rounded-full w-14 h-14 shadow-lg ${className}`}
       >
-        <MessageCircle className="w-6 h-6 text-white" />
+        <MessageCircle className="w-6 h-6" />
       </Button>
     );
   }
 
+  if (isMinimized) {
+    return (
+      <Card className="fixed bottom-6 left-6 z-50 w-80 shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="w-5 h-5 text-blue-600" />
+              <span className="font-medium">مساعد Morvo AI</span>
+              <Badge className={`${agentInfo[currentAgent].color} text-white text-xs`}>
+                {agentInfo[currentAgent].name}
+              </Badge>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                onClick={() => setIsMinimized(false)}
+                variant="ghost"
+                size="sm"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={() => setIsOpen(false)}
+                variant="ghost"
+                size="sm"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className={`fixed ${getPositionClasses()} z-50 shadow-2xl transition-all duration-300 ${
-      isExpanded ? 'w-96 h-[32rem]' : 'w-80 h-96'
-    } ${className}`}>
-      <div className="flex items-center justify-between p-3 bg-blue-600 text-white rounded-t-lg">
+    <Card className="fixed bottom-6 left-6 z-50 w-96 h-[600px] shadow-lg flex flex-col">
+      <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Brain className="w-5 h-5" />
-          <span className="font-medium">مساعد Morvo الذكي</span>
-          <Badge variant="secondary" className="text-xs">
-            {currentAgent}
-          </Badge>
+          <Bot className="w-5 h-5 text-blue-600" />
+          <span className="font-medium">مساعد Morvo AI</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex gap-1">
           <Button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => setIsMinimized(true)}
             variant="ghost"
             size="sm"
-            className="text-white hover:bg-blue-700 p-1"
           >
-            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            <Minimize2 className="w-4 h-4" />
           </Button>
           <Button
             onClick={() => setIsOpen(false)}
             variant="ghost"
             size="sm"
-            className="text-white hover:bg-blue-700 p-1"
           >
             <X className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      <CardContent className="p-0 flex flex-col h-full">
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-          {messages.length === 0 && (
-            <div className="text-center py-8">
-              <Brain className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-600 text-sm">مرحباً! كيف يمكنني مساعدتك اليوم؟</p>
-            </div>
-          )}
-
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-[80%] p-3 rounded-lg ${
-                message.sender === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white border shadow-sm'
-              }`}>
-                <p className="text-sm">{message.text}</p>
-                {message.actionButton && (
-                  <Button
-                    onClick={message.actionButton.action}
-                    size="sm"
-                    className="mt-2 w-full"
-                    variant="outline"
-                  >
-                    {message.actionButton.label}
-                  </Button>
-                )}
-              </div>
-            </div>
+      {/* Agent Selector */}
+      <div className="p-3 border-b">
+        <select
+          value={currentAgent}
+          onChange={(e) => setCurrentAgent(e.target.value as AIManager)}
+          className="w-full p-2 border rounded-lg text-sm"
+        >
+          {Object.entries(agentInfo).map(([key, info]) => (
+            <option key={key} value={key}>
+              {info.name} - {info.description}
+            </option>
           ))}
+        </select>
+      </div>
 
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-white border shadow-sm p-3 rounded-lg">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Suggested Questions */}
-        {messages.length === 0 && suggestedQuestions.length > 0 && (
-          <div className="p-3 border-t bg-white">
-            <p className="text-xs text-gray-600 mb-2">أسئلة مقترحة:</p>
-            <div className="space-y-1">
-              {suggestedQuestions.slice(0, 2).map((question, index) => (
+      {/* Chat Messages */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+        {chatHistory.length === 0 && (
+          <div className="text-center text-gray-500 space-y-4">
+            <p className="text-sm">
+              مرحباً! أنا {agentInfo[currentAgent].name}. كيف يمكنني مساعدتك اليوم؟
+            </p>
+            <div className="space-y-2">
+              <p className="text-xs font-medium">أسئلة مقترحة:</p>
+              {suggestedQuestions[currentAgent].map((question, index) => (
                 <button
                   key={index}
-                  onClick={() => handleSendMessage(question)}
-                  className="w-full text-right text-xs p-2 bg-gray-50 hover:bg-gray-100 rounded border transition-colors"
+                  onClick={() => handleSuggestedQuestion(question)}
+                  className="block w-full text-xs text-left p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   {question}
                 </button>
@@ -323,27 +281,88 @@ export const UniversalChatWidget = ({
           </div>
         )}
 
-        {/* Input Area */}
-        <div className="p-3 border-t bg-white">
-          <div className="flex gap-2">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="اكتب رسالتك..."
-              className="flex-1 text-sm"
-              disabled={isTyping}
-            />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isTyping}
-              size="sm"
+        {chatHistory.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] p-3 rounded-lg ${
+                msg.sender === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
             >
-              <Send className="w-4 h-4" />
-            </Button>
+              <div className="flex items-start gap-2">
+                {msg.sender === 'ai' && (
+                  <Bot className="w-4 h-4 mt-1 flex-shrink-0" />
+                )}
+                {msg.sender === 'user' && (
+                  <User className="w-4 h-4 mt-1 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm">{msg.text}</p>
+                  {msg.actionButton && (
+                    <Button
+                      onClick={msg.actionButton.action}
+                      className="mt-2 text-xs"
+                      size="sm"
+                      variant={msg.sender === 'user' ? 'secondary' : 'default'}
+                    >
+                      {msg.actionButton.label}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+        ))}
+
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
+              <div className="flex items-center gap-1">
+                <Bot className="w-4 h-4" />
+                <span className="text-sm">يكتب...</span>
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 border-t">
+        <div className="flex gap-2">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="اكتب رسالتك هنا..."
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            className="text-sm"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!message.trim() || isTyping}
+            size="sm"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
-      </CardContent>
+        <div className="mt-2 flex items-center gap-2">
+          <Badge className={`${agentInfo[currentAgent].color} text-white text-xs`}>
+            {agentInfo[currentAgent].name}
+          </Badge>
+          <span className="text-xs text-gray-500">
+            جاهز للمساعدة في {agentInfo[currentAgent].description}
+          </span>
+        </div>
+      </div>
     </Card>
   );
 };

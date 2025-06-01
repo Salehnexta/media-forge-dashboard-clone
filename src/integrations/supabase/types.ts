@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_memories: {
+        Row: {
+          agent_type: string
+          company_id: string | null
+          content: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          memory_type: string
+          relevance_score: number
+          user_id: string
+        }
+        Insert: {
+          agent_type: string
+          company_id?: string | null
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_type: string
+          relevance_score?: number
+          user_id: string
+        }
+        Update: {
+          agent_type?: string
+          company_id?: string | null
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_type?: string
+          relevance_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_results: {
         Row: {
           agent_id: string
@@ -641,6 +677,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cross_agent_context: {
+        Row: {
+          context_data: Json
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context_data?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context_data?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       dashboard_layouts: {
         Row: {

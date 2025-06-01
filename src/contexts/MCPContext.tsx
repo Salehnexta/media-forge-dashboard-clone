@@ -2,6 +2,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
+
+type AgentMemoryRow = Database['public']['Tables']['agent_memories']['Row'];
+type CrossAgentContextRow = Database['public']['Tables']['cross_agent_context']['Row'];
 
 export interface AgentMemory {
   id: string;
@@ -71,7 +75,20 @@ export const MCPProvider = ({ children }: MCPProviderProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAgentMemories(data || []);
+      
+      // Transform the database rows to match our AgentMemory interface
+      const memories: AgentMemory[] = (data || []).map((row: AgentMemoryRow) => ({
+        id: row.id,
+        agent_type: row.agent_type,
+        memory_type: row.memory_type as 'analysis' | 'insight' | 'context' | 'preference',
+        content: (row.content as Record<string, any>) || {},
+        company_id: row.company_id || undefined,
+        created_at: row.created_at,
+        expires_at: row.expires_at || undefined,
+        relevance_score: Number(row.relevance_score)
+      }));
+      
+      setAgentMemories(memories);
     } catch (error) {
       console.error('خطأ في تحميل ذاكرة الوكلاء:', error);
     }
@@ -89,7 +106,12 @@ export const MCPProvider = ({ children }: MCPProviderProps) => {
         .single();
 
       if (data && !error) {
-        setCrossAgentContext(data.context_data);
+        const contextData = data.context_data as Record<string, any>;
+        setCrossAgentContext({
+          shared_insights: contextData.shared_insights || {},
+          collaboration_history: contextData.collaboration_history || [],
+          contextual_data: contextData.contextual_data || {}
+        });
       }
     } catch (error) {
       console.error('خطأ في تحميل السياق المشترك:', error);
@@ -134,7 +156,20 @@ export const MCPProvider = ({ children }: MCPProviderProps) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      
+      // Transform the database rows to match our AgentMemory interface
+      const memories: AgentMemory[] = (data || []).map((row: AgentMemoryRow) => ({
+        id: row.id,
+        agent_type: row.agent_type,
+        memory_type: row.memory_type as 'analysis' | 'insight' | 'context' | 'preference',
+        content: (row.content as Record<string, any>) || {},
+        company_id: row.company_id || undefined,
+        created_at: row.created_at,
+        expires_at: row.expires_at || undefined,
+        relevance_score: Number(row.relevance_score)
+      }));
+      
+      return memories;
     } catch (error) {
       console.error('خطأ في استرجاع الذاكرة:', error);
       return [];
