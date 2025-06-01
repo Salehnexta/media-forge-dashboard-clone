@@ -95,10 +95,7 @@ const Dashboard = () => {
             onManagerSelect={setSelectedManager}
           />
           <div className="flex-1 flex flex-col">
-            <TopNavigation 
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
+            <TopNavigation />
             <main className="flex-1 overflow-auto">
               {renderDashboard()}
             </main>

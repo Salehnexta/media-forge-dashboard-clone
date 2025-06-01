@@ -19,7 +19,16 @@ export const useVisualizationData = () => {
         .order('template_name');
 
       if (error) throw error;
-      setChartTemplates(data || []);
+      
+      // Transform the data to match our interface
+      const transformedTemplates: ChartTemplate[] = (data || []).map(item => ({
+        ...item,
+        chart_config: typeof item.chart_config === 'string' 
+          ? JSON.parse(item.chart_config) 
+          : item.chart_config as any
+      }));
+      
+      setChartTemplates(transformedTemplates);
     } catch (error) {
       console.error('Error loading chart templates:', error);
       toast.error('خطأ في تحميل قوالب الرسوم البيانية');
@@ -35,7 +44,16 @@ export const useVisualizationData = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUserPreferences(data || []);
+      
+      // Transform the data to match our interface
+      const transformedPreferences: VisualizationPreference[] = (data || []).map(item => ({
+        ...item,
+        preferences: typeof item.preferences === 'string' 
+          ? JSON.parse(item.preferences) 
+          : item.preferences as any
+      }));
+      
+      setUserPreferences(transformedPreferences);
     } catch (error) {
       console.error('Error loading user preferences:', error);
     }
@@ -50,7 +68,16 @@ export const useVisualizationData = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDashboardLayouts(data || []);
+      
+      // Transform the data to match our interface
+      const transformedLayouts: DashboardLayout[] = (data || []).map(item => ({
+        ...item,
+        layout_config: typeof item.layout_config === 'string' 
+          ? JSON.parse(item.layout_config) 
+          : item.layout_config as any
+      }));
+      
+      setDashboardLayouts(transformedLayouts);
     } catch (error) {
       console.error('Error loading dashboard layouts:', error);
     }
@@ -59,11 +86,15 @@ export const useVisualizationData = () => {
   // Save user preference
   const saveUserPreference = useCallback(async (chartType: string, preferences: Record<string, any>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('visualization_preferences')
         .upsert({
+          user_id: user.id,
           chart_type: chartType,
-          preferences
+          preferences: preferences as any
         }, {
           onConflict: 'user_id,chart_type'
         });
@@ -80,11 +111,15 @@ export const useVisualizationData = () => {
   // Save dashboard layout
   const saveDashboardLayout = useCallback(async (layoutName: string, layoutConfig: Record<string, any>, isDefault = false) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('dashboard_layouts')
         .insert({
+          user_id: user.id,
           layout_name: layoutName,
-          layout_config: layoutConfig,
+          layout_config: layoutConfig as any,
           is_default: isDefault
         });
 
