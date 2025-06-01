@@ -7,7 +7,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/morvo/AppSidebar";
 import { DashboardSection } from "@/components/morvo/DashboardSection";
 import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
-import { UniversalChatWidget } from "@/components/chat/UniversalChatWidget";
 import { AIManager } from "@/types/morvo";
 
 const Dashboard = () => {
@@ -75,7 +74,6 @@ const Dashboard = () => {
           <div className="flex-1">
             <DashboardSection selectedManager={selectedManager} />
           </div>
-          <UniversalChatWidget />
         </div>
       </SidebarProvider>
     </OnboardingTrigger>
