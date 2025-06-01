@@ -8,22 +8,29 @@ export type ConnectionStatus = 'online' | 'offline' | 'checking' | 'unknown';
 export const useConnectionStatus = () => {
   const [status, setStatus] = useState<ConnectionStatus>('unknown');
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [latency, setLatency] = useState<number | null>(null);
 
   const checkConnection = useCallback(async () => {
     setStatus('checking');
+    const startTime = Date.now();
     
     try {
       const response = await enhancedRailwayClient.get('/health');
+      const endTime = Date.now();
+      const responseLatency = endTime - startTime;
       
       if (response === 'OK' || response?.status === 'online') {
         setStatus('online');
+        setLatency(responseLatency);
         setLastChecked(new Date());
       } else {
         setStatus('offline');
+        setLatency(null);
       }
     } catch (error) {
       console.error('Railway connection check failed:', error);
       setStatus('offline');
+      setLatency(null);
       setLastChecked(new Date());
     }
   }, []);
@@ -41,6 +48,8 @@ export const useConnectionStatus = () => {
   return {
     status,
     lastChecked,
+    latency,
+    isOnline: status === 'online',
     checkConnection
   };
 };

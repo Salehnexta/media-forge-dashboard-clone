@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export const EnhancedRailwayStatus = () => {
   const { token, isLoading, error, lastRefresh, refreshToken } = useSecureRailwayToken();
-  const { isOnline, latency } = useConnectionStatus();
+  const { status, latency, isOnline } = useConnectionStatus();
   const { toast } = useToast();
 
   const handleRefreshToken = async () => {

@@ -121,7 +121,10 @@ export const AppSidebar = ({ selectedManager, onManagerSelect }: AppSidebarProps
           </div>
           
           <Card className="p-3">
-            <ChatSection selectedManager={selectedManager} />
+            <ChatSection 
+              selectedManager={selectedManager} 
+              onManagerSelect={onManagerSelect}
+            />
           </Card>
         </div>
       </SidebarContent>
