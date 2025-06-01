@@ -1,6 +1,5 @@
 
 import { SocialCharts } from '../charts/SocialCharts';
-import { RailwayAgentPanel } from '../../railway/RailwayAgentPanel';
 
 export const SocialDashboard = () => {
   return (
@@ -8,16 +7,11 @@ export const SocialDashboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-pink-600 mb-2">لوحة تحكم السوشال ميديا</h1>
-          <p className="text-gray-600">مراقبة وتحليل منصات التواصل مع Railway AI</p>
+          <p className="text-gray-600">مراقبة وتحليل منصات التواصل الاجتماعي</p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <SocialCharts />
-          </div>
-          <div>
-            <RailwayAgentPanel />
-          </div>
+        <div className="w-full">
+          <SocialCharts />
         </div>
       </div>
     </div>
