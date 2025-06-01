@@ -1549,8 +1549,16 @@ export type Database = {
     }
     Functions: {
       user_owns_company: {
-        Args: { company_id: string }
+        Args:
+          | Record<PropertyKey, never>
+          | { _dummy_arg: number }
+          | { company_id: string }
+          | { p_user_id: string; p_company_id: string }
         Returns: boolean
+      }
+      user_owns_company_v2: {
+        Args: { _dummy_arg: number }
+        Returns: undefined
       }
     }
     Enums: {

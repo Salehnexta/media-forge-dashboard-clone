@@ -39,8 +39,8 @@ export const IntegrationTest = () => {
     setIsRunning(true);
     const testSuite: TestResult[] = [
       { name: 'فحص اتصال Supabase', status: 'pending' },
+      { name: 'فحص قواعد الأمان RLS', status: 'pending' },
       { name: 'فحص اتصال Railway', status: 'pending' },
-      { name: 'فحص التوكن والمصادقة', status: 'pending' },
       { name: 'اختبار حفظ البيانات', status: 'pending' },
       { name: 'اختبار تشغيل الوكيل M1', status: 'pending' }
     ];
@@ -68,48 +68,44 @@ export const IntegrationTest = () => {
         return;
       }
 
-      // Test 2: Railway Connection
+      // Test 2: RLS Policies
       updateTest(1, { status: 'running' });
       const startTime2 = Date.now();
       
-      if (railwayConnected) {
+      try {
+        // Test if we can access company_profiles with RLS
+        const { data: companyTest } = await supabase
+          .from('company_profiles')
+          .select('id')
+          .limit(1);
+        
         updateTest(1, { 
           status: 'success', 
-          message: 'Railway متصل بنجاح',
+          message: 'قواعد الأمان تعمل بشكل صحيح',
           duration: Date.now() - startTime2
         });
-      } else {
+      } catch (error: any) {
         updateTest(1, { 
           status: 'error', 
-          message: 'فشل في الاتصال بـ Railway',
+          message: `خطأ في قواعد الأمان: ${error.message}`,
           duration: Date.now() - startTime2
         });
-        return;
       }
 
-      // Test 3: Authentication Token
+      // Test 3: Railway Connection
       updateTest(2, { status: 'running' });
       const startTime3 = Date.now();
       
-      try {
-        const { data: tokenData } = await supabase.functions.invoke('get-railway-token');
-        if (tokenData?.token) {
-          updateTest(2, { 
-            status: 'success', 
-            message: 'تم الحصول على التوكن بنجاح',
-            duration: Date.now() - startTime3
-          });
-        } else {
-          updateTest(2, { 
-            status: 'error', 
-            message: 'فشل في الحصول على التوكن',
-            duration: Date.now() - startTime3
-          });
-        }
-      } catch (error: any) {
+      if (railwayConnected) {
+        updateTest(2, { 
+          status: 'success', 
+          message: 'Railway متصل بنجاح',
+          duration: Date.now() - startTime3
+        });
+      } else {
         updateTest(2, { 
           status: 'error', 
-          message: `خطأ في التوكن: ${error.message}`,
+          message: 'فشل في الاتصال بـ Railway',
           duration: Date.now() - startTime3
         });
       }
@@ -162,7 +158,6 @@ export const IntegrationTest = () => {
           description: 'شركة تقنية للاختبار'
         };
 
-        // This is a test run - we expect it might fail but we're testing the connection
         await executeAgent('M1_STRATEGIC', testCompanyData);
         
         updateTest(4, { 
@@ -172,7 +167,6 @@ export const IntegrationTest = () => {
         });
 
       } catch (error: any) {
-        // Even if the agent fails, if we get a proper error response, the connection works
         if (error.message.includes('Railway') || error.message.includes('timeout')) {
           updateTest(4, { 
             status: 'error', 

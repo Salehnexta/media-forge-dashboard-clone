@@ -27,7 +27,7 @@ export const useChatLogic = () => {
   const generateContextualResponse = async (userMessage: string, agent: AIManager, memories: any[]): Promise<ContextualResponse> => {
     const lowerMessage = userMessage.toLowerCase();
     
-    // التحقق من أسئلة بيانات الشركة أولاً
+    // Check for company data questions first
     if (lowerMessage.includes('شركة') || lowerMessage.includes('اسم') || lowerMessage.includes('ملف') || lowerMessage.includes('بيانات') || lowerMessage.includes('معلومات')) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -53,7 +53,7 @@ export const useChatLogic = () => {
 هل تريد تحديث أي من هذه المعلومات أو تحتاج تحليل استراتيجي للشركة؟`,
               actionButton: {
                 label: 'تحديث بيانات الشركة',
-                action: () => console.log('Update company data')
+                action: () => window.location.href = '/onboarding'
               }
             };
           } else {
@@ -71,7 +71,7 @@ export const useChatLogic = () => {
 هل تريد البدء في إعداد ملف شركتك؟`,
               actionButton: {
                 label: 'إعداد ملف الشركة',
-                action: () => console.log('Setup company profile')
+                action: () => window.location.href = '/onboarding'
               }
             };
           }
@@ -84,7 +84,7 @@ export const useChatLogic = () => {
       }
     }
 
-    // إجابات متخصصة حسب الوكيل للأسئلة الأخرى
+    // Agent-specific responses for other questions
     const responses: Record<AIManager, ContextualResponse> = {
       strategic: {
         text: `مرحباً! أنا المدير الاستراتيجي في فريق Morvo. يمكنني مساعدتك في:
@@ -97,7 +97,7 @@ export const useChatLogic = () => {
 ما هو التحدي الرئيسي الذي تواجهه في شركتك حالياً؟`,
         actionButton: {
           label: 'تحليل استراتيجي شامل',
-          action: () => console.log('Strategic analysis')
+          action: () => window.location.href = '/ai-analysis'
         }
       },
       monitor: {
@@ -111,7 +111,7 @@ export const useChatLogic = () => {
 أي منصة تركز عليها أكثر في التسويق؟`,
         actionButton: {
           label: 'تحليل وسائل التواصل',
-          action: () => console.log('Social media analysis')
+          action: () => window.location.href = '/social-analytics'
         }
       },
       executor: {
@@ -125,7 +125,7 @@ export const useChatLogic = () => {
 ما نوع الحملة التي تخطط لتنفيذها؟`,
         actionButton: {
           label: 'إعداد حملة جديدة',
-          action: () => console.log('Create campaign')
+          action: () => window.location.href = '/campaigns'
         }
       },
       creative: {
@@ -139,7 +139,7 @@ export const useChatLogic = () => {
 ما نوع المحتوى الذي تحتاجه لعلامتك التجارية؟`,
         actionButton: {
           label: 'إنتاج محتوى إبداعي',
-          action: () => console.log('Create content')
+          action: () => window.location.href = '/content'
         }
       },
       analyst: {
@@ -153,7 +153,7 @@ export const useChatLogic = () => {
 ما نوع البيانات التي تريد تحليلها؟`,
         actionButton: {
           label: 'تحليل البيانات',
-          action: () => console.log('Analyze data')
+          action: () => window.location.href = '/analytics'
         }
       }
     };
@@ -177,49 +177,59 @@ export const useChatLogic = () => {
     setMessage('');
     setIsTyping(true);
 
-    // تحليل السؤال وتحديد الوكيل المناسب
+    // Analyze question and determine appropriate agent
     const appropriateAgent = analyzeQuestion(currentQuestion);
     setCurrentAgent(appropriateAgent);
 
-    await storeMemory(appropriateAgent, 'context', {
-      type: 'user_message',
-      message: currentQuestion,
-      timestamp: new Date().toISOString()
-    });
-
-    setTimeout(async () => {
-      const memories = await retrieveMemory(appropriateAgent, 'context');
-      const contextualResponse = await generateContextualResponse(currentQuestion, appropriateAgent, memories);
-      
-      const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        text: contextualResponse.text,
-        sender: 'ai',
-        timestamp: new Date(),
-        manager: appropriateAgent,
-        actionButton: contextualResponse.actionButton
-      };
-
-      setChatHistory(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-
-      await storeMemory(appropriateAgent, 'insight', {
-        type: 'ai_response',
-        message: contextualResponse.text,
-        user_question: currentQuestion,
+    try {
+      await storeMemory(appropriateAgent, 'context', {
+        type: 'user_message',
+        message: currentQuestion,
         timestamp: new Date().toISOString()
       });
 
-      if (contextualResponse.shareWithAgents) {
-        for (const agent of contextualResponse.shareWithAgents) {
-          await shareContext(appropriateAgent, agent, {
-            type: 'insight',
-            data: contextualResponse.text,
-            original_question: currentQuestion
+      setTimeout(async () => {
+        try {
+          const memories = await retrieveMemory(appropriateAgent, 'context');
+          const contextualResponse = await generateContextualResponse(currentQuestion, appropriateAgent, memories);
+          
+          const aiResponse: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            text: contextualResponse.text,
+            sender: 'ai',
+            timestamp: new Date(),
+            manager: appropriateAgent,
+            actionButton: contextualResponse.actionButton
+          };
+
+          setChatHistory(prev => [...prev, aiResponse]);
+          setIsTyping(false);
+
+          await storeMemory(appropriateAgent, 'insight', {
+            type: 'ai_response',
+            message: contextualResponse.text,
+            user_question: currentQuestion,
+            timestamp: new Date().toISOString()
           });
+
+          if (contextualResponse.shareWithAgents) {
+            for (const agent of contextualResponse.shareWithAgents) {
+              await shareContext(appropriateAgent, agent, {
+                type: 'insight',
+                data: contextualResponse.text,
+                original_question: currentQuestion
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error generating response:', error);
+          setIsTyping(false);
         }
-      }
-    }, 1500);
+      }, 1500);
+    } catch (error) {
+      console.error('Error storing memory:', error);
+      setIsTyping(false);
+    }
   };
 
   return {
