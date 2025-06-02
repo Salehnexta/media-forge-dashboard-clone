@@ -62,13 +62,13 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              منصة مورفو الذكية
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> لإنشاء المحتوى</span>
+              مورفو الذكاء الاصطناعي
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> الخارق</span>
               <br />
-              <span className="text-4xl md:text-5xl">وإدارة الحملات التسويقية</span>
+              <span className="text-4xl md:text-5xl">يتولى عمل فريق تسويق كامل</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-              تفوق على منافسيك مع أدوات تسويقية متقدمة مدعومة بالذكاء الاصطناعي. نظام متكامل يتفوق على الحلول التقليدية في السوق السعودي والخليجي
+              ذكاء اصطناعي متفرد يعمل بقوة فريق تسويق متكامل. مورفو يجمع خبرات إنشاء المحتوى وإدارة الحملات والتحليل في نظام واحد قوي يتفوق على جميع الحلول التقليدية
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button 
@@ -76,7 +76,7 @@ const Home = () => {
                 onClick={() => navigate("/auth")}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-4"
               >
-                احصل على تحليل مجاني للمنافسين
+                اطلق قوة مورفو الآن
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
               <Button 
@@ -84,21 +84,21 @@ const Home = () => {
                 size="lg"
                 className="text-lg px-8 py-4"
               >
-                احجز عرض توضيحي شخصي
+                شاهد مورفو في العمل
               </Button>
             </div>
             <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>خطة محتوى 3 أشهر مجاناً</span>
+                <span>ذكاء اصطناعي يعمل 24/7</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>ضمان التفوق على المنافسين</span>
+                <span>يحل محل فريق تسويق كامل</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>دعم محلي باللغة العربية</span>
+                <span>متخصص في السوق العربي</span>
               </div>
             </div>
           </div>
@@ -110,41 +110,41 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              إنشاء محتوى متميز بسرعة غير مسبوقة
+              مورفو يتولى جميع مهام التسويق بذكاء خارق
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              محتوى عربي أصيل ومتنوع يحافظ على هوية علامتك التجارية عبر جميع المنصات
+              ذكاء اصطناعي متفرد يجمع قدرات إنشاء المحتوى وإدارة الحملات والتحليل في نظام واحد قوي
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Globe className="w-8 h-8 text-green-600" />
+                <Brain className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">محتوى عربي أصيل</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">إبداع المحتوى</h3>
               <p className="text-gray-600 text-center mb-4">
-                إنشاء محتوى باللغة العربية الفصحى أو اللهجات المحلية بما يناسب جمهورك
+                مورفو ينشئ محتوى عربي أصيل ومتنوع بذكاء خارق يفهم ثقافة السوق المحلي
               </p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Sparkles className="w-8 h-8 text-purple-600" />
+                <Rocket className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">تنوع المحتوى</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">إدارة الحملات</h3>
               <p className="text-gray-600 text-center mb-4">
-                منشورات مواقع التواصل، مقالات المدونة، نصوص إعلانية، وصف المنتجات
+                مورفو يخطط وينفذ ويحسن الحملات التسويقية بأتمتة كاملة وذكاء متقدم
               </p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-blue-600" />
+                <BarChart3 className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">اتساق العلامة التجارية</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">التحليل الذكي</h3>
               <p className="text-gray-600 text-center mb-4">
-                المحافظة على صوت وأسلوب علامتك التجارية في جميع المحتويات
+                مورفو يحلل البيانات ويقدم رؤى عميقة وتوصيات قوية لتحسين الأداء
               </p>
             </div>
 
@@ -152,9 +152,9 @@ const Home = () => {
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Target className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">تخصيص حسب المنصات</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">التحسين المستمر</h3>
               <p className="text-gray-600 text-center mb-4">
-                محتوى مخصص لكل منصة بالمقاسات والصيغ المناسبة
+                مورفو يتعلم من كل حملة ويحسن الأداء باستمرار لتحقيق أفضل النتائج
               </p>
             </div>
           </div>
@@ -166,51 +166,51 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              إدارة الحملات التسويقية بكفاءة عالية
+              مورفو يحل محل فريق تسويق كامل
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              أتمتة كاملة وتحسين مستمر لتحقيق أفضل النتائج من استثماراتك التسويقية
+              ذكاء اصطناعي واحد يجمع خبرات متعددة ويعمل بكفاءة تفوق أي فريق تسويق تقليدي
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-8 h-8 text-blue-600" />
+                <Lightbulb className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">أتمتة كاملة</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">استراتيجي ماهر</h3>
               <p className="text-gray-600 text-center">
-                تخطيط وتنفيذ ومتابعة الحملات عبر جميع المنصات من لوحة تحكم واحدة
+                مورفو يضع الاستراتيجيات الشاملة ويحدد الأولويات بذكاء استراتيجي متقدم
               </p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-8 h-8 text-green-600" />
+                <Zap className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">جدولة ذكية</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">منفذ خبير</h3>
               <p className="text-gray-600 text-center">
-                جدولة المحتوى في أوقات التفاعل المثالية المبنية على تحليل جمهورك
+                مورفو ينفذ الحملات بدقة عالية وسرعة فائقة مع مراقبة مستمرة للنتائج
               </p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <Sparkles className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">تحسين مستمر</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">مبدع متفوق</h3>
               <p className="text-gray-600 text-center">
-                تحسين تلقائي للحملات بناءً على الأداء والنتائج بتقنيات الذكاء الاصطناعي
+                مورفو يبتكر محتوى إبداعي فريد يجذب الجمهور ويحقق أهدافك التسويقية
               </p>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <BarChart3 className="w-8 h-8 text-red-600" />
+                <TrendingUp className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">اختبارات A/B متقدمة</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">محلل بيانات</h3>
               <p className="text-gray-600 text-center">
-                تجربة متغيرات مختلفة للإعلانات والمحتوى لتحقيق أفضل النتائج
+                مورفو يحلل البيانات بعمق ويقدم توصيات ذكية قائمة على أدلة قوية
               </p>
             </div>
           </div>
@@ -295,7 +295,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              قدرات فريدة في مجال إنشاء المحتوى وإدارة الحملات
+              قدرات مورفو الخارقة في التسويق
             </h2>
           </div>
 
@@ -307,8 +307,8 @@ const Home = () => {
                   <Lightbulb className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">نورة (M4)</h3>
-                  <p className="text-gray-600">خبيرة استراتيجية المحتوى</p>
+                  <h3 className="text-2xl font-bold text-gray-900">قدرات إنشاء المحتوى</h3>
+                  <p className="text-gray-600">مورفو الذكاء الاصطناعي الخارق</p>
                 </div>
               </div>
               <ul className="space-y-4">
@@ -338,8 +338,8 @@ const Home = () => {
                   <Rocket className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">محمد (M3)</h3>
-                  <p className="text-gray-600">خبير تحسين الحملات</p>
+                  <h3 className="text-2xl font-bold text-gray-900">قدرات إدارة الحملات</h3>
+                  <p className="text-gray-600">مورفو الذكاء الاصطناعي الخارق</p>
                 </div>
               </div>
               <ul className="space-y-4">
@@ -370,7 +370,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              نجاحات تفوقت على المنافسين
+              نجاحات مورفو تفوقت على المنافسين
             </h2>
           </div>
 
@@ -383,7 +383,7 @@ const Home = () => {
                 <div className="text-green-800 font-semibold">شركة رائدة في قطاع التجزئة</div>
               </div>
               <blockquote className="text-gray-700 text-lg leading-relaxed mb-4">
-                "بعد تجربة العديد من الأنظمة العالمية، وجدنا أن مورفو هي المنصة الوحيدة التي تفهم حقاً السوق السعودي."
+                "بعد تجربة العديد من الأنظمة العالمية، وجدنا أن مورفو هو الذكاء الاصطناعي الوحيد الذي يفهم حقاً السوق السعودي."
               </blockquote>
               <div className="text-3xl font-bold text-green-600 mb-2">+78%</div>
               <div className="text-gray-600">زيادة في معدلات التفاعل خلال الشهر الأول</div>
@@ -397,7 +397,7 @@ const Home = () => {
                 <div className="text-blue-800 font-semibold">عميل من القطاع المالي</div>
               </div>
               <blockquote className="text-gray-700 text-lg leading-relaxed mb-4">
-                "قمنا بتخفيض تكلفة الاستحواذ على العملاء مع زيادة جودة العملاء المستهدفين مقارنة بالأنظمة المنافسة."
+                "مورفو تمكن من تخفيض تكلفة الاستحواذ على العملاء مع زيادة جودة العملاء المستهدفين مقارنة بجميع الأنظمة المنافسة."
               </blockquote>
               <div className="text-3xl font-bold text-blue-600 mb-2">-45%</div>
               <div className="text-gray-600">تخفيض في تكلفة الاستحواذ على العملاء</div>
@@ -410,17 +410,17 @@ const Home = () => {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto px-6 text-center text-white">
           <h2 className="text-4xl font-bold mb-6">
-            استعد للتفوق على منافسيك اليوم
+            اطلق قوة مورفو الخارقة اليوم
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            اكتشف كيف يمكن لمنصة مورفو أن تساعدك في التفوق على منافسيك من خلال إنشاء محتوى متميز وإدارة حملات فعّالة
+            اكتشف كيف يمكن لمورفو الذكاء الاصطناعي الخارق أن يحل محل فريق تسويق كامل ويحقق نتائج تفوق توقعاتك
           </p>
           
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <Brain className="w-12 h-12 mx-auto mb-4 text-white" />
               <h3 className="font-semibold mb-2">تحليل مجاني للمنافسين</h3>
-              <p className="text-sm opacity-90">احصل على تحليل تفصيلي لمحتوى وحملات منافسيك</p>
+              <p className="text-sm opacity-90">مورفو يحلل منافسيك ويضع خطة للتفوق عليهم</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <Clock className="w-12 h-12 mx-auto mb-4 text-white" />
@@ -430,7 +430,7 @@ const Home = () => {
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <Shield className="w-12 h-12 mx-auto mb-4 text-white" />
               <h3 className="font-semibold mb-2">ضمان التفوق</h3>
-              <p className="text-sm opacity-90">نضمن نتائج أفضل من أي منصة منافسة أو استرداد المبلغ</p>
+              <p className="text-sm opacity-90">مورفو يضمن نتائج أفضل من أي منصة منافسة</p>
             </div>
           </div>
 
@@ -440,7 +440,7 @@ const Home = () => {
               onClick={() => navigate("/auth")}
               className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
             >
-              احجز عرض توضيحي شخصي الآن
+              اطلق قوة مورفو الآن
               <ArrowLeft className="w-5 h-5 mr-2" />
             </Button>
             <Button 
@@ -448,12 +448,12 @@ const Home = () => {
               size="lg"
               className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
             >
-              ابدأ التجربة المجانية
+              شاهد مورفو في العمل
             </Button>
           </div>
           
           <p className="text-sm mt-6 opacity-75">
-            مورفو - المنصة التسويقية الأكثر تقدمًا في المملكة العربية السعودية
+            مورفو - الذكاء الاصطناعي الخارق الأكثر تقدمًا في المملكة العربية السعودية
           </p>
         </div>
       </section>
