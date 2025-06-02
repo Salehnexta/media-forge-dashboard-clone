@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { AIManager, ChatMessage } from "@/types/morvo";
 import { useChatLogic } from "@/components/chat/hooks/useChatLogic";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { InputSanitizer } from "@/components/security/InputSanitizer";
+import { chatRateLimiter } from "@/components/security/RateLimiter";
+import { toast } from "sonner";
 
 interface ChatSectionProps {
   selectedManager: AIManager;
@@ -22,15 +25,53 @@ export const ChatSection = ({
     chatHistory,
     isTyping,
     messagesEndRef,
-    handleSendMessage
+    handleSendMessage: originalHandleSendMessage
   } = useChatLogic();
 
   const isMobile = useIsMobile();
+
+  // Secure message handling with rate limiting and sanitization
+  const handleSendMessage = () => {
+    // Rate limiting check
+    if (!chatRateLimiter.isAllowed()) {
+      toast.error('تم إرسال رسائل كثيرة. يرجى الانتظار قليلاً.');
+      return;
+    }
+
+    // Input validation
+    if (!message.trim()) {
+      toast.error('يرجى كتابة رسالة أولاً');
+      return;
+    }
+
+    if (message.length > 1000) {
+      toast.error('الرسالة طويلة جداً');
+      return;
+    }
+
+    // Sanitize message before sending
+    const sanitizedMessage = InputSanitizer.sanitizeText(message);
+    
+    // Update message state with sanitized content
+    setMessage(sanitizedMessage);
+    
+    // Send the message
+    originalHandleSendMessage();
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Basic input validation
+    if (value.length <= 1000) {
+      setMessage(value);
     }
   };
 
@@ -43,6 +84,22 @@ export const ChatSection = ({
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  };
+
+  const renderMessageContent = (text: string) => {
+    // Sanitize message content before rendering
+    const sanitizedText = InputSanitizer.sanitizeHTML(text, {
+      allowedTags: ['p', 'br', 'strong', 'em'],
+      allowedAttributes: []
+    });
+    
+    return (
+      <div 
+        dangerouslySetInnerHTML={{ 
+          __html: sanitizedText 
+        }} 
+      />
+    );
   };
 
   return (
@@ -137,7 +194,9 @@ export const ChatSection = ({
                       <Bot className="w-4 h-4 mt-1 flex-shrink-0 text-blue-600" />
                     )}
                     <div className="flex-1">
-                      <p className="text-sm lg:text-base whitespace-pre-line leading-relaxed">{msg.text}</p>
+                      <div className="text-sm lg:text-base whitespace-pre-line leading-relaxed">
+                        {renderMessageContent(msg.text)}
+                      </div>
                       {msg.actionButton && (
                         <Button
                           onClick={msg.actionButton.action}
@@ -190,11 +249,12 @@ export const ChatSection = ({
         <div className="flex gap-2 lg:gap-3 mb-3">
           <Input
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleMessageChange}
             placeholder="اكتب رسالتك هنا..."
             className="flex-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm lg:text-base"
             onKeyPress={handleKeyPress}
             disabled={isTyping}
+            maxLength={1000}
           />
           <Button
             onClick={handleSendMessage}
@@ -214,6 +274,14 @@ export const ChatSection = ({
             مدير التسويق الذكي جاهز للمساعدة
           </p>
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
+        </div>
+        
+        {/* Rate limit indicator */}
+        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+          <span>{message.length}/1000</span>
+          <span>
+            الرسائل المتبقية: {chatRateLimiter.getRemainingRequests()}
+          </span>
         </div>
       </div>
     </div>
