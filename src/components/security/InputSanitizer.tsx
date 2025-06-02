@@ -1,5 +1,5 @@
 
-import DOMPurify from 'dompurify';
+import { toast } from "sonner";
 
 interface SanitizeOptions {
   allowedTags?: string[];
@@ -9,13 +9,20 @@ interface SanitizeOptions {
 
 export class InputSanitizer {
   static sanitizeHTML(input: string, options: SanitizeOptions = {}): string {
-    const config = {
-      ALLOWED_TAGS: options.allowedTags || ['b', 'i', 'em', 'strong', 'p', 'br'],
-      ALLOWED_ATTR: options.allowedAttributes || [],
-      KEEP_CONTENT: !options.stripTags
-    };
+    // Simple HTML sanitization without DOMPurify for now
+    // This removes all HTML tags and entities
+    const tempDiv = document.createElement('div');
+    tempDiv.textContent = input;
+    let sanitized = tempDiv.innerHTML;
     
-    return DOMPurify.sanitize(input, config);
+    // Additional cleaning for common XSS vectors
+    sanitized = sanitized
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '');
+    
+    return sanitized;
   }
 
   static sanitizeText(input: string): string {
