@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -236,7 +237,7 @@ export const SmartAlerts = () => {
           <div className="text-right">
             <p className="text-xs text-gray-500">{alert.timestamp}</p>
             {!alert.isRead && (
-              <Badge className="bg-blue-500 text-white mt-1" size="sm">
+              <Badge className="bg-blue-500 text-white mt-1">
                 جديد
               </Badge>
             )}
