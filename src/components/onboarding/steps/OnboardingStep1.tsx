@@ -92,6 +92,25 @@ export const OnboardingStep1 = ({ data, onDataChange }: OnboardingStep1Props) =>
     onDataChange(updatedData);
   };
 
+  // Helper function to safely render text content
+  const renderText = (content: any) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    if (content && typeof content === 'object') {
+      // If it's an object with language keys, prefer Arabic first, then English
+      if (content.arabic) {
+        return content.arabic;
+      }
+      if (content.english) {
+        return content.english;
+      }
+      // If it's some other object, convert to string
+      return JSON.stringify(content);
+    }
+    return String(content || '');
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Website Analysis Section */}
@@ -161,11 +180,11 @@ export const OnboardingStep1 = ({ data, onDataChange }: OnboardingStep1Props) =>
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm text-slate-600">{autoDiscoveredData.businessDescription}</p>
+                  <p className="text-sm text-slate-600">{renderText(autoDiscoveredData.businessDescription)}</p>
                 </div>
               )}
 
-              {autoDiscoveredData.competitors && autoDiscoveredData.competitors.length > 0 && (
+              {autoDiscoveredData.competitors && Array.isArray(autoDiscoveredData.competitors) && autoDiscoveredData.competitors.length > 0 && (
                 <div className="p-3 bg-slate-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-sm">المنافسون</span>
@@ -187,16 +206,16 @@ export const OnboardingStep1 = ({ data, onDataChange }: OnboardingStep1Props) =>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {autoDiscoveredData.competitors.map((competitor: string, index: number) => (
+                    {autoDiscoveredData.competitors.map((competitor: any, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
-                        {competitor}
+                        {renderText(competitor)}
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
 
-              {autoDiscoveredData.keywords && autoDiscoveredData.keywords.length > 0 && (
+              {autoDiscoveredData.keywords && Array.isArray(autoDiscoveredData.keywords) && autoDiscoveredData.keywords.length > 0 && (
                 <div className="p-3 bg-slate-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-sm">الكلمات المفتاحية</span>
@@ -218,9 +237,9 @@ export const OnboardingStep1 = ({ data, onDataChange }: OnboardingStep1Props) =>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {autoDiscoveredData.keywords.map((keyword: string, index: number) => (
+                    {autoDiscoveredData.keywords.map((keyword: any, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
-                        {keyword}
+                        {renderText(keyword)}
                       </Badge>
                     ))}
                   </div>
