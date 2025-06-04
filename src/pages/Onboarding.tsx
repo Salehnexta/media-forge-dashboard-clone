@@ -97,15 +97,14 @@ const Onboarding = () => {
       const { error } = await supabase
         .from('companies')
         .upsert({
-          user_id: user.id,
-          name: onboardingData.companyNameEn || '',
+          owner_id: user.id,
           company_name_ar: onboardingData.companyNameAr || '',
           company_name_en: onboardingData.companyNameEn || '',
           website: onboardingData.websiteUrl,
           industry: onboardingData.industry,
-          size: onboardingData.companySize,
+          company_size: onboardingData.companySize,
           business_type: onboardingData.businessType,
-          location: onboardingData.locationCountry,
+          location_country: onboardingData.locationCountry,
           location_city: onboardingData.locationCity,
           years_in_business: onboardingData.yearsInBusiness,
           auto_discovered_data: onboardingData.autoDiscoveredData || {},
@@ -137,15 +136,14 @@ const Onboarding = () => {
       const { error: companyError } = await supabase
         .from('companies')
         .upsert({
-          user_id: user.id,
-          name: onboardingData.companyNameEn || '',
+          owner_id: user.id,
           company_name_ar: onboardingData.companyNameAr || '',
           company_name_en: onboardingData.companyNameEn || '',
           website: onboardingData.websiteUrl,
           industry: onboardingData.industry,
-          size: onboardingData.companySize,
+          company_size: onboardingData.companySize,
           business_type: onboardingData.businessType,
-          location: onboardingData.locationCountry,
+          location_country: onboardingData.locationCountry,
           location_city: onboardingData.locationCity,
           years_in_business: onboardingData.yearsInBusiness,
           auto_discovered_data: onboardingData.autoDiscoveredData || {},
@@ -158,21 +156,20 @@ const Onboarding = () => {
         return;
       }
 
-      // Try to update profiles table if it exists
+      // Update user profile to mark registration as completed
       try {
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .update({
-            onboarding_completed: true,
             registration_completed: true
           })
           .eq('id', user.id);
 
         if (profileError) {
-          console.log('Profile update not available, continuing...');
+          console.log('Profile update error:', profileError);
         }
       } catch (profileError) {
-        console.log('Profiles table not available, continuing...');
+        console.log('Profile update failed:', profileError);
       }
 
       toast.success('مرحباً بك في مورفو! تم إكمال الإعداد بنجاح 🎉');
