@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -371,7 +370,7 @@ export const TopicsMonitor = () => {
                           </span>
                         </td>
                         <td className="text-center py-3 px-4">
-                          <Badge className={getAlertColor(topic.alertLevel)} size="sm">
+                          <Badge className={getAlertColor(topic.alertLevel)}>
                             {topic.alertLevel === 'critical' && 'حرج'}
                             {topic.alertLevel === 'high' && 'عالي'}
                             {topic.alertLevel === 'medium' && 'متوسط'}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -220,7 +219,7 @@ export const SmartAlerts = () => {
             <div className="flex items-center gap-2 mb-2">
               {getSeverityIcon(alert.severity)}
               <h4 className="font-semibold text-gray-900">{alert.ruleName}</h4>
-              <Badge className={getSeverityColor(alert.severity)} size="sm">
+              <Badge className={getSeverityColor(alert.severity)}>
                 {alert.severity === 'critical' && 'حرج'}
                 {alert.severity === 'high' && 'عالي'}
                 {alert.severity === 'medium' && 'متوسط'}
