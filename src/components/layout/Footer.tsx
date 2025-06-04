@@ -1,21 +1,14 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Phone, MapPin } from "lucide-react";
-
 export const Footer = () => {
-  return (
-    <footer className="bg-gray-900 text-white" dir="rtl">
+  return <footer className="bg-gray-900 text-white" dir="rtl">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                <img 
-                  src="/lovable-uploads/106e73d9-6931-4d1f-baf9-41e6e1e2e440.png" 
-                  alt="Morvo Logo" 
-                  className="w-full h-full object-contain"
-                />
+                <img src="/lovable-uploads/106e73d9-6931-4d1f-baf9-41e6e1e2e440.png" alt="Morvo Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-bold">Morvo</span>
             </div>
@@ -118,7 +111,7 @@ export const Footer = () => {
             </div>
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-red-400" />
-              <span className="text-gray-300">الرياض، المملكة العربية السعودية</span>
+              <span className="text-gray-300">الخبر، المملكة العربية السعودية</span>
             </div>
           </div>
         </div>
@@ -130,6 +123,5 @@ export const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
