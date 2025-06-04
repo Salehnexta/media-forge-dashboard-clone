@@ -45,15 +45,15 @@ export const RealTimeAlerts = () => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'border-red-500 bg-red-50';
+        return 'border-red-500 bg-gradient-to-r from-red-50 to-red-100';
       case 'high':
-        return 'border-orange-500 bg-orange-50';
+        return 'border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100';
       case 'medium':
-        return 'border-blue-500 bg-blue-50';
+        return 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100';
       case 'low':
-        return 'border-green-500 bg-green-50';
+        return 'border-green-500 bg-gradient-to-r from-green-50 to-green-100';
       default:
-        return 'border-gray-500 bg-gray-50';
+        return 'border-gray-200 bg-gradient-to-r from-gray-50 to-white';
     }
   };
 
@@ -66,14 +66,14 @@ export const RealTimeAlerts = () => {
       {recentAlerts.map((alert) => (
         <Alert
           key={alert.id}
-          className={`relative ${getSeverityColor(alert.severity)} border-l-4 shadow-lg animate-in slide-in-from-left-5`}
+          className={`relative ${getSeverityColor(alert.severity)} border-l-4 shadow-xl animate-in slide-in-from-left-5`}
         >
           <div className="flex items-start gap-3">
             {getSeverityIcon(alert.severity)}
             <div className="flex-1 min-w-0">
-              <AlertTitle className="text-sm font-semibold flex items-center gap-2">
+              <AlertTitle className="text-sm font-semibold flex items-center gap-2 text-gray-900">
                 {alert.title}
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
                   {alert.agent_source.toUpperCase()}
                 </Badge>
               </AlertTitle>
@@ -84,7 +84,7 @@ export const RealTimeAlerts = () => {
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 w-6 p-0 hover:bg-gray-200"
+              className="h-6 w-6 p-0 hover:bg-gray-200 text-gray-500 hover:text-gray-700"
               onClick={() => markAsRead(alert.id)}
             >
               <X className="w-3 h-3" />
@@ -95,7 +95,7 @@ export const RealTimeAlerts = () => {
       
       {unreadCount > 3 && (
         <div className="text-center">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
             +{unreadCount - 3} تنبيهات أخرى
           </Badge>
         </div>

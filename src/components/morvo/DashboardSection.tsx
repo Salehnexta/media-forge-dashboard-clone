@@ -1,6 +1,6 @@
 
 import { AIManager } from "@/types/morvo";
-import { StrategicDashboard } from "./dashboards/StrategicDashboard";
+import { EnhancedStrategicDashboard } from "./dashboards/EnhancedStrategicDashboard";
 import { SocialMediaDashboard } from "./dashboards/SocialMediaDashboard";
 import { CampaignsDashboard } from "./dashboards/CampaignsDashboard";
 import { ContentDashboard } from "./dashboards/ContentDashboard";
@@ -14,7 +14,7 @@ export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => 
   const renderDashboard = () => {
     switch (selectedManager) {
       case "strategic":
-        return <StrategicDashboard />;
+        return <EnhancedStrategicDashboard />;
       case "monitor":
         return <SocialMediaDashboard />;
       case "executor":
@@ -24,12 +24,12 @@ export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => 
       case "analyst":
         return <AnalyticsDashboard />;
       default:
-        return <StrategicDashboard />;
+        return <EnhancedStrategicDashboard />;
     }
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-xl shadow-xl border border-gray-100 overflow-hidden">
       {renderDashboard()}
     </div>
   );
