@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardPreferences {
   id?: string;
@@ -46,38 +45,18 @@ export const useDashboardPreferences = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      // Simulate API call with mock data for now
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      const { data, error: prefsError } = await supabase
-        .from('dashboard_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      const mockPreferences: DashboardPreferences = {
+        ...defaultPreferences,
+        id: 'mock-pref-1',
+        user_id: 'mock-user',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      if (prefsError && prefsError.code !== 'PGRST116') {
-        throw prefsError;
-      }
-
-      if (data) {
-        setPreferences(data as DashboardPreferences);
-      } else {
-        // Create default preferences if none exist
-        const newPrefs = { ...defaultPreferences, user_id: user.id };
-        const { data: createdData, error: createError } = await supabase
-          .from('dashboard_preferences')
-          .insert(newPrefs)
-          .select()
-          .single();
-
-        if (createError) {
-          throw createError;
-        }
-
-        setPreferences(createdData as DashboardPreferences);
-      }
+      setPreferences(mockPreferences);
     } catch (err) {
       console.error('Error fetching dashboard preferences:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch preferences');
@@ -88,29 +67,21 @@ export const useDashboardPreferences = () => {
 
   const updatePreferences = useCallback(async (updates: Partial<DashboardPreferences>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (!preferences) return null;
 
-      const { data, error } = await supabase
-        .from('dashboard_preferences')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .select()
-        .single();
+      const updatedPreferences = {
+        ...preferences,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) {
-        throw error;
-      }
-
-      setPreferences(data as DashboardPreferences);
-      return data;
+      setPreferences(updatedPreferences);
+      return updatedPreferences;
     } catch (err) {
       console.error('Error updating dashboard preferences:', err);
       throw err;
     }
-  }, []);
+  }, [preferences]);
 
   useEffect(() => {
     fetchPreferences();

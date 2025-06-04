@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardAlert {
   id: string;
@@ -26,23 +25,37 @@ export const useDashboardAlerts = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      // Simulate API call with mock data for now
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      const { data, error: alertsError } = await supabase
-        .from('dashboard_alerts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      const mockAlerts: DashboardAlert[] = [
+        {
+          id: '1',
+          user_id: 'mock-user',
+          alert_type: 'crisis',
+          agent_source: 'm2',
+          title: 'أزمة في وسائل التواصل الاجتماعي',
+          message: 'تم اكتشاف مشاعر سلبية عالية في المنشورات الأخيرة',
+          severity: 'high',
+          is_read: false,
+          metadata: {},
+          created_at: new Date().toISOString()
+        },
+        {
+          id: '2',
+          user_id: 'mock-user',
+          alert_type: 'opportunity',
+          agent_source: 'm1',
+          title: 'فرصة استراتيجية جديدة',
+          message: 'تم اكتشاف ترند صاعد في قطاعكم',
+          severity: 'medium',
+          is_read: false,
+          metadata: {},
+          created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+        }
+      ];
 
-      if (alertsError) {
-        throw alertsError;
-      }
-
-      setAlerts(data || []);
+      setAlerts(mockAlerts);
     } catch (err) {
       console.error('Error fetching dashboard alerts:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch alerts');
@@ -53,15 +66,6 @@ export const useDashboardAlerts = () => {
 
   const markAsRead = useCallback(async (alertId: string) => {
     try {
-      const { error } = await supabase
-        .from('dashboard_alerts')
-        .update({ is_read: true })
-        .eq('id', alertId);
-
-      if (error) {
-        throw error;
-      }
-
       setAlerts(prev => 
         prev.map(alert => 
           alert.id === alertId ? { ...alert, is_read: true } : alert
@@ -81,31 +85,21 @@ export const useDashboardAlerts = () => {
     metadata: Record<string, any> = {}
   ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      const newAlert: DashboardAlert = {
+        id: Date.now().toString(),
+        user_id: 'mock-user',
+        alert_type,
+        agent_source,
+        title,
+        message,
+        severity,
+        is_read: false,
+        metadata,
+        created_at: new Date().toISOString()
+      };
 
-      const { data, error } = await supabase
-        .from('dashboard_alerts')
-        .insert({
-          user_id: user.id,
-          alert_type,
-          agent_source,
-          title,
-          message,
-          severity,
-          metadata
-        })
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      setAlerts(prev => [data, ...prev]);
-      return data;
+      setAlerts(prev => [newAlert, ...prev]);
+      return newAlert;
     } catch (err) {
       console.error('Error creating alert:', err);
       throw err;
@@ -115,36 +109,6 @@ export const useDashboardAlerts = () => {
   useEffect(() => {
     fetchAlerts();
   }, [fetchAlerts]);
-
-  // Set up real-time subscription for new alerts
-  useEffect(() => {
-    const { data: { user } } = supabase.auth.getUser();
-    
-    user.then((userData) => {
-      if (!userData.user) return;
-
-      const channel = supabase
-        .channel('dashboard_alerts_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'dashboard_alerts',
-            filter: `user_id=eq.${userData.user.id}`
-          },
-          (payload) => {
-            const newAlert = payload.new as DashboardAlert;
-            setAlerts(prev => [newAlert, ...prev]);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    });
-  }, []);
 
   return {
     alerts,
