@@ -97,18 +97,14 @@ const Onboarding = () => {
       const { error } = await supabase
         .from('companies')
         .upsert({
-          owner_id: user.id,
-          company_name_ar: onboardingData.companyNameAr || '',
-          company_name_en: onboardingData.companyNameEn || '',
-          website: onboardingData.websiteUrl,
+          user_id: user.id,
+          name: onboardingData.companyNameEn || '',
           industry: onboardingData.industry,
-          company_size: onboardingData.companySize,
-          business_type: onboardingData.businessType,
-          location_country: onboardingData.locationCountry,
-          location_city: onboardingData.locationCity,
-          years_in_business: onboardingData.yearsInBusiness,
-          auto_discovered_data: onboardingData.autoDiscoveredData || {},
-          data_approved: false
+          size: onboardingData.companySize,
+          location: onboardingData.locationCountry,
+          website: onboardingData.websiteUrl,
+          description: onboardingData.businessDescription,
+          founded: onboardingData.yearsInBusiness
         });
 
       if (error) {
@@ -136,40 +132,20 @@ const Onboarding = () => {
       const { error: companyError } = await supabase
         .from('companies')
         .upsert({
-          owner_id: user.id,
-          company_name_ar: onboardingData.companyNameAr || '',
-          company_name_en: onboardingData.companyNameEn || '',
-          website: onboardingData.websiteUrl,
+          user_id: user.id,
+          name: onboardingData.companyNameEn || '',
           industry: onboardingData.industry,
-          company_size: onboardingData.companySize,
-          business_type: onboardingData.businessType,
-          location_country: onboardingData.locationCountry,
-          location_city: onboardingData.locationCity,
-          years_in_business: onboardingData.yearsInBusiness,
-          auto_discovered_data: onboardingData.autoDiscoveredData || {},
-          data_approved: true
+          size: onboardingData.companySize,
+          location: onboardingData.locationCountry,
+          website: onboardingData.websiteUrl,
+          description: onboardingData.businessDescription,
+          founded: onboardingData.yearsInBusiness
         });
 
       if (companyError) {
         console.error('Company save error:', companyError);
         toast.error('حدث خطأ أثناء حفظ بيانات الشركة');
         return;
-      }
-
-      // Update user profile to mark registration as completed
-      try {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .update({
-            registration_completed: true
-          })
-          .eq('id', user.id);
-
-        if (profileError) {
-          console.log('Profile update error:', profileError);
-        }
-      } catch (profileError) {
-        console.log('Profile update failed:', profileError);
       }
 
       toast.success('مرحباً بك في مورفو! تم إكمال الإعداد بنجاح 🎉');
