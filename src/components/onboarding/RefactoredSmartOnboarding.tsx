@@ -227,10 +227,10 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
     }
   };
 
-  const canProceed = () => {
+  const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
-        return companyData.name.trim() && companyData.industry;
+        return Boolean(companyData.name.trim()) && Boolean(companyData.industry);
       case 2:
       case 3:
       case 4:
