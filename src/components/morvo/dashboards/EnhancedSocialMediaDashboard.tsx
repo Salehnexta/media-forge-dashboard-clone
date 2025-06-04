@@ -1,12 +1,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardMetrics } from '../DashboardMetrics';
+import { DashboardLayout } from '../shared/DashboardLayout';
+import { MetricsGrid } from '../shared/MetricsGrid';
 import { RealTimeAlerts } from '../RealTimeAlerts';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { MessageSquare, Heart, Share2, TrendingUp, AlertTriangle, Users, Eye } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Users, Eye, TrendingUp } from 'lucide-react';
 
 export const EnhancedSocialMediaDashboard = () => {
+  const metrics = [
+    { title: 'إجمالي المتابعين', value: '125K', change: '+12%', trend: 'up' as const, icon: Users, color: 'from-blue-500 to-blue-600' },
+    { title: 'معدل التفاعل', value: '4.2%', change: '+8%', trend: 'up' as const, icon: Heart, color: 'from-pink-500 to-pink-600' },
+    { title: 'الوصول الشهري', value: '450K', change: '+15%', trend: 'up' as const, icon: Eye, color: 'from-green-500 to-green-600' },
+    { title: 'المشاركات', value: '1.2K', change: '+22%', trend: 'up' as const, icon: Share2, color: 'from-purple-500 to-purple-600' }
+  ];
+
   const sentimentData = [
     { platform: 'تويتر', positive: 65, neutral: 25, negative: 10, mentions: 234 },
     { platform: 'إنستغرام', positive: 75, neutral: 20, negative: 5, mentions: 189 },
@@ -37,11 +45,14 @@ export const EnhancedSocialMediaDashboard = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <DashboardLayout
+      title="لوحة تحكم السوشال ميديا"
+      description="مراقبة وتحليل منصات التواصل الاجتماعي المحدث"
+      icon={TrendingUp}
+    >
       <RealTimeAlerts />
       
-      {/* Real-time Social Media Metrics */}
-      <DashboardMetrics agentType="monitor" />
+      <MetricsGrid metrics={metrics} />
 
       {/* Live Mentions Feed */}
       <Card className="border-0 shadow-lg">
@@ -140,6 +151,6 @@ export const EnhancedSocialMediaDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };

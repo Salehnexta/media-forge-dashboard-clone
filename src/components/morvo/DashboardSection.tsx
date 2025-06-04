@@ -1,7 +1,7 @@
 
 import { AIManager } from "@/types/morvo";
 import { EnhancedStrategicDashboard } from "./dashboards/EnhancedStrategicDashboard";
-import { SocialMediaDashboard } from "./dashboards/SocialMediaDashboard";
+import { EnhancedSocialMediaDashboard } from "./dashboards/EnhancedSocialMediaDashboard";
 import { EnhancedCampaignsDashboard } from "./dashboards/EnhancedCampaignsDashboard";
 import { ContentDashboard } from "./dashboards/ContentDashboard";
 import { AnalyticsDashboard } from "./dashboards/AnalyticsDashboard";
@@ -16,7 +16,7 @@ export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => 
       case "strategic":
         return <EnhancedStrategicDashboard />;
       case "monitor":
-        return <SocialMediaDashboard />;
+        return <EnhancedSocialMediaDashboard />;
       case "executor":
         return <EnhancedCampaignsDashboard />;
       case "creative":
