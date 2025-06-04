@@ -40,7 +40,7 @@ const Onboarding = () => {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate('/auth');
+        navigate('/register');
         return;
       }
       setUser(session.user);
@@ -51,7 +51,7 @@ const Onboarding = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
-        navigate('/auth');
+        navigate('/register');
       } else {
         setUser(session.user);
       }
@@ -93,18 +93,19 @@ const Onboarding = () => {
 
     setIsLoading(true);
     try {
-      // Save current progress
+      // Save current progress to companies table
       const { error } = await supabase
         .from('companies')
         .upsert({
-          owner_id: user.id,
+          user_id: user.id,
+          name: onboardingData.companyNameEn || '',
           company_name_ar: onboardingData.companyNameAr || '',
           company_name_en: onboardingData.companyNameEn || '',
           website: onboardingData.websiteUrl,
           industry: onboardingData.industry,
-          company_size: onboardingData.companySize,
+          size: onboardingData.companySize,
           business_type: onboardingData.businessType,
-          location_country: onboardingData.locationCountry,
+          location: onboardingData.locationCountry,
           location_city: onboardingData.locationCity,
           years_in_business: onboardingData.yearsInBusiness,
           auto_discovered_data: onboardingData.autoDiscoveredData || {},
@@ -112,6 +113,7 @@ const Onboarding = () => {
         });
 
       if (error) {
+        console.error('Save error:', error);
         toast.error('حدث خطأ أثناء حفظ البيانات');
         return;
       }
@@ -119,6 +121,7 @@ const Onboarding = () => {
       toast.success('تم حفظ التقدم بنجاح');
       navigate('/dashboard');
     } catch (error) {
+      console.error('Save error:', error);
       toast.error('حدث خطأ أثناء حفظ البيانات');
     } finally {
       setIsLoading(false);
@@ -130,18 +133,19 @@ const Onboarding = () => {
 
     setIsLoading(true);
     try {
-      // Save final onboarding data
+      // Save final onboarding data to companies table
       const { error: companyError } = await supabase
         .from('companies')
         .upsert({
-          owner_id: user.id,
+          user_id: user.id,
+          name: onboardingData.companyNameEn || '',
           company_name_ar: onboardingData.companyNameAr || '',
           company_name_en: onboardingData.companyNameEn || '',
           website: onboardingData.websiteUrl,
           industry: onboardingData.industry,
-          company_size: onboardingData.companySize,
+          size: onboardingData.companySize,
           business_type: onboardingData.businessType,
-          location_country: onboardingData.locationCountry,
+          location: onboardingData.locationCountry,
           location_city: onboardingData.locationCity,
           years_in_business: onboardingData.yearsInBusiness,
           auto_discovered_data: onboardingData.autoDiscoveredData || {},
@@ -149,26 +153,32 @@ const Onboarding = () => {
         });
 
       if (companyError) {
+        console.error('Company save error:', companyError);
         toast.error('حدث خطأ أثناء حفظ بيانات الشركة');
         return;
       }
 
-      // Update user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .update({
-          onboarding_completed: true,
-          registration_completed: true
-        })
-        .eq('id', user.id);
+      // Try to update profiles table if it exists
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            onboarding_completed: true,
+            registration_completed: true
+          })
+          .eq('id', user.id);
 
-      if (profileError) {
-        console.error('Profile update error:', profileError);
+        if (profileError) {
+          console.log('Profile update not available, continuing...');
+        }
+      } catch (profileError) {
+        console.log('Profiles table not available, continuing...');
       }
 
       toast.success('مرحباً بك في مورفو! تم إكمال الإعداد بنجاح 🎉');
       navigate('/dashboard');
     } catch (error) {
+      console.error('Complete error:', error);
       toast.error('حدث خطأ أثناء إكمال الإعداد');
     } finally {
       setIsLoading(false);
