@@ -145,6 +145,65 @@ export type Database = {
           },
         ]
       }
+      auto_discovery_data: {
+        Row: {
+          approval_status: string | null
+          business_description: string | null
+          company_id: string | null
+          content_themes_suggested: string[] | null
+          created_at: string | null
+          discovered_competitors: string[] | null
+          discovered_industry: string | null
+          discovered_keywords: string[] | null
+          id: string
+          marketing_channels_suggested: string[] | null
+          perplexity_analysis: Json | null
+          social_media_found: Json | null
+          target_audience_analysis: Json | null
+          website_url: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          business_description?: string | null
+          company_id?: string | null
+          content_themes_suggested?: string[] | null
+          created_at?: string | null
+          discovered_competitors?: string[] | null
+          discovered_industry?: string | null
+          discovered_keywords?: string[] | null
+          id?: string
+          marketing_channels_suggested?: string[] | null
+          perplexity_analysis?: Json | null
+          social_media_found?: Json | null
+          target_audience_analysis?: Json | null
+          website_url?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          business_description?: string | null
+          company_id?: string | null
+          content_themes_suggested?: string[] | null
+          created_at?: string | null
+          discovered_competitors?: string[] | null
+          discovered_industry?: string | null
+          discovered_keywords?: string[] | null
+          id?: string
+          marketing_channels_suggested?: string[] | null
+          perplexity_analysis?: Json | null
+          social_media_found?: Json | null
+          target_audience_analysis?: Json | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_discovery_data_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bi_reports: {
         Row: {
           cohort_analysis: Json | null
@@ -434,43 +493,118 @@ export type Database = {
       }
       companies: {
         Row: {
+          approval_workflow: string | null
+          auto_discovered_data: Json | null
+          automation_level: string | null
+          brand_personality: string | null
+          campaign_frequency: string | null
+          communication_tone: string | null
+          competitive_advantages: string | null
+          content_languages: string[] | null
+          content_types: string[] | null
           created_at: string
+          current_tools: string[] | null
+          data_approved: boolean | null
           description: string | null
+          experience_level: string | null
           founded: string | null
           id: string
+          income_level: string | null
           industry: string | null
+          key_kpis: string[] | null
           location: string | null
+          main_competitors: Json | null
+          monthly_budget_range: string | null
           name: string
+          preferred_channels: string[] | null
+          primary_goals: string[] | null
+          primary_markets: string[] | null
           size: string | null
+          social_accounts: Json | null
+          target_age_groups: string[] | null
+          target_cities: string[] | null
+          target_gender: string | null
+          team_size: string | null
           updated_at: string
           user_id: string
           website: string | null
+          website_platform: string | null
         }
         Insert: {
+          approval_workflow?: string | null
+          auto_discovered_data?: Json | null
+          automation_level?: string | null
+          brand_personality?: string | null
+          campaign_frequency?: string | null
+          communication_tone?: string | null
+          competitive_advantages?: string | null
+          content_languages?: string[] | null
+          content_types?: string[] | null
           created_at?: string
+          current_tools?: string[] | null
+          data_approved?: boolean | null
           description?: string | null
+          experience_level?: string | null
           founded?: string | null
           id?: string
+          income_level?: string | null
           industry?: string | null
+          key_kpis?: string[] | null
           location?: string | null
+          main_competitors?: Json | null
+          monthly_budget_range?: string | null
           name: string
+          preferred_channels?: string[] | null
+          primary_goals?: string[] | null
+          primary_markets?: string[] | null
           size?: string | null
+          social_accounts?: Json | null
+          target_age_groups?: string[] | null
+          target_cities?: string[] | null
+          target_gender?: string | null
+          team_size?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
+          website_platform?: string | null
         }
         Update: {
+          approval_workflow?: string | null
+          auto_discovered_data?: Json | null
+          automation_level?: string | null
+          brand_personality?: string | null
+          campaign_frequency?: string | null
+          communication_tone?: string | null
+          competitive_advantages?: string | null
+          content_languages?: string[] | null
+          content_types?: string[] | null
           created_at?: string
+          current_tools?: string[] | null
+          data_approved?: boolean | null
           description?: string | null
+          experience_level?: string | null
           founded?: string | null
           id?: string
+          income_level?: string | null
           industry?: string | null
+          key_kpis?: string[] | null
           location?: string | null
+          main_competitors?: Json | null
+          monthly_budget_range?: string | null
           name?: string
+          preferred_channels?: string[] | null
+          primary_goals?: string[] | null
+          primary_markets?: string[] | null
           size?: string | null
+          social_accounts?: Json | null
+          target_age_groups?: string[] | null
+          target_cities?: string[] | null
+          target_gender?: string | null
+          team_size?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
+          website_platform?: string | null
         }
         Relationships: []
       }
