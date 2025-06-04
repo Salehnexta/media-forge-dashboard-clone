@@ -112,9 +112,9 @@ const Dashboard = () => {
             {/* Header */}
             <div className="p-4 lg:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                لوحة تحكم Morvo
+                لوحة تحكم Morvo AI
               </h1>
-              <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة</p>
+              <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة - خمسة أيجنت متخصصين</p>
             </div>
 
             {/* Dashboard Content with Tabs */}
@@ -129,31 +129,31 @@ const Dashboard = () => {
                     value="strategic" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-xs lg:text-sm font-medium"
                   >
-                    الاستراتيجي
+                    الاستراتيجي (M1)
                   </TabsTrigger>
                   <TabsTrigger 
                     value="monitor" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-xs lg:text-sm font-medium"
                   >
-                    السوشال ميديا
+                    السوشال ميديا (M2)
                   </TabsTrigger>
                   <TabsTrigger 
                     value="executor" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-xs lg:text-sm font-medium"
                   >
-                    الحملات
+                    الحملات (M3)
                   </TabsTrigger>
                   <TabsTrigger 
                     value="creative" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-xs lg:text-sm font-medium"
                   >
-                    المحتوى
+                    المحتوى (M4)
                   </TabsTrigger>
                   <TabsTrigger 
                     value="analyst" 
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-xs lg:text-sm font-medium"
                   >
-                    التحليلات
+                    التحليلات (M5)
                   </TabsTrigger>
                 </TabsList>
 
