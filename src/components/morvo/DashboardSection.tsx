@@ -1,31 +1,85 @@
 
+import React, { memo } from "react";
 import { AIManager } from "@/types/morvo";
-import { EnhancedStrategicDashboard } from "./dashboards/EnhancedStrategicDashboard";
-import { EnhancedSocialMediaDashboard } from "./dashboards/EnhancedSocialMediaDashboard";
-import { EnhancedCampaignsDashboard } from "./dashboards/EnhancedCampaignsDashboard";
-import { ContentDashboard } from "./dashboards/ContentDashboard";
-import { AnalyticsDashboard } from "./dashboards/AnalyticsDashboard";
+import { LazyDashboardTab } from "@/components/common/LazyDashboardTab";
+import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
+
+// Lazy import للداش بوردات
+const EnhancedStrategicDashboard = React.lazy(() => 
+  import("./dashboards/EnhancedStrategicDashboard").then(module => ({
+    default: module.EnhancedStrategicDashboard
+  }))
+);
+
+const EnhancedSocialMediaDashboard = React.lazy(() => 
+  import("./dashboards/EnhancedSocialMediaDashboard").then(module => ({
+    default: module.EnhancedSocialMediaDashboard
+  }))
+);
+
+const EnhancedCampaignsDashboard = React.lazy(() => 
+  import("./dashboards/EnhancedCampaignsDashboard").then(module => ({
+    default: module.EnhancedCampaignsDashboard
+  }))
+);
+
+const ContentDashboard = React.lazy(() => 
+  import("./dashboards/ContentDashboard").then(module => ({
+    default: module.ContentDashboard
+  }))
+);
+
+const AnalyticsDashboard = React.lazy(() => 
+  import("./dashboards/AnalyticsDashboard").then(module => ({
+    default: module.AnalyticsDashboard
+  }))
+);
 
 interface DashboardSectionProps {
   selectedManager: AIManager;
 }
 
-export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => {
+const DashboardSectionInner = ({ selectedManager }: DashboardSectionProps) => {
+  useComponentPerformance('DashboardSection');
   
   const renderDashboard = () => {
     switch (selectedManager) {
       case "strategic":
-        return <EnhancedStrategicDashboard />;
+        return (
+          <LazyDashboardTab tabName="strategic">
+            <EnhancedStrategicDashboard />
+          </LazyDashboardTab>
+        );
       case "monitor":
-        return <EnhancedSocialMediaDashboard />;
+        return (
+          <LazyDashboardTab tabName="monitor">
+            <EnhancedSocialMediaDashboard />
+          </LazyDashboardTab>
+        );
       case "executor":
-        return <EnhancedCampaignsDashboard />;
+        return (
+          <LazyDashboardTab tabName="executor">
+            <EnhancedCampaignsDashboard />
+          </LazyDashboardTab>
+        );
       case "creative":
-        return <ContentDashboard />;
+        return (
+          <LazyDashboardTab tabName="creative">
+            <ContentDashboard />
+          </LazyDashboardTab>
+        );
       case "analyst":
-        return <AnalyticsDashboard />;
+        return (
+          <LazyDashboardTab tabName="analyst">
+            <AnalyticsDashboard />
+          </LazyDashboardTab>
+        );
       default:
-        return <EnhancedStrategicDashboard />;
+        return (
+          <LazyDashboardTab tabName="strategic">
+            <EnhancedStrategicDashboard />
+          </LazyDashboardTab>
+        );
     }
   };
 
@@ -35,3 +89,6 @@ export const DashboardSection = ({ selectedManager }: DashboardSectionProps) => 
     </div>
   );
 };
+
+export const DashboardSection = memo(DashboardSectionInner);
+DashboardSection.displayName = 'DashboardSection';
