@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
 import { supabase } from '@/integrations/supabase/client';
+import { useWebSocketConnection } from './useWebSocketConnection';
 
 interface ChatState {
   messages: ChatMessage[];
@@ -11,7 +12,7 @@ interface ChatState {
 }
 
 interface DashboardCommand {
-  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB' | 'ADD_NOTIFICATION';
+  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB' | 'ADD_NOTIFICATION' | 'CREATE_WIDGET' | 'REMOVE_WIDGET';
   payload: any;
 }
 
@@ -19,51 +20,36 @@ export const useChatLogic = () => {
   const [chatState, setChatState] = useState<ChatState>({
     messages: [{
       id: '1',
-      text: 'مرحباً! أنا مورفو، مساعدك الذكي في التسويق. كيف يمكنني مساعدتك اليوم؟',
+      text: 'مرحباً! أنا مورفو، مساعدك الذكي في التسويق. يمكنني الآن التحكم في لوحة التحكم بالكامل. جرب أن تقول "أظهر الإحصائيات" أو "انتقل للحملات".',
       sender: 'ai',
       timestamp: new Date(),
       manager: 'strategic'
     }],
     currentAgent: 'strategic',
     isTyping: false,
-    isConnected: true
+    isConnected: false
   });
 
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<WebSocket | null>(null);
 
   // Dashboard control callback
   const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((cmd: DashboardCommand) => void) | null>(null);
 
-  // WebSocket connection with reconnection logic
-  const connectWebSocket = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    try {
-      wsRef.current = new WebSocket('ws://localhost:8090/ws/chat');
-      
-      wsRef.current.onopen = () => {
-        setChatState(prev => ({ ...prev, isConnected: true }));
-        console.log('WebSocket connected');
-      };
-
-      wsRef.current.onclose = () => {
-        setChatState(prev => ({ ...prev, isConnected: false }));
-        // Reconnect after 3 seconds
-        setTimeout(connectWebSocket, 3000);
-      };
-
-      wsRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+  // WebSocket connection
+  const { isConnected, sendMessage: sendWsMessage, lastMessage } = useWebSocketConnection(
+    'ws://localhost:8090/ws/chat',
+    {
+      onMessage: (wsMessage) => {
+        console.log('Received WebSocket message:', wsMessage);
         
-        if (data.type === 'ai_response') {
+        if (wsMessage.type === 'ai_response') {
           const aiMessage: ChatMessage = {
             id: Date.now().toString(),
-            text: data.text,
+            text: wsMessage.data.text,
             sender: 'ai',
             timestamp: new Date(),
-            manager: data.agent || 'strategic'
+            manager: wsMessage.data.agent || 'strategic'
           };
 
           setChatState(prev => ({
@@ -73,56 +59,69 @@ export const useChatLogic = () => {
           }));
         }
 
-        if (data.type === 'dashboard_command' && dashboardCommandCallback) {
-          dashboardCommandCallback(data.command);
+        if (wsMessage.type === 'dashboard_command' && dashboardCommandCallback) {
+          dashboardCommandCallback(wsMessage.data.command);
         }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-    } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
-      // Fallback to HTTP if WebSocket fails
+      },
+      onConnect: () => {
+        setChatState(prev => ({ ...prev, isConnected: true }));
+      },
+      onDisconnect: () => {
+        setChatState(prev => ({ ...prev, isConnected: false }));
+      }
     }
-  }, [dashboardCommandCallback]);
+  );
 
-  // AI responses with dashboard commands
+  // AI responses with enhanced dashboard commands
   const generateAIResponse = useCallback((userMessage: string): { text: string; commands?: DashboardCommand[] } => {
     const lowerMessage = userMessage.toLowerCase();
     
-    if (lowerMessage.includes('إحصائيات') || lowerMessage.includes('أرقام')) {
+    // Enhanced command recognition
+    if (lowerMessage.includes('إحصائيات') || lowerMessage.includes('أرقام') || lowerMessage.includes('بيانات')) {
       return {
-        text: 'تم تحديث الإحصائيات! يمكنك رؤية آخر البيانات في لوحة التحكم.',
+        text: 'تم تحديث الإحصائيات بنجاح! 📊 يمكنك رؤية آخر البيانات المحدثة في لوحة التحكم الآن.',
         commands: [{
           type: 'UPDATE_STATS',
           payload: {
-            visitors: Math.floor(Math.random() * 1000) + 2000,
-            sales: Math.floor(Math.random() * 10000) + 40000,
-            conversions: (Math.random() * 5 + 2).toFixed(1),
-            roi: Math.floor(Math.random() * 100) + 200
+            visitors: Math.floor(Math.random() * 1000) + 2500,
+            sales: Math.floor(Math.random() * 15000) + 45000,
+            conversions: (Math.random() * 3 + 3).toFixed(1),
+            roi: Math.floor(Math.random() * 150) + 250
+          }
+        }, {
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            message: 'تم تحديث الإحصائيات بواسطة مورفو AI',
+            type: 'success'
           }
         }]
       };
     }
 
-    if (lowerMessage.includes('حملات') || lowerMessage.includes('إعلانات')) {
+    if (lowerMessage.includes('حملات') || lowerMessage.includes('إعلانات') || lowerMessage.includes('campaigns')) {
       return {
-        text: 'سأعرض لك أداء الحملات الإعلانية الآن.',
+        text: 'جاري الانتقال إلى تبويب الحملات الإعلانية... 🎯 ستجد تحليلاً شاملاً لأداء جميع حملاتك هناك.',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'executor' }
         }, {
           type: 'SHOW_CHART',
-          payload: { chartType: 'campaigns' }
+          payload: { 
+            id: 'campaigns-performance',
+            type: 'line',
+            title: 'أداء الحملات الإعلانية',
+            data: Array.from({length: 7}, (_, i) => ({
+              name: `اليوم ${i + 1}`,
+              value: Math.floor(Math.random() * 1000) + 500
+            }))
+          }
         }]
       };
     }
 
-    if (lowerMessage.includes('محتوى') || lowerMessage.includes('منشورات')) {
+    if (lowerMessage.includes('محتوى') || lowerMessage.includes('منشورات') || lowerMessage.includes('content')) {
       return {
-        text: 'دعني أوضح لك أداء المحتوى وأفضل المنشورات.',
+        text: 'مرحباً بك في قسم المحتوى الإبداعي! 🎨 هنا يمكنك متابعة أداء منشوراتك وإنشاء محتوى جديد.',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'creative' }
@@ -130,12 +129,59 @@ export const useChatLogic = () => {
       };
     }
 
+    if (lowerMessage.includes('سوشال') || lowerMessage.includes('تواصل') || lowerMessage.includes('social')) {
+      return {
+        text: 'انتقل معي إلى قسم وسائل التواصل الاجتماعي! 📱 ستجد تحليلاً مفصلاً لجميع منصاتك.',
+        commands: [{
+          type: 'SWITCH_TAB',
+          payload: { tab: 'monitor' }
+        }]
+      };
+    }
+
+    if (lowerMessage.includes('تحليلات') || lowerMessage.includes('analytics') || lowerMessage.includes('تحليل')) {
+      return {
+        text: 'مرحباً بك في قسم التحليلات المتقدمة! 📈 هنا ستجد رؤى عميقة حول أداء عملك.',
+        commands: [{
+          type: 'SWITCH_TAB',
+          payload: { tab: 'analyst' }
+        }]
+      };
+    }
+
+    if (lowerMessage.includes('استراتيجي') || lowerMessage.includes('strategic') || lowerMessage.includes('استراتيجية')) {
+      return {
+        text: 'أهلاً بك في القسم الاستراتيجي! 🎯 هنا نخطط لمستقبل عملك ونضع الاستراتيجيات الذكية.',
+        commands: [{
+          type: 'SWITCH_TAB',
+          payload: { tab: 'strategic' }
+        }]
+      };
+    }
+
+    // Smart widget creation
+    if (lowerMessage.includes('ويدجت') || lowerMessage.includes('widget') || lowerMessage.includes('عنصر جديد')) {
+      return {
+        text: 'تم إنشاء ويدجت جديد بناءً على طلبك! ✨',
+        commands: [{
+          type: 'CREATE_WIDGET',
+          payload: {
+            id: `widget-${Date.now()}`,
+            type: 'metric',
+            title: 'مؤشر جديد',
+            value: Math.floor(Math.random() * 1000),
+            change: '+' + Math.floor(Math.random() * 20) + '%'
+          }
+        }]
+      };
+    }
+
     const responses = [
-      'رائع! دعني أحلل هذا لك بالتفصيل',
-      'يمكنني مساعدتك في تحسين هذه الحملة',
-      'الأرقام تبدو جيدة، هل تريد تقريراً مفصلاً؟',
-      'دعني أنشئ لك محتوى جديد ومبتكر',
-      'هذا اقتراح ممتاز، سأعمل عليه فوراً'
+      'ممتاز! دعني أحلل هذا وأحدث لوحة التحكم وفقاً لطلبك 🤖',
+      'رائع! سأعمل على تحسين هذا الجانب في لوحة التحكم فوراً ⚡',
+      'فهمت طلبك! جاري تحديث البيانات والمؤشرات... 📊',
+      'ممتاز! سأقوم بتخصيص لوحة التحكم لتناسب احتياجاتك بالضبط 🎯',
+      'هذا سؤال ذكي! دعني أظهر لك التحليل المناسب في الداش بورد 📈'
     ];
     
     return {
@@ -143,7 +189,7 @@ export const useChatLogic = () => {
     };
   }, []);
 
-  // Send message function
+  // Send message function with WebSocket integration
   const handleSendMessage = useCallback(() => {
     if (!message.trim()) return;
 
@@ -165,60 +211,63 @@ export const useChatLogic = () => {
     setMessage('');
 
     // Send via WebSocket if connected
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
+    if (isConnected) {
+      const sent = sendWsMessage({
         type: 'user_message',
         text: currentMessage,
-        agent: chatState.currentAgent
-      }));
+        agent: chatState.currentAgent,
+        timestamp: new Date().toISOString()
+      });
+
+      if (!sent) {
+        // Fallback to local response if WebSocket fails
+        handleLocalResponse(currentMessage);
+      }
     } else {
       // Fallback to local AI response
-      setTimeout(() => {
-        const response = generateAIResponse(currentMessage);
-        
-        const aiMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          text: response.text,
-          sender: 'ai',
-          timestamp: new Date(),
-          manager: chatState.currentAgent
-        };
-
-        setChatState(prev => ({
-          ...prev,
-          messages: [...prev.messages, aiMessage],
-          isTyping: false
-        }));
-
-        // Execute dashboard commands
-        if (response.commands && dashboardCommandCallback) {
-          response.commands.forEach(cmd => dashboardCommandCallback(cmd));
-        }
-      }, 1500);
+      handleLocalResponse(currentMessage);
     }
-  }, [message, chatState.currentAgent, generateAIResponse, dashboardCommandCallback]);
+  }, [message, chatState.currentAgent, isConnected, sendWsMessage]);
+
+  const handleLocalResponse = useCallback((userMessage: string) => {
+    setTimeout(() => {
+      const response = generateAIResponse(userMessage);
+      
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: response.text,
+        sender: 'ai',
+        timestamp: new Date(),
+        manager: chatState.currentAgent
+      };
+
+      setChatState(prev => ({
+        ...prev,
+        messages: [...prev.messages, aiMessage],
+        isTyping: false
+      }));
+
+      // Execute dashboard commands
+      if (response.commands && dashboardCommandCallback) {
+        response.commands.forEach(cmd => {
+          console.log('Executing dashboard command:', cmd);
+          dashboardCommandCallback(cmd);
+        });
+      }
+    }, 1200);
+  }, [generateAIResponse, chatState.currentAgent, dashboardCommandCallback]);
 
   // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatState.messages]);
 
-  // Initialize WebSocket
-  useEffect(() => {
-    connectWebSocket();
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [connectWebSocket]);
-
   return {
     // Chat state
     messages: chatState.messages,
     currentAgent: chatState.currentAgent,
     isTyping: chatState.isTyping,
-    isConnected: chatState.isConnected,
+    isConnected: chatState.isConnected || isConnected,
     
     // Message input
     message,
