@@ -20,7 +20,7 @@ export class ConnectionManager {
   }
 
   private getWebSocketUrl(): string {
-    return 'wss://morvo-ai-v2.up.railway.app/ws';
+    return 'wss://crewai-production-d99a.up.railway.app:8000/ws';
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {

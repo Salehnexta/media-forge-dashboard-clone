@@ -12,8 +12,8 @@ export interface RailwayConnectionStatus {
 
 export class RailwayConnectionService {
   private static instance: RailwayConnectionService;
-  private railwayBaseUrl = 'https://morvo-ai-v2.up.railway.app';
-  private websocketUrl = 'wss://morvo-ai-v2.up.railway.app/ws';
+  private railwayBaseUrl = 'https://crewai-production-d99a.up.railway.app:8000';
+  private websocketUrl = 'wss://crewai-production-d99a.up.railway.app:8000/ws';
   private status: RailwayConnectionStatus = {
     isOnline: false,
     httpReachable: false,
