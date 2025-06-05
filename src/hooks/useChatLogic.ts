@@ -2,17 +2,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
 import { supabase } from '@/integrations/supabase/client';
+import { chatWebSocketService, WebSocketConfig } from '@/services/ChatWebSocketService';
+import { chatCommandProcessor, DashboardCommand } from '@/services/ChatCommandProcessor';
+import { toast } from 'sonner';
 
 interface ChatState {
   messages: ChatMessage[];
   currentAgent: AIManager;
   isTyping: boolean;
   isConnected: boolean;
-}
-
-interface DashboardCommand {
-  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB' | 'ADD_NOTIFICATION' | 'CREATE_WIDGET' | 'REMOVE_WIDGET';
-  payload: any;
 }
 
 export const useChatLogic = () => {
@@ -31,93 +29,103 @@ export const useChatLogic = () => {
 
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Dashboard control callback
   const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((cmd: DashboardCommand) => void) | null>(null);
+  const [userId, setUserId] = useState<string>('');
 
-  // Simplified AI responses without WebSocket dependency
-  const generateAIResponse = useCallback((userMessage: string): { text: string; commands?: DashboardCommand[] } => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Enhanced command recognition
-    if (lowerMessage.includes('إحصائيات') || lowerMessage.includes('أرقام') || lowerMessage.includes('بيانات')) {
-      return {
-        text: 'تم تحديث الإحصائيات بنجاح! 📊 يمكنك رؤية آخر البيانات المحدثة في لوحة التحكم الآن.',
-        commands: [{
-          type: 'UPDATE_STATS',
-          payload: {
-            visitors: Math.floor(Math.random() * 1000) + 2500,
-            sales: Math.floor(Math.random() * 15000) + 45000,
-            conversions: (Math.random() * 3 + 3).toFixed(1),
-            roi: Math.floor(Math.random() * 150) + 250
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const initializeConnection = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const currentUserId = user?.id || 'anonymous_' + Date.now();
+        setUserId(currentUserId);
+
+        const wsConfig: WebSocketConfig = {
+          onMessage: handleWebSocketMessage,
+          onConnect: () => {
+            setChatState(prev => ({ ...prev, isConnected: true }));
+            console.log('✅ Chat WebSocket connected');
+          },
+          onDisconnect: () => {
+            setChatState(prev => ({ ...prev, isConnected: false }));
+            console.log('❌ Chat WebSocket disconnected');
+          },
+          onTypingStart: () => {
+            setChatState(prev => ({ ...prev, isTyping: true }));
+          },
+          onTypingEnd: () => {
+            setChatState(prev => ({ ...prev, isTyping: false }));
+          },
+          onError: (error) => {
+            console.error('❌ Chat WebSocket error:', error);
+            toast.error('خطأ في الاتصال بالخادم');
           }
-        }]
-      };
-    }
+        };
 
-    if (lowerMessage.includes('حملات') || lowerMessage.includes('إعلانات') || lowerMessage.includes('campaigns')) {
-      return {
-        text: 'جاري الانتقال إلى تبويب الحملات الإعلانية... 🎯',
-        commands: [{
-          type: 'SWITCH_TAB',
-          payload: { tab: 'executor' }
-        }]
-      };
-    }
+        const connected = await chatWebSocketService.connect(currentUserId, undefined, wsConfig);
+        if (!connected) {
+          console.warn('⚠️ Failed to connect to WebSocket, using fallback mode');
+          setChatState(prev => ({ ...prev, isConnected: false }));
+        }
+      } catch (error) {
+        console.error('❌ Error initializing chat connection:', error);
+      }
+    };
 
-    if (lowerMessage.includes('محتوى') || lowerMessage.includes('منشورات') || lowerMessage.includes('content')) {
-      return {
-        text: 'مرحباً بك في قسم المحتوى الإبداعي! 🎨',
-        commands: [{
-          type: 'SWITCH_TAB',
-          payload: { tab: 'creative' }
-        }]
-      };
-    }
+    initializeConnection();
 
-    if (lowerMessage.includes('سوشال') || lowerMessage.includes('تواصل') || lowerMessage.includes('social')) {
-      return {
-        text: 'انتقل معي إلى قسم وسائل التواصل الاجتماعي! 📱',
-        commands: [{
-          type: 'SWITCH_TAB',
-          payload: { tab: 'monitor' }
-        }]
-      };
-    }
-
-    if (lowerMessage.includes('تحليلات') || lowerMessage.includes('analytics') || lowerMessage.includes('تحليل')) {
-      return {
-        text: 'مرحباً بك في قسم التحليلات المتقدمة! 📈',
-        commands: [{
-          type: 'SWITCH_TAB',
-          payload: { tab: 'analyst' }
-        }]
-      };
-    }
-
-    if (lowerMessage.includes('استراتيجي') || lowerMessage.includes('strategic') || lowerMessage.includes('استراتيجية')) {
-      return {
-        text: 'أهلاً بك في القسم الاستراتيجي! 🎯',
-        commands: [{
-          type: 'SWITCH_TAB',
-          payload: { tab: 'strategic' }
-        }]
-      };
-    }
-
-    const responses = [
-      'ممتاز! دعني أحلل هذا وأحدث لوحة التحكم وفقاً لطلبك 🤖',
-      'رائع! سأعمل على تحسين هذا الجانب في لوحة التحكم فوراً ⚡',
-      'فهمت طلبك! جاري تحديث البيانات والمؤشرات... 📊',
-      'ممتاز! سأقوم بتخصيص لوحة التحكم لتناسب احتياجاتك بالضبط 🎯'
-    ];
-    
-    return {
-      text: responses[Math.floor(Math.random() * responses.length)]
+    return () => {
+      chatWebSocketService.disconnect();
     };
   }, []);
 
-  // Send message function (simplified, no WebSocket)
+  const handleWebSocketMessage = useCallback((wsMessage: any) => {
+    const newMessage: ChatMessage = {
+      id: wsMessage.id || Date.now().toString(),
+      text: wsMessage.text,
+      sender: wsMessage.sender,
+      timestamp: wsMessage.timestamp,
+      manager: chatState.currentAgent
+    };
+
+    setChatState(prev => ({
+      ...prev,
+      messages: [...prev.messages, newMessage],
+      isTyping: false
+    }));
+  }, [chatState.currentAgent]);
+
+  const processCommand = useCallback((userMessage: string): boolean => {
+    const command = chatCommandProcessor.detectCommand(userMessage);
+    
+    if (command && chatCommandProcessor.validateCommand(command)) {
+      console.log('🎯 Detected command:', command);
+      
+      // Execute command via callback
+      if (dashboardCommandCallback) {
+        dashboardCommandCallback(command);
+        
+        // Add system message confirming command execution
+        const systemMessage: ChatMessage = {
+          id: Date.now().toString(),
+          text: `✅ تم تنفيذ الأمر بنجاح (الثقة: ${Math.round(command.confidence * 100)}%)`,
+          sender: 'system',
+          timestamp: new Date(),
+          manager: chatState.currentAgent
+        };
+        
+        setChatState(prev => ({
+          ...prev,
+          messages: [...prev.messages, systemMessage]
+        }));
+        
+        return true;
+      }
+    }
+    
+    return false;
+  }, [dashboardCommandCallback, chatState.currentAgent]);
+
   const handleSendMessage = useCallback(() => {
     if (!message.trim()) return;
 
@@ -131,40 +139,55 @@ export const useChatLogic = () => {
 
     setChatState(prev => ({
       ...prev,
-      messages: [...prev.messages, userMessage],
-      isTyping: true
+      messages: [...prev.messages, userMessage]
     }));
 
     const currentMessage = message;
     setMessage('');
 
-    // Generate local AI response
-    setTimeout(() => {
-      const response = generateAIResponse(currentMessage);
+    // Check for commands first
+    if (processCommand(currentMessage)) {
+      return;
+    }
+
+    // Send to WebSocket if connected
+    if (chatWebSocketService.isConnected()) {
+      setChatState(prev => ({ ...prev, isTyping: true }));
       
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        text: response.text,
-        sender: 'ai',
-        timestamp: new Date(),
-        manager: chatState.currentAgent
-      };
+      chatWebSocketService.sendMessage({
+        type: 'user_message',
+        content: currentMessage,
+        agent: chatState.currentAgent,
+        userId: userId,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      // Fallback to local response
+      setChatState(prev => ({ ...prev, isTyping: true }));
+      
+      setTimeout(() => {
+        const responses = [
+          'أعتذر، أواجه مشكلة في الاتصال بالخادم. جاري المحاولة مرة أخرى...',
+          'يبدو أن الاتصال غير متاح حالياً. يمكنك استخدام الأوامر المحلية مثل "انتقل للحملات".',
+          'أحاول إعادة الاتصال... في غضون ذلك، يمكنك استخدام أوامر التنقل.'
+        ];
+        
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          text: responses[Math.floor(Math.random() * responses.length)],
+          sender: 'ai',
+          timestamp: new Date(),
+          manager: chatState.currentAgent
+        };
 
-      setChatState(prev => ({
-        ...prev,
-        messages: [...prev.messages, aiMessage],
-        isTyping: false
-      }));
-
-      // Execute dashboard commands
-      if (response.commands && dashboardCommandCallback) {
-        response.commands.forEach(cmd => {
-          console.log('Executing dashboard command:', cmd);
-          dashboardCommandCallback(cmd);
-        });
-      }
-    }, 1200);
-  }, [message, chatState.currentAgent, dashboardCommandCallback, generateAIResponse]);
+        setChatState(prev => ({
+          ...prev,
+          messages: [...prev.messages, aiMessage],
+          isTyping: false
+        }));
+      }, 1200);
+    }
+  }, [message, chatState.currentAgent, processCommand, userId]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -176,7 +199,7 @@ export const useChatLogic = () => {
     messages: chatState.messages,
     currentAgent: chatState.currentAgent,
     isTyping: chatState.isTyping,
-    isConnected: true, // Always show as connected for better UX
+    isConnected: chatState.isConnected,
     
     // Message input
     message,
@@ -191,6 +214,10 @@ export const useChatLogic = () => {
     setDashboardCommandCallback,
     
     // Refs
-    messagesEndRef
+    messagesEndRef,
+    
+    // Additional utilities
+    getCommandSuggestions: () => chatCommandProcessor.getCommandSuggestions(),
+    connectionState: chatWebSocketService.getConnectionState()
   };
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Send, Bot, User, Plus, MessageCircle, Heart, Brain } from "lucide-react";
+import { Send, Bot, User, Plus, MessageCircle, Heart, Brain, Wifi, WifiOff, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,6 @@ import { chatRateLimiter } from "@/components/security/RateLimiter";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { toast } from "sonner";
-import { getRandomResponse } from "@/data/morvoPersonality";
 
 interface EnhancedChatSectionProps {
   selectedManager: AIManager;
@@ -38,7 +37,9 @@ const EnhancedChatSectionInner = ({
     handleSendMessage: originalHandleSendMessage,
     setCurrentAgent,
     setDashboardCommandCallback,
-    messagesEndRef
+    messagesEndRef,
+    getCommandSuggestions,
+    connectionState
   } = useChatLogic();
 
   const {
@@ -52,6 +53,7 @@ const EnhancedChatSectionInner = ({
 
   const isMobile = useIsMobile();
   const [showMemories, setShowMemories] = useState(false);
+  const [showCommands, setShowCommands] = useState(false);
 
   // Memoized dashboard command callback
   const memoizedOnDashboardCommand = useCallback((command: any) => {
@@ -108,7 +110,8 @@ const EnhancedChatSectionInner = ({
       timestamp: new Date().toISOString(),
       context: {
         selectedManager,
-        userMemories: personality.memories.slice(0, 5) // Include recent memories for context
+        userMemories: personality.memories.slice(0, 5),
+        connectionState
       }
     }, currentAgent);
 
@@ -117,7 +120,7 @@ const EnhancedChatSectionInner = ({
     
     // Send the message
     originalHandleSendMessage();
-  }, [message, originalHandleSendMessage, setMessage, handleSpecialCommands, saveConversation, currentAgent, selectedManager, personality.memories]);
+  }, [message, originalHandleSendMessage, setMessage, handleSpecialCommands, saveConversation, currentAgent, selectedManager, personality.memories, connectionState]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -129,7 +132,6 @@ const EnhancedChatSectionInner = ({
   const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Basic input validation
     if (value.length <= 1000) {
       setMessage(value);
     }
@@ -148,9 +150,26 @@ const EnhancedChatSectionInner = ({
     return personality.memories.slice(0, 3);
   }, [personality.memories]);
 
+  // Connection status icon and color
+  const getConnectionIcon = () => {
+    switch (connectionState) {
+      case 'connected': return <Wifi className="w-3 h-3 text-green-500" />;
+      case 'connecting': return <Activity className="w-3 h-3 text-yellow-500 animate-pulse" />;
+      default: return <WifiOff className="w-3 h-3 text-red-500" />;
+    }
+  };
+
+  const getConnectionText = () => {
+    switch (connectionState) {
+      case 'connected': return 'متصل';
+      case 'connecting': return 'جاري الاتصال';
+      default: return 'غير متصل';
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-white to-gray-50">
-      {/* Enhanced Chat header with personality info */}
+      {/* Enhanced Chat header with connection status */}
       <div className="p-4 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -160,14 +179,23 @@ const EnhancedChatSectionInner = ({
             <div>
               <span className="font-semibold text-gray-900 text-sm">مورفو AI</span>
               <div className="flex items-center gap-2 mt-1">
-                <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''}`}></div>
-                <span className="text-xs text-gray-500">{isConnected ? 'متصل' : 'غير متصل'}</span>
+                {getConnectionIcon()}
+                <span className="text-xs text-gray-500">{getConnectionText()}</span>
                 <Heart className="w-3 h-3 text-red-400" />
                 <span className="text-xs text-gray-500">صديق ذكي</span>
               </div>
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={() => setShowCommands(!showCommands)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              {!isMobile && "الأوامر"}
+            </Button>
             <Button
               onClick={() => setShowMemories(!showMemories)}
               variant="outline"
@@ -188,6 +216,20 @@ const EnhancedChatSectionInner = ({
             </Button>
           </div>
         </div>
+
+        {/* Command suggestions display */}
+        {showCommands && (
+          <div className="mt-3 p-3 bg-green-50 rounded-lg">
+            <h4 className="text-sm font-medium text-green-900 mb-2">الأوامر المتاحة:</h4>
+            <div className="space-y-1">
+              {getCommandSuggestions().slice(0, 5).map((suggestion, index) => (
+                <div key={index} className="text-xs text-green-700">
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Memory display */}
         {showMemories && userMemories.length > 0 && (
@@ -221,6 +263,7 @@ const EnhancedChatSectionInner = ({
                 <p>💡 استخدم /remember [نص] لحفظ معلومة مهمة</p>
                 <p>🎨 استخدم /create [وصف] لإنشاء محتوى</p>
                 <p>🧠 استخدم /forget [مفتاح] لنسيان معلومة</p>
+                <p>🎯 جرب: "انتقل للحملات" أو "أظهر الإحصائيات"</p>
               </div>
             </div>
           )}
@@ -244,6 +287,8 @@ const EnhancedChatSectionInner = ({
                 <div className={`p-3 rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl ${
                   msg.sender === 'user'
                     ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                    : msg.sender === 'system'
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                     : 'bg-white border border-gray-200'
                 }`}>
                   <div className="flex items-start gap-2">
@@ -252,6 +297,9 @@ const EnhancedChatSectionInner = ({
                     )}
                     {msg.sender === 'ai' && (
                       <Bot className="w-4 h-4 mt-1 flex-shrink-0 text-blue-600" />
+                    )}
+                    {msg.sender === 'system' && (
+                      <Activity className="w-4 h-4 mt-1 flex-shrink-0" />
                     )}
                     <div className="flex-1">
                       <div className="text-sm whitespace-pre-line leading-relaxed">
@@ -270,7 +318,7 @@ const EnhancedChatSectionInner = ({
                     </div>
                   </div>
                   <p className={`text-xs mt-2 ${
-                    msg.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                    msg.sender === 'user' || msg.sender === 'system' ? 'text-blue-100' : 'text-gray-500'
                   }`}>
                     {msg.timestamp.toLocaleTimeString('ar-SA', { 
                       hour: '2-digit', 
@@ -314,7 +362,7 @@ const EnhancedChatSectionInner = ({
           <Input
             value={message}
             onChange={handleMessageChange}
-            placeholder={`تحدث مع ${personality.name} كصديق...`}
+            placeholder={`تحدث مع ${personality.name} كصديق أو استخدم الأوامر...`}
             className="flex-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
             onKeyPress={handleKeyPress}
             disabled={isTyping}
@@ -335,7 +383,10 @@ const EnhancedChatSectionInner = ({
           <p className="text-xs text-gray-500">
             {personality.name} يتذكر محادثاتكم ويتعلم من تفاعلكم
           </p>
-          <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''} ml-auto`}></div>
+          <div className="flex items-center gap-1 ml-auto">
+            {getConnectionIcon()}
+            <span className="text-xs text-gray-500">{getConnectionText()}</span>
+          </div>
         </div>
         
         <div className="flex items-center justify-between mt-2 text-xs text-gray-400">

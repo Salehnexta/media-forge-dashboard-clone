@@ -1,10 +1,8 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { useComponentPerformance } from './useEnhancedPerformance';
-
-interface DashboardCommand {
-  type: 'SWITCH_TAB' | 'UPDATE_STATS' | 'SHOW_CHART' | 'ADD_NOTIFICATION' | 'UPDATE_WIDGET';
-  payload: any;
-}
+import { DashboardCommand } from '@/services/ChatCommandProcessor';
+import { toast } from 'sonner';
 
 interface DashboardState {
   activeTab: string;
@@ -12,13 +10,15 @@ interface DashboardState {
   charts: any[];
   notifications: any[];
   stats: Record<string, any>;
+  lastCommandExecuted?: DashboardCommand;
+  commandHistory: DashboardCommand[];
 }
 
 export const useChatControlledDashboard = () => {
   useComponentPerformance('ChatControlledDashboard');
   
   const [dashboardState, setDashboardState] = useState<DashboardState>({
-    activeTab: 'overview',
+    activeTab: 'strategic',
     widgets: [],
     charts: [],
     notifications: [],
@@ -27,57 +27,122 @@ export const useChatControlledDashboard = () => {
       conversions: 125,
       revenue: 47250,
       campaigns: 8
-    }
+    },
+    commandHistory: []
   });
 
   const handleChatCommand = useCallback((command: DashboardCommand) => {
-    console.log('Processing dashboard command:', command);
+    console.log('🎯 Processing dashboard command:', command);
     
-    switch(command.type) {
-      case 'SWITCH_TAB':
-        setDashboardState(prev => ({
-          ...prev,
-          activeTab: command.payload.tab
-        }));
-        break;
-        
-      case 'UPDATE_STATS':
-        setDashboardState(prev => ({
-          ...prev,
-          stats: { ...prev.stats, ...command.payload.stats }
-        }));
-        break;
-        
-      case 'SHOW_CHART':
-        setDashboardState(prev => ({
-          ...prev,
-          charts: [...prev.charts, command.payload.chart]
-        }));
-        break;
-        
-      case 'ADD_NOTIFICATION':
-        setDashboardState(prev => ({
-          ...prev,
-          notifications: [...prev.notifications, command.payload.notification]
-        }));
-        break;
-        
-      case 'UPDATE_WIDGET':
-        setDashboardState(prev => ({
-          ...prev,
-          widgets: prev.widgets.map(widget => 
-            widget.id === command.payload.widgetId 
-              ? { ...widget, ...command.payload.updates }
-              : widget
-          )
-        }));
-        break;
+    try {
+      switch(command.type) {
+        case 'TAB_CHANGE':
+          setDashboardState(prev => ({
+            ...prev,
+            activeTab: command.payload.tab,
+            lastCommandExecuted: command,
+            commandHistory: [...prev.commandHistory, command].slice(-10) // Keep last 10 commands
+          }));
+          toast.success(`تم الانتقال إلى ${getTabDisplayName(command.payload.tab)}`);
+          break;
+          
+        case 'STATS_UPDATE':
+        case 'DATA_REFRESH':
+          const newStats = generateRandomStats();
+          setDashboardState(prev => ({
+            ...prev,
+            stats: { ...prev.stats, ...newStats },
+            lastCommandExecuted: command,
+            commandHistory: [...prev.commandHistory, command].slice(-10)
+          }));
+          toast.success('تم تحديث الإحصائيات بنجاح');
+          break;
+          
+        case 'CHART_CREATE':
+          const newChart = {
+            id: Date.now().toString(),
+            type: command.payload.chartType || 'default',
+            title: 'رسم بياني جديد',
+            data: generateChartData()
+          };
+          setDashboardState(prev => ({
+            ...prev,
+            charts: [...prev.charts, newChart],
+            lastCommandExecuted: command,
+            commandHistory: [...prev.commandHistory, command].slice(-10)
+          }));
+          toast.success('تم إنشاء رسم بياني جديد');
+          break;
+          
+        case 'WIDGET_UPDATE':
+          setDashboardState(prev => ({
+            ...prev,
+            widgets: prev.widgets.map(widget => 
+              widget.id === command.payload.widgetId 
+                ? { ...widget, ...command.payload.updates }
+                : widget
+            ),
+            lastCommandExecuted: command,
+            commandHistory: [...prev.commandHistory, command].slice(-10)
+          }));
+          toast.success('تم تحديث الويدجت');
+          break;
+
+        case 'FILTER_APPLY':
+          // Handle filter application
+          setDashboardState(prev => ({
+            ...prev,
+            lastCommandExecuted: command,
+            commandHistory: [...prev.commandHistory, command].slice(-10)
+          }));
+          toast.success('تم تطبيق المرشح');
+          break;
+          
+        default:
+          console.warn('⚠️ Unknown command type:', command.type);
+          toast.error('أمر غير معروف');
+      }
+    } catch (error) {
+      console.error('❌ Error executing dashboard command:', error);
+      toast.error('خطأ في تنفيذ الأمر');
     }
   }, []);
 
   const updateActiveTab = useCallback((tab: string) => {
-    handleChatCommand({ type: 'SWITCH_TAB', payload: { tab } });
+    const command: DashboardCommand = {
+      type: 'TAB_CHANGE',
+      payload: { tab },
+      confidence: 1.0
+    };
+    handleChatCommand(command);
   }, [handleChatCommand]);
+
+  const generateRandomStats = useCallback(() => {
+    return {
+      visitors: Math.floor(Math.random() * 1000) + 2500,
+      conversions: Math.floor(Math.random() * 50) + 100,
+      revenue: Math.floor(Math.random() * 20000) + 40000,
+      campaigns: Math.floor(Math.random() * 5) + 5
+    };
+  }, []);
+
+  const generateChartData = useCallback(() => {
+    return Array.from({ length: 7 }, (_, i) => ({
+      day: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'][i],
+      value: Math.floor(Math.random() * 100) + 20
+    }));
+  }, []);
+
+  const getTabDisplayName = useCallback((tab: string) => {
+    const tabNames: Record<string, string> = {
+      strategic: 'التبويب الاستراتيجي',
+      monitor: 'وسائل التواصل الاجتماعي',
+      executor: 'الحملات الإعلانية',
+      creative: 'المحتوى الإبداعي',
+      analyst: 'التحليلات'
+    };
+    return tabNames[tab] || tab;
+  }, []);
 
   const formattedStats = useMemo(() => ({
     visitors: {
@@ -106,10 +171,28 @@ export const useChatControlledDashboard = () => {
     }
   }), [dashboardState.stats]);
 
+  const undoLastCommand = useCallback(() => {
+    if (dashboardState.commandHistory.length > 0) {
+      const history = [...dashboardState.commandHistory];
+      history.pop(); // Remove last command
+      
+      setDashboardState(prev => ({
+        ...prev,
+        commandHistory: history,
+        lastCommandExecuted: history[history.length - 1] || undefined
+      }));
+      
+      toast.info('تم التراجع عن آخر أمر');
+    }
+  }, [dashboardState.commandHistory]);
+
   return {
     dashboardState,
     formattedStats,
     handleChatCommand,
-    updateActiveTab
+    updateActiveTab,
+    undoLastCommand,
+    commandHistory: dashboardState.commandHistory,
+    lastCommand: dashboardState.lastCommandExecuted
   };
 };
