@@ -1,4 +1,3 @@
-
 export type AIManager = "strategic" | "monitor" | "executor" | "creative" | "analyst";
 
 export interface ManagerInfo {
@@ -27,7 +26,7 @@ export interface ChartData {
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: "user" | "ai";
+  sender: 'user' | 'ai' | 'system';
   timestamp: Date;
   manager?: AIManager;
   actionButton?: {

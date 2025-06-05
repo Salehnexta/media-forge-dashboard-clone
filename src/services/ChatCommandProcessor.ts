@@ -1,9 +1,4 @@
-
-export interface DashboardCommand {
-  type: 'TAB_CHANGE' | 'DATA_REFRESH' | 'CHART_CREATE' | 'FILTER_APPLY' | 'WIDGET_UPDATE' | 'STATS_UPDATE';
-  payload: any;
-  confidence: number;
-}
+import { DashboardCommand } from '@/types/dashboard';
 
 export interface CommandPattern {
   patterns: string[];

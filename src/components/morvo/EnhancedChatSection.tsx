@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Send, Bot, User, Plus, MessageCircle, Heart, Brain, Wifi, WifiOff, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -274,7 +273,7 @@ const EnhancedChatSectionInner = ({
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div className={`max-w-[85%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                {msg.sender === 'ai' && (
+                {(msg.sender === 'ai' || msg.sender === 'system') && (
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
                       <span className="text-white text-xs font-bold">M</span>
@@ -295,11 +294,8 @@ const EnhancedChatSectionInner = ({
                     {msg.sender === 'user' && (
                       <User className="w-4 h-4 mt-1 flex-shrink-0" />
                     )}
-                    {msg.sender === 'ai' && (
+                    {(msg.sender === 'ai' || msg.sender === 'system') && (
                       <Bot className="w-4 h-4 mt-1 flex-shrink-0 text-blue-600" />
-                    )}
-                    {msg.sender === 'system' && (
-                      <Activity className="w-4 h-4 mt-1 flex-shrink-0" />
                     )}
                     <div className="flex-1">
                       <div className="text-sm whitespace-pre-line leading-relaxed">

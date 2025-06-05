@@ -1,7 +1,6 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useComponentPerformance } from './useEnhancedPerformance';
-import { DashboardCommand } from '@/services/ChatCommandProcessor';
+import { DashboardCommand } from '@/types/dashboard';
 import { toast } from 'sonner';
 
 interface DashboardState {
@@ -41,7 +40,7 @@ export const useChatControlledDashboard = () => {
             ...prev,
             activeTab: command.payload.tab,
             lastCommandExecuted: command,
-            commandHistory: [...prev.commandHistory, command].slice(-10) // Keep last 10 commands
+            commandHistory: [...prev.commandHistory, command].slice(-10)
           }));
           toast.success(`تم الانتقال إلى ${getTabDisplayName(command.payload.tab)}`);
           break;
@@ -89,7 +88,6 @@ export const useChatControlledDashboard = () => {
           break;
 
         case 'FILTER_APPLY':
-          // Handle filter application
           setDashboardState(prev => ({
             ...prev,
             lastCommandExecuted: command,
