@@ -116,6 +116,28 @@ class MorvoAPIClient {
     }, false);
   }
 
+  // Platform management methods
+  async getAvailablePlatforms() {
+    return this.request('/api/v2/platforms/available');
+  }
+
+  async connectPlatform(platform: string, credentials: any) {
+    return this.request('/api/v2/platforms/connect', {
+      method: 'POST',
+      body: JSON.stringify({
+        platform,
+        credentials
+      })
+    }, false);
+  }
+
+  async analyzeWebsite(url: string) {
+    return this.request('/api/v2/analysis/website', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    }, false);
+  }
+
   // M1 - Strategic Marketing Agent
   async getStrategicAnalysis(companyData: any, userId: string = 'user_123') {
     return this.request('/api/v2/agents/m1/strategic-analysis', {

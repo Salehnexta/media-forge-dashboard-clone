@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useMCPContext } from '@/contexts/MCPContext';
-import { AgentMemory } from '@/contexts/MCPContext';
+import { AgentMemory, MemoryType } from '@/contexts/MCPContext';
 
 interface UseMCPMemoryProps {
   agentType: string;
@@ -23,7 +23,7 @@ export const useMCPMemory = ({ agentType, autoLoad = true }: UseMCPMemoryProps) 
   const loadMemories = useCallback(async (memoryType?: string) => {
     setIsLoading(true);
     try {
-      const data = await retrieveMemory(agentType, memoryType);
+      const data = await retrieveMemory(agentType, memoryType as MemoryType);
       setMemories(data);
     } catch (error) {
       console.error('خطأ في تحميل الذاكرة:', error);
@@ -48,7 +48,7 @@ export const useMCPMemory = ({ agentType, autoLoad = true }: UseMCPMemoryProps) 
     memoryType: string, 
     content: Record<string, any>
   ) => {
-    await storeMemory(agentType, memoryType, content);
+    await storeMemory(agentType, memoryType as MemoryType, content);
     await loadMemories();
   }, [agentType, storeMemory, loadMemories]);
 

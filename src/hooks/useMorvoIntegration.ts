@@ -257,7 +257,7 @@ export const useMorvoIntegration = () => {
 
   // Update platforms from cache
   useEffect(() => {
-    if (platformsData) {
+    if (platformsData && Array.isArray(platformsData)) {
       setState(prev => ({ ...prev, platforms: platformsData }));
     }
   }, [platformsData]);
