@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
@@ -7,13 +7,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardSection } from "@/components/morvo/DashboardSection";
 import { ChatSection } from "@/components/morvo/ChatSection";
 import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
-import { SecureErrorBoundary } from "@/components/security/SecureErrorBoundary";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { AIManager } from "@/types/morvo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
+import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  useComponentPerformance('Dashboard');
+  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,28 +24,30 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Chat-controlled dashboard hook
+  // Chat-controlled dashboard hook with performance optimizations
   const {
     dashboardState,
+    formattedStats,
     handleChatCommand,
     updateActiveTab
   } = useChatControlledDashboard();
 
+  // Memoized auth state management
+  const handleAuthStateChange = useCallback((event: any, session: Session | null) => {
+    console.log('Auth state changed in Dashboard:', event, session);
+    setSession(session);
+    setUser(session?.user ?? null);
+    setLoading(false);
+    
+    // Redirect to auth if not authenticated
+    if (!session?.user) {
+      navigate('/auth');
+    }
+  }, [navigate]);
+
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed in Dashboard:', event, session);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Redirect to auth if not authenticated
-        if (!session?.user) {
-          navigate('/auth');
-        }
-      }
-    );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,10 +61,10 @@ const Dashboard = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [handleAuthStateChange, navigate]);
 
-  // Handle dashboard commands from chat (simplified)
-  const onDashboardCommand = (command: any) => {
+  // Memoized dashboard command handler
+  const onDashboardCommand = useCallback((command: any) => {
     console.log('Dashboard received command from chat:', command);
     handleChatCommand(command);
     
@@ -67,9 +72,10 @@ const Dashboard = () => {
     if (command.type === 'SWITCH_TAB') {
       toast.success(`تم التبديل إلى ${getTabName(command.payload.tab)}`);
     }
-  };
+  }, [handleChatCommand]);
 
-  const getTabName = (tab: AIManager): string => {
+  // Memoized tab name getter
+  const getTabName = useCallback((tab: AIManager): string => {
     const names = {
       strategic: 'المدير الاستراتيجي',
       monitor: 'مراقب السوشال ميديا',
@@ -78,12 +84,39 @@ const Dashboard = () => {
       analyst: 'محلل البيانات'
     };
     return names[tab] || tab;
-  };
+  }, []);
 
-  // Handle tab selection (both from UI and chat commands)
-  const handleManagerSelect = (manager: AIManager) => {
+  // Memoized manager selector
+  const handleManagerSelect = useCallback((manager: AIManager) => {
     updateActiveTab(manager);
-  };
+  }, [updateActiveTab]);
+
+  // Memoized chat toggle handler
+  const toggleChat = useCallback(() => {
+    setIsChatOpen(prev => !prev);
+  }, []);
+
+  // Memoized stats component
+  const StatsDisplay = useMemo(() => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        <p className="text-xs text-gray-500">الزوار</p>
+        <p className="text-lg font-bold text-blue-600">{formattedStats.visitors}</p>
+      </div>
+      <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        <p className="text-xs text-gray-500">المبيعات</p>
+        <p className="text-lg font-bold text-green-600">{formattedStats.sales}</p>
+      </div>
+      <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        <p className="text-xs text-gray-500">التحويلات</p>
+        <p className="text-lg font-bold text-purple-600">{formattedStats.conversions}</p>
+      </div>
+      <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+        <p className="text-xs text-gray-500">العائد</p>
+        <p className="text-lg font-bold text-orange-600">{formattedStats.roi}</p>
+      </div>
+    </div>
+  ), [formattedStats]);
 
   if (loading) {
     return (
@@ -103,13 +136,13 @@ const Dashboard = () => {
   }
 
   return (
-    <SecureErrorBoundary>
+    <ErrorBoundary>
       <OnboardingTrigger user={user}>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex flex-col lg:flex-row" dir="rtl">
           {/* Mobile Chat Toggle Button */}
           {isMobile && (
             <button
-              onClick={() => setIsChatOpen(!isChatOpen)}
+              onClick={toggleChat}
               className="fixed top-4 right-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 lg:hidden"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +166,7 @@ const Dashboard = () => {
             />
             {isMobile && (
               <button
-                onClick={() => setIsChatOpen(false)}
+                onClick={toggleChat}
                 className="absolute top-4 left-4 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +178,7 @@ const Dashboard = () => {
 
           {/* Main Dashboard Content */}
           <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white">
-            {/* Simplified Header */}
+            {/* Optimized Header */}
             <div className="p-4 lg:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -164,28 +197,11 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Simplified Stats Display */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <p className="text-xs text-gray-500">الزوار</p>
-                  <p className="text-lg font-bold text-blue-600">{dashboardState.stats.visitors.toLocaleString('ar-SA')}</p>
-                </div>
-                <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <p className="text-xs text-gray-500">المبيعات</p>
-                  <p className="text-lg font-bold text-green-600">{dashboardState.stats.sales.toLocaleString('ar-SA')}</p>
-                </div>
-                <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <p className="text-xs text-gray-500">التحويلات</p>
-                  <p className="text-lg font-bold text-purple-600">{dashboardState.stats.conversions}%</p>
-                </div>
-                <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                  <p className="text-xs text-gray-500">العائد</p>
-                  <p className="text-lg font-bold text-orange-600">{dashboardState.stats.roi}%</p>
-                </div>
-              </div>
+              {/* Optimized Stats Display */}
+              {StatsDisplay}
             </div>
 
-            {/* Dashboard Content with Tabs */}
+            {/* Dashboard Content with Enhanced Tabs */}
             <div className="flex-1 p-4 lg:p-6 overflow-auto">
               <Tabs value={dashboardState.activeTab} onValueChange={(value) => handleManagerSelect(value as AIManager)}>
                 <TabsList className={`${
@@ -250,12 +266,12 @@ const Dashboard = () => {
           {isMobile && isChatOpen && (
             <div 
               className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-              onClick={() => setIsChatOpen(false)}
+              onClick={toggleChat}
             />
           )}
         </div>
       </OnboardingTrigger>
-    </SecureErrorBoundary>
+    </ErrorBoundary>
   );
 };
 

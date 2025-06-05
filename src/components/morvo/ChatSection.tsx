@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Send, Bot, User, Plus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { useChatLogic } from "@/hooks/useChatLogic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InputSanitizer } from "@/components/security/InputSanitizer";
 import { chatRateLimiter } from "@/components/security/RateLimiter";
+import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { toast } from "sonner";
 
 interface ChatSectionProps {
@@ -16,11 +17,13 @@ interface ChatSectionProps {
   onDashboardCommand?: (command: any) => void;
 }
 
-export const ChatSection = ({
+const ChatSectionInner = ({
   selectedManager,
   onManagerSelect,
   onDashboardCommand
 }: ChatSectionProps) => {
+  useComponentPerformance('ChatSection');
+  
   const {
     messages,
     currentAgent,
@@ -36,20 +39,32 @@ export const ChatSection = ({
 
   const isMobile = useIsMobile();
 
-  // Set up dashboard command callback
+  // Memoized dashboard command callback to prevent infinite loops
+  const memoizedOnDashboardCommand = useCallback((command: any) => {
+    console.log('Dashboard command received:', command);
+    onDashboardCommand?.(command);
+  }, [onDashboardCommand]);
+
+  // Set up dashboard command callback only once
   useEffect(() => {
-    if (onDashboardCommand) {
-      setDashboardCommandCallback(() => onDashboardCommand);
+    if (memoizedOnDashboardCommand) {
+      setDashboardCommandCallback(() => memoizedOnDashboardCommand);
     }
-  }, [onDashboardCommand, setDashboardCommandCallback]);
+  }, [memoizedOnDashboardCommand, setDashboardCommandCallback]);
 
-  // Sync current agent with selected manager
+  // Sync current agent with selected manager - with proper dependency
+  const handleAgentSync = useCallback(() => {
+    if (currentAgent !== selectedManager) {
+      setCurrentAgent(selectedManager);
+    }
+  }, [selectedManager, currentAgent, setCurrentAgent]);
+
   useEffect(() => {
-    setCurrentAgent(selectedManager);
-  }, [selectedManager, setCurrentAgent]);
+    handleAgentSync();
+  }, [handleAgentSync]);
 
-  // Secure message handling with rate limiting and sanitization
-  const handleSendMessage = () => {
+  // Memoized secure message handling
+  const handleSendMessage = useCallback(() => {
     // Rate limiting check
     if (!chatRateLimiter.isAllowed()) {
       toast.error('تم إرسال رسائل كثيرة. يرجى الانتظار قليلاً.');
@@ -75,37 +90,39 @@ export const ChatSection = ({
     
     // Send the message
     originalHandleSendMessage();
-  };
+  }, [message, originalHandleSendMessage, setMessage]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
-  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
     // Basic input validation
     if (value.length <= 1000) {
       setMessage(value);
     }
-  };
+  }, [setMessage]);
 
-  const clearChat = () => {
-    // يمكن إضافة وظيفة مسح المحادثة هنا
-  };
+  const clearChat = useCallback(() => {
+    // Clear chat functionality can be implemented here
+    console.log('Clear chat requested');
+  }, []);
 
-  const formatTime = (date: Date) => {
+  // Memoized time formatter
+  const formatTime = useMemo(() => (date: Date) => {
     return date.toLocaleTimeString('ar-SA', { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
-  };
+  }, []);
 
-  const renderMessageContent = (text: string) => {
-    // Sanitize message content before rendering
+  // Memoized message content renderer
+  const renderMessageContent = useCallback((text: string) => {
     const sanitizedText = InputSanitizer.sanitizeHTML(text, {
       allowedTags: ['p', 'br', 'strong', 'em'],
       allowedAttributes: []
@@ -118,7 +135,13 @@ export const ChatSection = ({
         }} 
       />
     );
-  };
+  }, []);
+
+  // Memoized rate limit display
+  const rateLimitInfo = useMemo(() => ({
+    remaining: chatRateLimiter.getRemainingRequests(),
+    messageLength: message.length
+  }), [message.length]);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-white to-gray-50">
@@ -149,7 +172,7 @@ export const ChatSection = ({
         </div>
       </div>
 
-      {/* Chat messages area */}
+      {/* Chat messages area - optimized for performance */}
       <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
         <div className="space-y-4">
           {messages.length === 0 && (
@@ -161,26 +184,6 @@ export const ChatSection = ({
               <p className="text-gray-600 text-sm lg:text-base mb-6 px-4">
                 أنا مورفو، مساعدك الذكي في التسويق. كيف يمكنني مساعدتك اليوم؟
               </p>
-              <div className="bg-white rounded-xl p-4 lg:p-6 border border-gray-200 shadow-lg mx-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <MessageCircle className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-gray-900 text-sm">الخدمات المتاحة</span>
-                </div>
-                <div className="grid grid-cols-1 gap-2 text-xs lg:text-sm">
-                  <div className="text-gray-600 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    تحليل الاستراتيجيات التسويقية
-                  </div>
-                  <div className="text-gray-600 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    إدارة الحملات الإعلانية
-                  </div>
-                  <div className="text-gray-600 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    إنشاء المحتوى الإبداعي
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -262,7 +265,7 @@ export const ChatSection = ({
         </div>
       </div>
 
-      {/* Message input */}
+      {/* Message input - optimized */}
       <div className="p-4 lg:p-6 border-t border-gray-200 bg-white/90 backdrop-blur-sm">
         <div className="flex gap-2 lg:gap-3 mb-3">
           <Input
@@ -296,12 +299,18 @@ export const ChatSection = ({
         
         {/* Rate limit indicator */}
         <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-          <span>{message.length}/1000</span>
+          <span>{rateLimitInfo.messageLength}/1000</span>
           <span>
-            الرسائل المتبقية: {chatRateLimiter.getRemainingRequests()}
+            الرسائل المتبقية: {rateLimitInfo.remaining}
           </span>
         </div>
       </div>
     </div>
   );
 };
+
+export const ChatSection = (props: ChatSectionProps) => (
+  <ErrorBoundary>
+    <ChatSectionInner {...props} />
+  </ErrorBoundary>
+);

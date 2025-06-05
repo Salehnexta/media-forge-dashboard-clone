@@ -1,129 +1,146 @@
 
-// Enhanced API client for Morvo AI with Railway/FastAPI integration
-import { toast } from "sonner";
-
-interface APIConfig {
-  baseURL: string;
-  wsURL: string;
-  timeout: number;
-  retryAttempts: number;
-}
-
+// Enhanced API client with retry logic and caching
 class MorvoAPIClient {
-  private config: APIConfig;
+  private baseURL: string;
+  private wsURL: string;
+  private cache: Map<string, { data: any; timestamp: number; ttl: number }>;
+  private retryAttempts: number;
+  private timeout: number;
 
   constructor() {
-    // Environment-based configuration
-    const isProduction = import.meta.env.PROD;
+    this.baseURL = import.meta.env.PROD 
+      ? 'https://morvo-ai-v2.up.railway.app'
+      : 'http://localhost:8090';
+    this.wsURL = import.meta.env.PROD
+      ? 'wss://morvo-ai-v2.up.railway.app/ws'
+      : 'ws://localhost:8090/ws';
     
-    this.config = {
-      baseURL: isProduction 
-        ? 'https://morvo-ai-v2.up.railway.app'
-        : 'http://localhost:8090',
-      wsURL: isProduction
-        ? 'wss://morvo-ai-v2.up.railway.app/ws'
-        : 'ws://localhost:8090/ws',
-      timeout: 30000,
-      retryAttempts: 3
-    };
-
-    console.log('🔧 MorvoAPI initialized:', {
-      environment: isProduction ? 'Production' : 'Development',
-      baseURL: this.config.baseURL,
-      wsURL: this.config.wsURL
-    });
+    this.cache = new Map();
+    this.retryAttempts = 3;
+    this.timeout = 30000;
   }
 
-  // Enhanced request with retry logic
-  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
-    const url = `${this.config.baseURL}${endpoint}`;
+  // Cache management
+  private getCacheKey(endpoint: string, params?: any): string {
+    return `${endpoint}_${JSON.stringify(params || {})}`;
+  }
+
+  private getFromCache(key: string): any | null {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < cached.ttl) {
+      return cached.data;
+    }
+    this.cache.delete(key);
+    return null;
+  }
+
+  private setCache(key: string, data: any, ttl: number = 300000): void {
+    this.cache.set(key, { data, timestamp: Date.now(), ttl });
+  }
+
+  // Enhanced request with retry and caching
+  async request(endpoint: string, options: RequestInit = {}, useCache: boolean = true, cacheTTL: number = 300000): Promise<any> {
+    const cacheKey = this.getCacheKey(endpoint, options.body);
+    
+    // Check cache for GET requests
+    if (useCache && (!options.method || options.method === 'GET')) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const url = `${this.baseURL}${endpoint}`;
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...options.headers,
       },
       ...options,
     };
 
-    for (let attempt = 1; attempt <= this.config.retryAttempts; attempt++) {
+    for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-        
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
         const response = await fetch(url, {
           ...config,
-          signal: controller.signal
+          signal: controller.signal,
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+
+        // Cache successful GET requests
+        if (useCache && (!options.method || options.method === 'GET')) {
+          this.setCache(cacheKey, data, cacheTTL);
+        }
+
+        return data;
 
       } catch (error: any) {
         console.warn(`🔄 Attempt ${attempt} failed:`, error.message);
         
-        if (attempt === this.config.retryAttempts) {
-          const message = `فشل في الاتصال بعد ${this.config.retryAttempts} محاولات`;
-          toast.error(message);
-          throw new Error(`${message}: ${error.message}`);
+        if (attempt === this.retryAttempts) {
+          throw new Error(`Failed after ${this.retryAttempts} attempts: ${error.message}`);
         }
         
         // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
       }
     }
   }
 
-  // API Methods
+  // API methods
   async health() {
-    return await this.request('/health');
+    return this.request('/health');
   }
 
   async sendMessage(message: string, userId: string = 'user_123') {
-    return await this.request('/api/v2/chat/message', {
+    return this.request('/api/v2/chat/message', {
       method: 'POST',
       body: JSON.stringify({ message, user_id: userId })
-    });
+    }, false); // Don't cache chat messages
   }
 
   async analyzeWebsite(url: string, orgId: string = 'org_123') {
-    return await this.request('/api/v2/website/analyze', {
+    return this.request('/api/v2/website/analyze', {
       method: 'POST',
       body: JSON.stringify({ url, org_id: orgId })
-    });
+    }, false);
   }
 
   async getAvailablePlatforms() {
-    return await this.request('/api/v2/platforms/available');
+    return this.request('/api/v2/platforms/available', {}, true, 600000); // Cache for 10 minutes
   }
 
   async connectPlatform(platform: string, credentials: any, orgId: string = 'org_123') {
-    return await this.request('/api/v2/platforms/connect', {
+    return this.request('/api/v2/platforms/connect', {
       method: 'POST',
       body: JSON.stringify({ platform, credentials, org_id: orgId })
-    });
+    }, false);
   }
 
   async getPlatformStatus(orgId: string) {
-    return await this.request(`/api/v2/platforms/status/${orgId}`);
+    return this.request(`/api/v2/platforms/status/${orgId}`);
   }
 
-  // WebSocket connection
+  // WebSocket connection with auto-reconnect
   connectWebSocket(
     onMessage: (data: any) => void,
     onError?: (error: Event) => void,
     onClose?: () => void
   ): WebSocket {
-    const ws = new WebSocket(`${this.config.wsURL}/chat`);
+    const ws = new WebSocket(`${this.wsURL}/chat`);
     
     ws.onopen = () => {
       console.log('✅ WebSocket connected');
-      toast.success('متصل بالخادم');
     };
     
     ws.onmessage = (event) => {
@@ -137,14 +154,12 @@ class MorvoAPIClient {
     
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      toast.error('خطأ في الاتصال');
-      if (onError) onError(error);
+      onError?.(error);
     };
     
     ws.onclose = () => {
       console.log('❌ WebSocket disconnected');
-      toast.warning('انقطع الاتصال');
-      if (onClose) onClose();
+      onClose?.();
     };
     
     return ws;
@@ -154,68 +169,58 @@ class MorvoAPIClient {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type: 'chat_message',
-        message: message,
+        message,
         user_id: userId,
         timestamp: new Date().toISOString()
       }));
     }
   }
 
-  // Test all connections
-  async testConnection(): Promise<{
-    api: boolean;
-    websocket: boolean;
-    overall: boolean;
-  }> {
+  // Test full connectivity
+  async testConnection() {
     const results = {
       api: false,
       websocket: false,
+      platforms: false,
       overall: false
     };
 
     try {
       // Test API
-      console.log('📡 Testing FastAPI...');
-      const healthCheck = await this.health();
-      results.api = healthCheck && (healthCheck.status === 'healthy' || healthCheck.status === 'ok');
-      console.log(results.api ? '✅ FastAPI connected' : '❌ FastAPI not connected');
-      
+      const health = await this.health();
+      results.api = health.status === 'healthy';
+
+      // Test platforms
+      const platforms = await this.getAvailablePlatforms();
+      results.platforms = Array.isArray(platforms);
+
       // Test WebSocket
-      console.log('🔌 Testing WebSocket...');
       const wsTest = new Promise<boolean>((resolve) => {
         const ws = this.connectWebSocket(
           () => {
-            results.websocket = true;
             ws.close();
             resolve(true);
           },
           () => resolve(false),
           () => resolve(false)
         );
-        
-        // Timeout after 5 seconds
+
         setTimeout(() => {
           ws.close();
           resolve(false);
         }, 5000);
       });
-      
+
       results.websocket = await wsTest;
-      console.log(results.websocket ? '✅ WebSocket connected' : '❌ WebSocket not connected');
-      
-      results.overall = results.api || results.websocket; // At least one should work
-      
-      console.log(`\n🎯 Overall status: ${results.overall ? '✅ System operational' : '❌ System issues'}`);
-      
+      results.overall = results.api && results.platforms;
+
       return results;
-      
     } catch (error) {
-      console.error('❌ Connection test failed:', error);
+      console.error('Connection test failed:', error);
       return results;
     }
   }
 }
 
-// Export singleton instance
-export const morvoAPI = new MorvoAPIClient();
+const morvoAPI = new MorvoAPIClient();
 export default morvoAPI;

@@ -1,131 +1,90 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  expiry: number;
-}
-
-interface UseApiCacheOptions {
+interface CacheOptions {
   ttl?: number; // Time to live in milliseconds
-  staleWhileRevalidate?: boolean;
-  retry?: boolean;
+  retryAttempts?: number;
   retryDelay?: number;
 }
 
-const cache = new Map<string, CacheEntry<any>>();
+interface CacheState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  lastFetch: number | null;
+}
 
 export const useApiCache = <T>(
   key: string,
   fetcher: () => Promise<T>,
-  options: UseApiCacheOptions = {}
+  options: CacheOptions = {}
 ) => {
   const {
     ttl = 300000, // 5 minutes default
-    staleWhileRevalidate = true,
-    retry = true,
+    retryAttempts = 3,
     retryDelay = 1000
   } = options;
 
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<CacheState<T>>({
+    data: null,
+    loading: false,
+    error: null,
+    lastFetch: null
+  });
 
-  const getCachedData = useCallback(() => {
-    const cached = cache.get(key);
-    if (cached && Date.now() < cached.expiry) {
-      return cached.data;
+  // Check if cache is still valid
+  const isCacheValid = useCallback(() => {
+    if (!state.lastFetch) return false;
+    return Date.now() - state.lastFetch < ttl;
+  }, [state.lastFetch, ttl]);
+
+  // Fetch data with retry logic
+  const fetchData = useCallback(async (force: boolean = false) => {
+    if (!force && isCacheValid() && state.data) {
+      return state.data;
     }
-    return null;
-  }, [key]);
 
-  const setCachedData = useCallback((newData: T) => {
-    cache.set(key, {
-      data: newData,
-      timestamp: Date.now(),
-      expiry: Date.now() + ttl
-    });
-  }, [key, ttl]);
+    setState(prev => ({ ...prev, loading: true, error: null }));
 
-  const fetchData = useCallback(async (useStale = false) => {
-    try {
-      if (!useStale) {
-        setLoading(true);
-        setError(null);
-      }
-
-      const result = await fetcher();
-      setData(result);
-      setCachedData(result);
-      
-      if (!useStale) {
-        setLoading(false);
-      }
-      
-      return result;
-    } catch (err: any) {
-      const errorMessage = err.message || 'حدث خطأ في تحميل البيانات';
-      setError(errorMessage);
-      
-      if (!useStale) {
-        setLoading(false);
-      }
-      
-      if (retry) {
-        setTimeout(() => fetchData(useStale), retryDelay);
-      }
-      
-      throw err;
-    }
-  }, [fetcher, setCachedData, retry, retryDelay]);
-
-  const refetch = useCallback(() => {
-    cache.delete(key); // Clear cache
-    return fetchData();
-  }, [key, fetchData]);
-
-  const mutate = useCallback((newData: T) => {
-    setData(newData);
-    setCachedData(newData);
-  }, [setCachedData]);
-
-  useEffect(() => {
-    const cachedData = getCachedData();
-    
-    if (cachedData) {
-      setData(cachedData);
-      setLoading(false);
-      
-      // Revalidate in background if stale-while-revalidate is enabled
-      if (staleWhileRevalidate) {
-        fetchData(true).catch(() => {
-          // Silent fail for background revalidation
+    for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+      try {
+        const data = await fetcher();
+        setState({
+          data,
+          loading: false,
+          error: null,
+          lastFetch: Date.now()
         });
+        return data;
+      } catch (error: any) {
+        if (attempt === retryAttempts) {
+          setState(prev => ({
+            ...prev,
+            loading: false,
+            error: error.message || 'Failed to fetch data'
+          }));
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
       }
-    } else {
-      fetchData();
     }
-  }, [key, getCachedData, fetchData, staleWhileRevalidate]);
+  }, [fetcher, isCacheValid, retryAttempts, retryDelay, state.data]);
+
+  // Refetch function
+  const refetch = useCallback(() => {
+    return fetchData(true);
+  }, [fetchData]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchData();
+  }, [key]); // Only re-run when key changes
 
   return {
-    data,
-    loading,
-    error,
+    data: state.data,
+    loading: state.loading,
+    error: state.error,
     refetch,
-    mutate
+    isCacheValid: isCacheValid()
   };
 };
-
-// Cache management utilities
-export const clearCache = (key?: string) => {
-  if (key) {
-    cache.delete(key);
-  } else {
-    cache.clear();
-  }
-};
-
-export const getCacheSize = () => cache.size;
-
-export const getCacheKeys = () => Array.from(cache.keys());
