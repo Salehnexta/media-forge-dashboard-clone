@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -6,11 +7,20 @@ import { useChatLogic } from '@/hooks/useChatLogic';
 import { AIManager } from '@/types/morvo';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ModeToggle } from "@/components/ui/mode-toggle"
 import { CommandSuggestions } from '@/components/chat/CommandSuggestions';
 import { ConnectionDiagnostics } from '@/components/chat/ConnectionDiagnostics';
 
-export const EnhancedChatSection = () => {
+interface EnhancedChatSectionProps {
+  selectedManager?: AIManager;
+  onManagerSelect?: (manager: AIManager) => void;
+  onDashboardCommand?: (command: any) => void;
+}
+
+export const EnhancedChatSection = ({ 
+  selectedManager, 
+  onManagerSelect, 
+  onDashboardCommand 
+}: EnhancedChatSectionProps) => {
   const {
     messages,
     message,
@@ -28,6 +38,15 @@ export const EnhancedChatSection = () => {
   
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+
+  // Convert string suggestions to CommandSuggestion objects
+  const formatCommandSuggestions = () => {
+    const suggestions = getCommandSuggestions();
+    return suggestions.map((suggestion: string) => ({
+      command: suggestion,
+      description: `تنفيذ الأمر: ${suggestion}`
+    }));
+  };
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-purple-50" dir="rtl">
@@ -125,7 +144,7 @@ export const EnhancedChatSection = () => {
         </div>
         {showSuggestions && (
           <CommandSuggestions
-            suggestions={getCommandSuggestions()}
+            suggestions={formatCommandSuggestions()}
             onSelect={(command) => {
               setMessage(command);
               setShowSuggestions(false);
