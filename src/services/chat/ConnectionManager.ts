@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { WebSocketConfig } from './types';
 import { DiagnosticService } from './DiagnosticService';
@@ -186,7 +185,7 @@ export class ConnectionManager {
       const feedbackMessage = {
         id: Date.now().toString(),
         text: `تم تنفيذ: ${command.type}`,
-        sender: 'system',
+        sender: 'system' as const,
         timestamp: new Date(),
         isCommand: true
       };
