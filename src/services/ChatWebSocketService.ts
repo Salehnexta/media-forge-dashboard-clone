@@ -28,9 +28,36 @@ export class ChatWebSocketService {
   private messageQueue: any[] = [];
   private config: WebSocketConfig = {};
   private heartbeatInterval: any = null;
+  private diagnosticMode = false;
+  private connectionHistory: Array<{timestamp: Date, event: string, details?: any}> = [];
   
   constructor() {
     console.log('🔧 ChatWebSocketService initialized in PRODUCTION mode');
+    this.enableDiagnosticMode();
+  }
+
+  private enableDiagnosticMode(): void {
+    this.diagnosticMode = true;
+    this.logDiagnostic('service_initialized', { mode: 'production' });
+  }
+
+  private logDiagnostic(event: string, details?: any): void {
+    if (!this.diagnosticMode) return;
+    
+    const logEntry = {
+      timestamp: new Date(),
+      event,
+      details
+    };
+    
+    this.connectionHistory.push(logEntry);
+    
+    // Keep only last 50 entries
+    if (this.connectionHistory.length > 50) {
+      this.connectionHistory = this.connectionHistory.slice(-50);
+    }
+    
+    console.log(`🔍 [Diagnostic] ${event}:`, details);
   }
 
   // Always return Railway production WebSocket URL
@@ -39,31 +66,61 @@ export class ChatWebSocketService {
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {
-    if (this.isConnecting) return false;
+    if (this.isConnecting) {
+      this.logDiagnostic('connect_attempt_blocked', { reason: 'already_connecting' });
+      return false;
+    }
     
     this.config = config;
     this.isConnecting = true;
+    this.logDiagnostic('connect_start', { userId, hasToken: !!token });
 
     try {
-      // Get production Railway WebSocket URL and format properly
       const wsUrl = this.getWebSocketUrl();
-      
-      // Format URL for FastAPI path parameter style: /ws/{userId}
       const urlWithAuth = token 
         ? `${wsUrl}/${userId}?token=${token}`
         : `${wsUrl}/${userId}`;
 
+      this.logDiagnostic('websocket_create', { url: urlWithAuth });
       console.log('🔌 Connecting to production WebSocket:', wsUrl);
       
       this.ws = new WebSocket(urlWithAuth);
       
-      this.ws.onopen = this.handleOpen.bind(this);
-      this.ws.onmessage = this.handleMessage.bind(this);
-      this.ws.onclose = this.handleClose.bind(this);
-      this.ws.onerror = this.handleError.bind(this);
+      // Enhanced error tracking
+      this.ws.onopen = (event) => {
+        this.logDiagnostic('websocket_open', { readyState: this.ws?.readyState });
+        this.handleOpen();
+      };
+      
+      this.ws.onmessage = (event) => {
+        this.logDiagnostic('websocket_message', { 
+          dataLength: event.data?.length,
+          type: this.parseMessageType(event.data)
+        });
+        this.handleMessage(event);
+      };
+      
+      this.ws.onclose = (event) => {
+        this.logDiagnostic('websocket_close', { 
+          code: event.code, 
+          reason: event.reason,
+          wasClean: event.wasClean
+        });
+        this.handleClose();
+      };
+      
+      this.ws.onerror = (event) => {
+        this.logDiagnostic('websocket_error', { 
+          type: event.type,
+          readyState: this.ws?.readyState,
+          url: this.ws?.url
+        });
+        this.handleError(event);
+      };
 
       return new Promise((resolve) => {
         const timeout = setTimeout(() => {
+          this.logDiagnostic('connect_timeout', { duration: 10000 });
           this.isConnecting = false;
           resolve(false);
         }, 10000);
@@ -75,6 +132,7 @@ export class ChatWebSocketService {
         };
       });
     } catch (error) {
+      this.logDiagnostic('connect_exception', { error: error instanceof Error ? error.message : error });
       console.error('❌ WebSocket connection failed:', error);
       this.isConnecting = false;
       toast.error('فشل الاتصال بالخادم، جاري المحاولة مرة أخرى');
@@ -82,16 +140,27 @@ export class ChatWebSocketService {
     }
   }
 
+  private parseMessageType(data: string): string {
+    try {
+      const parsed = JSON.parse(data);
+      return parsed.type || 'unknown';
+    } catch {
+      return 'invalid_json';
+    }
+  }
+
   private handleOpen(): void {
+    this.logDiagnostic('connection_established', { 
+      attempts: this.reconnectAttempts,
+      queuedMessages: this.messageQueue.length
+    });
+    
     console.log('✅ WebSocket connected successfully to production');
     this.isConnecting = false;
     this.reconnectAttempts = 0;
     this.config.onConnect?.();
     
-    // Send queued messages
     this.flushMessageQueue();
-    
-    // Setup heartbeat to keep connection alive
     this.startHeartbeat();
     
     toast.success('متصل بالخادم بنجاح');
@@ -140,6 +209,10 @@ export class ChatWebSocketService {
       }
       
     } catch (error) {
+      this.logDiagnostic('message_parse_error', { 
+        error: error instanceof Error ? error.message : error,
+        dataLength: event.data?.length
+      });
       console.error('❌ Error parsing WebSocket message:', error);
     }
   }
@@ -166,6 +239,11 @@ export class ChatWebSocketService {
   }
 
   private handleClose(): void {
+    this.logDiagnostic('connection_closed', { 
+      attempts: this.reconnectAttempts,
+      maxAttempts: this.maxReconnectAttempts
+    });
+    
     console.log('❌ WebSocket connection closed');
     this.isConnecting = false;
     this.config.onDisconnect?.();
@@ -174,23 +252,36 @@ export class ChatWebSocketService {
       clearInterval(this.heartbeatInterval);
     }
     
-    // Attempt reconnection
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.attemptReconnection();
     } else {
+      this.logDiagnostic('max_reconnects_reached', { attempts: this.reconnectAttempts });
       toast.error('فشل الاتصال بالخادم بعد عدة محاولات');
     }
   }
 
   private handleError(error: Event): void {
+    this.logDiagnostic('connection_error', {
+      type: error.type,
+      url: this.ws?.url,
+      readyState: this.ws?.readyState,
+      online: navigator.onLine,
+      attempts: this.reconnectAttempts
+    });
+    
     console.error('❌ WebSocket error:', error);
     this.config.onError?.(error);
     this.isConnecting = false;
     
-    // Additional diagnostic info
+    // Enhanced diagnostic info
     console.log('WebSocket URL attempted:', this.ws?.url);
     console.log('Connection state:', this.getConnectionState());
     console.log('Navigator online:', navigator.onLine);
+    console.log('Error details:', {
+      type: error.type,
+      timeStamp: error.timeStamp,
+      isTrusted: error.isTrusted
+    });
   }
 
   private attemptReconnection(): void {
@@ -238,6 +329,8 @@ export class ChatWebSocketService {
   }
 
   disconnect(): void {
+    this.logDiagnostic('manual_disconnect');
+    
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -264,6 +357,79 @@ export class ChatWebSocketService {
       case WebSocket.CLOSING: return 'closing';
       case WebSocket.CLOSED: return 'disconnected';
       default: return 'unknown';
+    }
+  }
+
+  getDiagnosticHistory(): Array<{timestamp: Date, event: string, details?: any}> {
+    return [...this.connectionHistory];
+  }
+
+  getDetailedStatus(): object {
+    return {
+      connectionState: this.getConnectionState(),
+      isConnected: this.isConnected(),
+      isConnecting: this.isConnecting,
+      reconnectAttempts: this.reconnectAttempts,
+      maxReconnectAttempts: this.maxReconnectAttempts,
+      queuedMessages: this.messageQueue.length,
+      hasHeartbeat: !!this.heartbeatInterval,
+      lastEvents: this.connectionHistory.slice(-5),
+      wsUrl: this.ws?.url,
+      wsReadyState: this.ws?.readyState,
+      navigatorOnline: navigator.onLine,
+      protocol: this.ws?.protocol,
+      extensions: this.ws?.extensions
+    };
+  }
+
+  async performConnectionTest(): Promise<{success: boolean, details: any}> {
+    try {
+      const wsUrl = this.getWebSocketUrl();
+      const testWs = new WebSocket(`${wsUrl}/test`);
+      
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          testWs.close();
+          resolve({
+            success: false,
+            details: { error: 'Connection timeout', duration: 5000 }
+          });
+        }, 5000);
+
+        testWs.onopen = () => {
+          clearTimeout(timeout);
+          const openTime = Date.now();
+          testWs.close();
+          resolve({
+            success: true,
+            details: { 
+              connectionTime: Date.now() - openTime,
+              url: wsUrl,
+              protocol: testWs.protocol
+            }
+          });
+        };
+
+        testWs.onerror = (error) => {
+          clearTimeout(timeout);
+          resolve({
+            success: false,
+            details: { 
+              error: 'Connection failed',
+              type: error.type,
+              url: wsUrl
+            }
+          });
+        };
+      });
+    } catch (error) {
+      return {
+        success: false,
+        details: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          phase: 'websocket_creation'
+        }
+      };
     }
   }
 }
