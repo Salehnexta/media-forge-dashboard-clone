@@ -5,18 +5,11 @@ import BackendFlowVisualization from '@/components/visualization/BackendFlowVisu
 
 const BackendFlow = () => {
   return (
-    <PageLayout>
+    <PageLayout
+      title="Backend Architecture Flow"
+      description="Interactive visualization of the complete backend architecture showing data flow from frontend through Supabase to Railway AI agents and external services."
+    >
       <div className="container mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Backend Architecture Flow
-          </h1>
-          <p className="text-gray-600">
-            Interactive visualization of the complete backend architecture showing data flow 
-            from frontend through Supabase to Railway AI agents and external services.
-          </p>
-        </div>
-        
         <BackendFlowVisualization />
         
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
