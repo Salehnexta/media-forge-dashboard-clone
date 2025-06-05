@@ -29,24 +29,20 @@ export const DashboardSection = ({
   };
 
   const renderDashboard = () => {
-    const commonProps = {
-      dashboardState,
-      onUserAction: handleUserAction
-    };
-
+    // Don't pass unsupported props to the dashboard components
     switch (selectedManager) {
       case "strategic":
-        return <EnhancedStrategicDashboard {...commonProps} />;
+        return <EnhancedStrategicDashboard />;
       case "monitor":
-        return <EnhancedSocialMediaDashboard {...commonProps} />;
+        return <EnhancedSocialMediaDashboard />;
       case "executor":
-        return <EnhancedCampaignsDashboard {...commonProps} />;
+        return <EnhancedCampaignsDashboard />;
       case "creative":
-        return <ContentDashboard {...commonProps} />;
+        return <ContentDashboard />;
       case "analyst":
-        return <AnalyticsDashboard {...commonProps} />;
+        return <AnalyticsDashboard />;
       default:
-        return <EnhancedStrategicDashboard {...commonProps} />;
+        return <EnhancedStrategicDashboard />;
     }
   };
 
