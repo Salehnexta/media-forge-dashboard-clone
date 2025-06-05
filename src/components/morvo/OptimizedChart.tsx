@@ -17,11 +17,6 @@ export const OptimizedChart = memo<OptimizedChartProps>(({
   color = '#3b82f6',
   height = 300 
 }) => {
-  const chartOptions = useMemo(() => ({
-    animationDuration: 300,
-    animationEasing: 'ease-out'
-  }), []);
-
   const processedData = useMemo(() => {
     // Limit data points for better performance
     return data.slice(-20);
@@ -60,8 +55,8 @@ export const OptimizedChart = memo<OptimizedChartProps>(({
             strokeWidth={3}
             dot={{ fill: color, strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: color, strokeWidth: 2 }}
-            animationDuration={chartOptions.animationDuration}
-            animationEasing={chartOptions.animationEasing}
+            animationDuration={300}
+            isAnimationActive={true}
           />
         </LineChart>
       </ResponsiveContainer>
