@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 import { railwayConnectionService } from './RailwayConnectionService';
 
@@ -494,7 +495,12 @@ export class ChatWebSocketService {
   }
 
   async performHealthCheck(): Promise<{success: boolean, details: any}> {
-    return await railwayConnectionService.checkRailwayHealth();
+    const railwayStatus = await railwayConnectionService.checkRailwayHealth();
+    
+    return {
+      success: railwayStatus.isOnline,
+      details: railwayStatus
+    };
   }
 }
 
