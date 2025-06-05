@@ -79,7 +79,7 @@ const Dashboard = () => {
           <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
             <h1 className="text-2xl font-bold text-gray-900 text-center">تسجيل الدخول مطلوب</h1>
             <div className="mt-8">
-              <Auth supabaseClient={supabase} appearance={{ theme: Auth.ThemeMinimal }} providers={['google', 'facebook']} />
+              <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} providers={['google', 'facebook']} />
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Chat Widget - Remove onCommand prop since it doesn't exist */}
+      {/* Chat Widget */}
       <UniversalChatWidget />
     </div>
   );
