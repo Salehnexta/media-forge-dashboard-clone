@@ -34,6 +34,7 @@ export const useMorvoMemory = () => {
       
       savedConversations.push(newConversation);
       localStorage.setItem('morvo_conversations', JSON.stringify(savedConversations));
+      setConversations(savedConversations);
       
       console.log('Conversation saved:', newConversation);
     } catch (error) {

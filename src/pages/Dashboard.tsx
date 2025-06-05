@@ -5,7 +5,7 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { AIManager } from '@/types/morvo';
 import { DashboardSection } from '@/components/morvo/DashboardSection';
-import { ChatSection } from '@/components/morvo/ChatSection';
+import { EnhancedChatSection } from '@/components/morvo/EnhancedChatSection';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 
@@ -92,7 +92,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50" dir="rtl">
+    <div className="flex h-screen bg-gray-50 dashboard-container" dir="rtl">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow border-b">
         <div className="flex justify-between items-center p-4">
@@ -111,7 +111,7 @@ const Dashboard = () => {
       {/* Main Layout with Chat and Dashboard */}
       <div className="flex w-full pt-20">
         {/* Chat Panel - 40% */}
-        <div className="w-2/5 border-l border-gray-200 flex flex-col bg-white shadow-lg">
+        <div className="w-2/5 border-l border-gray-200 flex flex-col bg-white shadow-lg chat-panel">
           <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -121,7 +121,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex-grow overflow-hidden">
-            <ChatSection 
+            <EnhancedChatSection 
               selectedManager={dashboardState.activeTab as AIManager}
               onManagerSelect={handleManagerSelect}
               onDashboardCommand={onDashboardCommand}
@@ -130,7 +130,7 @@ const Dashboard = () => {
         </div>
         
         {/* Dashboard Panel - 60% */}
-        <div className="w-3/5 flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="w-3/5 flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50 dashboard-panel">
           <div className="p-4 bg-white/90 backdrop-blur-sm border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">لوحة التحكم التفاعلية</h2>
             <p className="text-sm text-gray-600 mt-1">إدارة حملاتك التسويقية بذكاء اصطناعي متقدم</p>
@@ -141,13 +141,13 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Mobile Layout Responsive Design */}
-      <style jsx>{`
+      {/* Mobile Layout Responsive Design - Fixed Style element */}
+      <style>{`
         @media (max-width: 768px) {
-          .flex {
+          .dashboard-container {
             flex-direction: column !important;
           }
-          .w-2\/5, .w-3\/5 {
+          .chat-panel, .dashboard-panel {
             width: 100% !important;
             height: 50vh !important;
           }
