@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { AIManager } from '@/types/morvo';
 import { DashboardSection } from '@/components/morvo/DashboardSection';
 import { UniversalChatWidget } from '@/components/chat/UniversalChatWidget';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
-import { useComponentPerformance } from "@/hooks/useOptimizedPerformance";
+import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 
 const Dashboard = () => {
   useComponentPerformance('Dashboard');

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useComponentPerformance } from './useOptimizedPerformance';
+import { useComponentPerformance } from './useEnhancedPerformance';
 
 interface DashboardCommand {
   type: 'SWITCH_TAB' | 'UPDATE_STATS' | 'SHOW_CHART' | 'ADD_NOTIFICATION' | 'UPDATE_WIDGET';

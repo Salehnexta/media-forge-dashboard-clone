@@ -1,6 +1,7 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import morvoClient from '@/lib/morvoClient';
-import { useComponentPerformance } from './useOptimizedPerformance';
+import { useComponentPerformance } from './useEnhancedPerformance';
 import { toast } from 'sonner';
 
 interface MorvoMessage {
