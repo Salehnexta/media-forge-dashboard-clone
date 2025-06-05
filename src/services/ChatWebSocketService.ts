@@ -35,7 +35,7 @@ export class ChatWebSocketService {
 
   // Always return Railway production WebSocket URL
   private getWebSocketUrl(): string {
-    return 'wss://morvo-ai-v2.up.railway.app/ws';
+    return 'wss://crewai-production-d99a.up.railway.app/ws';
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {
