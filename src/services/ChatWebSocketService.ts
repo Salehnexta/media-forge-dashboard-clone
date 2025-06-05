@@ -1,12 +1,13 @@
-
 import { toast } from 'sonner';
 
+// Standardized message type to fix TypeScript errors
 export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'ai' | 'system';
   timestamp: Date;
   manager?: string;
+  isCommand?: boolean;
 }
 
 export interface WebSocketConfig {
@@ -26,9 +27,15 @@ export class ChatWebSocketService {
   private isConnecting = false;
   private messageQueue: any[] = [];
   private config: WebSocketConfig = {};
+  private heartbeatInterval: any = null;
   
   constructor() {
-    console.log('🔧 ChatWebSocketService initialized');
+    console.log('🔧 ChatWebSocketService initialized in PRODUCTION mode');
+  }
+
+  // Always return Railway production WebSocket URL
+  private getWebSocketUrl(): string {
+    return 'wss://morvo-ai-v2.up.railway.app/ws';
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {
@@ -38,13 +45,15 @@ export class ChatWebSocketService {
     this.isConnecting = true;
 
     try {
-      // Use environment-based URL selection
+      // Get production Railway WebSocket URL and format properly
       const wsUrl = this.getWebSocketUrl();
+      
+      // Format URL for FastAPI path parameter style: /ws/{userId}
       const urlWithAuth = token 
-        ? `${wsUrl}?userId=${userId}&token=${token}`
-        : `${wsUrl}?userId=${userId}`;
+        ? `${wsUrl}/${userId}?token=${token}`
+        : `${wsUrl}/${userId}`;
 
-      console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+      console.log('🔌 Connecting to production WebSocket:', wsUrl);
       
       this.ws = new WebSocket(urlWithAuth);
       
@@ -68,20 +77,13 @@ export class ChatWebSocketService {
     } catch (error) {
       console.error('❌ WebSocket connection failed:', error);
       this.isConnecting = false;
+      toast.error('فشل الاتصال بالخادم، جاري المحاولة مرة أخرى');
       return false;
     }
   }
 
-  private getWebSocketUrl(): string {
-    // Environment-based URL selection
-    if (import.meta.env.PROD) {
-      return import.meta.env.VITE_MORVO_WS_URL || 'wss://morvo-ai-v2.up.railway.app/ws';
-    }
-    return 'ws://localhost:8090/ws';
-  }
-
   private handleOpen(): void {
-    console.log('✅ WebSocket connected successfully');
+    console.log('✅ WebSocket connected successfully to production');
     this.isConnecting = false;
     this.reconnectAttempts = 0;
     this.config.onConnect?.();
@@ -89,7 +91,20 @@ export class ChatWebSocketService {
     // Send queued messages
     this.flushMessageQueue();
     
+    // Setup heartbeat to keep connection alive
+    this.startHeartbeat();
+    
     toast.success('متصل بالخادم بنجاح');
+  }
+  
+  private startHeartbeat(): void {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    
+    this.heartbeatInterval = setInterval(() => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({ type: 'ping' }));
+      }
+    }, 30000); // Send ping every 30 seconds
   }
 
   private handleMessage(event: MessageEvent): void {
@@ -118,8 +133,35 @@ export class ChatWebSocketService {
         
         this.config.onMessage?.(message);
       }
+      
+      // Handle dashboard commands from server
+      if (data.type === 'dashboard_command') {
+        this.handleDashboardCommand(data.command);
+      }
+      
     } catch (error) {
       console.error('❌ Error parsing WebSocket message:', error);
+    }
+  }
+  
+  private handleDashboardCommand(command: any): void {
+    // Emit a custom event for dashboard components to listen to
+    const event = new CustomEvent('dashboardCommand', { 
+      detail: command 
+    });
+    window.dispatchEvent(event);
+    
+    // Optionally create a feedback message in chat
+    if (this.config.onMessage) {
+      const feedbackMessage: ChatMessage = {
+        id: Date.now().toString(),
+        text: `تم تنفيذ: ${command.type}`,
+        sender: 'system',
+        timestamp: new Date(),
+        isCommand: true
+      };
+      
+      this.config.onMessage(feedbackMessage);
     }
   }
 
@@ -128,11 +170,15 @@ export class ChatWebSocketService {
     this.isConnecting = false;
     this.config.onDisconnect?.();
     
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    
     // Attempt reconnection
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.attemptReconnection();
     } else {
-      toast.error('فشل الاتصال بالخادم');
+      toast.error('فشل الاتصال بالخادم بعد عدة محاولات');
     }
   }
 
@@ -140,6 +186,11 @@ export class ChatWebSocketService {
     console.error('❌ WebSocket error:', error);
     this.config.onError?.(error);
     this.isConnecting = false;
+    
+    // Additional diagnostic info
+    console.log('WebSocket URL attempted:', this.ws?.url);
+    console.log('Connection state:', this.getConnectionState());
+    console.log('Navigator online:', navigator.onLine);
   }
 
   private attemptReconnection(): void {
@@ -150,9 +201,10 @@ export class ChatWebSocketService {
     
     setTimeout(() => {
       if (this.ws?.readyState !== WebSocket.OPEN) {
-        // Retry with last known config
-        // Note: This is a simplified retry - in real implementation, 
-        // you'd need to store the original connection parameters
+        // Try to reconnect with last known user ID
+        const userId = localStorage.getItem('morvo_user_id') || 'guest';
+        const token = localStorage.getItem('morvo_auth_token');
+        this.connect(userId, token, this.config);
         toast.info(`محاولة إعادة الاتصال ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
       }
     }, delay);
@@ -166,6 +218,14 @@ export class ChatWebSocketService {
     } else {
       console.warn('⚠️ WebSocket not connected, queuing message');
       this.messageQueue.push(message);
+      
+      // Try reconnecting
+      if (this.ws?.readyState === WebSocket.CLOSED && !this.isConnecting) {
+        const userId = localStorage.getItem('morvo_user_id') || 'guest';
+        const token = localStorage.getItem('morvo_auth_token');
+        this.connect(userId, token, this.config);
+      }
+      
       return false;
     }
   }
@@ -182,6 +242,11 @@ export class ChatWebSocketService {
       this.ws.close();
       this.ws = null;
     }
+    
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    
     this.reconnectAttempts = 0;
     this.isConnecting = false;
   }

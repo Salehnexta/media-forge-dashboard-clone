@@ -105,11 +105,11 @@ export const useChatLogic = () => {
       if (dashboardCommandCallback) {
         dashboardCommandCallback(command);
         
-        // Add system message confirming command execution - using 'ai' sender with system flag
+        // Add system message confirming command execution - properly typed
         const systemMessage: ChatMessage = {
           id: Date.now().toString(),
           text: `✅ تم تنفيذ الأمر بنجاح (الثقة: ${Math.round(command.confidence * 100)}%)`,
-          sender: 'ai',
+          sender: 'system',
           timestamp: new Date(),
           manager: chatState.currentAgent
         };
