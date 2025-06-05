@@ -10,15 +10,24 @@ import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
 import { SecureErrorBoundary } from "@/components/security/SecureErrorBoundary";
 import { AIManager } from "@/types/morvo";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
+import { toast } from "sonner";
 
 const Dashboard = () => {
-  const [selectedManager, setSelectedManager] = useState<AIManager>("strategic");
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Chat-controlled dashboard hook
+  const {
+    dashboardState,
+    handleChatCommand,
+    updateActiveTab,
+    clearNotifications
+  } = useChatControlledDashboard();
 
   useEffect(() => {
     // Set up auth state listener
@@ -49,6 +58,35 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Handle dashboard commands from chat
+  const onDashboardCommand = (command: any) => {
+    console.log('Dashboard received command from chat:', command);
+    handleChatCommand(command);
+    
+    // Show user feedback for certain commands
+    if (command.type === 'SWITCH_TAB') {
+      toast.success(`تم التبديل إلى ${getTabName(command.payload.tab)}`);
+    } else if (command.type === 'UPDATE_STATS') {
+      toast.success('تم تحديث الإحصائيات');
+    }
+  };
+
+  const getTabName = (tab: AIManager): string => {
+    const names = {
+      strategic: 'الاستراتيجي',
+      monitor: 'السوشال ميديا',
+      executor: 'الحملات',
+      creative: 'المحتوى',
+      analyst: 'التحليلات'
+    };
+    return names[tab] || tab;
+  };
+
+  // Handle tab selection (both from UI and chat commands)
+  const handleManagerSelect = (manager: AIManager) => {
+    updateActiveTab(manager);
+  };
 
   if (loading) {
     return (
@@ -83,7 +121,7 @@ const Dashboard = () => {
             </button>
           )}
 
-          {/* Chat Section */}
+          {/* Chat Section - Now controls the dashboard */}
           <div className={`${
             isMobile 
               ? `fixed inset-y-0 right-0 z-40 w-full transform transition-transform duration-300 ${
@@ -92,8 +130,9 @@ const Dashboard = () => {
               : 'w-80 xl:w-96'
           } bg-white border-l border-gray-200 shadow-xl flex-shrink-0`}>
             <ChatSection 
-              selectedManager={selectedManager}
-              onManagerSelect={setSelectedManager}
+              selectedManager={dashboardState.activeTab}
+              onManagerSelect={handleManagerSelect}
+              onDashboardCommand={onDashboardCommand}
             />
             {isMobile && (
               <button
@@ -107,19 +146,59 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Main Dashboard Content */}
+          {/* Main Dashboard Content - Controlled by Chat */}
           <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white">
             {/* Header */}
             <div className="p-4 lg:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                لوحة تحكم Morvo AI
+                لوحة تحكم مورفو AI
               </h1>
-              <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة - خمسة أيجنت متخصصين</p>
+              <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة - يديرها الذكاء الاصطناعي</p>
+              
+              {/* Stats Display - Updated by Chat Commands */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                <div className="bg-white/60 p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500">الزوار</p>
+                  <p className="text-lg font-bold text-blue-600">{dashboardState.stats.visitors.toLocaleString('ar-SA')}</p>
+                </div>
+                <div className="bg-white/60 p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500">المبيعات</p>
+                  <p className="text-lg font-bold text-green-600">{dashboardState.stats.sales.toLocaleString('ar-SA')}</p>
+                </div>
+                <div className="bg-white/60 p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500">التحويلات</p>
+                  <p className="text-lg font-bold text-purple-600">{dashboardState.stats.conversions}%</p>
+                </div>
+                <div className="bg-white/60 p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500">العائد</p>
+                  <p className="text-lg font-bold text-orange-600">{dashboardState.stats.roi}%</p>
+                </div>
+              </div>
+
+              {/* Notifications from Chat */}
+              {dashboardState.notifications.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-800">إشعارات من مورفو AI</span>
+                    <button 
+                      onClick={clearNotifications}
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      مسح الكل
+                    </button>
+                  </div>
+                  {dashboardState.notifications.slice(0, 3).map((notification: any) => (
+                    <p key={notification.id} className="text-xs text-blue-700 mt-1">
+                      • {notification.message}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Dashboard Content with Tabs */}
+            {/* Dashboard Content with Tabs - Controlled by Chat */}
             <div className="flex-1 p-4 lg:p-6 overflow-auto">
-              <Tabs value={selectedManager} onValueChange={(value) => setSelectedManager(value as AIManager)}>
+              <Tabs value={dashboardState.activeTab} onValueChange={(value) => handleManagerSelect(value as AIManager)}>
                 <TabsList className={`${
                   isMobile 
                     ? 'grid w-full grid-cols-2 gap-2 h-auto p-2' 

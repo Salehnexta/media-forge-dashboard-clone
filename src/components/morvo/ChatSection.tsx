@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send, Bot, User, Plus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AIManager, ChatMessage } from "@/types/morvo";
-import { useChatLogic } from "@/components/chat/hooks/useChatLogic";
+import { AIManager } from "@/types/morvo";
+import { useChatLogic } from "@/hooks/useChatLogic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InputSanitizer } from "@/components/security/InputSanitizer";
 import { chatRateLimiter } from "@/components/security/RateLimiter";
@@ -13,22 +13,40 @@ import { toast } from "sonner";
 interface ChatSectionProps {
   selectedManager: AIManager;
   onManagerSelect: (manager: AIManager) => void;
+  onDashboardCommand?: (command: any) => void;
 }
 
 export const ChatSection = ({
   selectedManager,
-  onManagerSelect
+  onManagerSelect,
+  onDashboardCommand
 }: ChatSectionProps) => {
   const {
+    messages,
+    currentAgent,
+    isTyping,
+    isConnected,
     message,
     setMessage,
-    chatHistory,
-    isTyping,
-    messagesEndRef,
-    handleSendMessage: originalHandleSendMessage
+    handleSendMessage: originalHandleSendMessage,
+    setCurrentAgent,
+    setDashboardCommandCallback,
+    messagesEndRef
   } = useChatLogic();
 
   const isMobile = useIsMobile();
+
+  // Set up dashboard command callback
+  useEffect(() => {
+    if (onDashboardCommand) {
+      setDashboardCommandCallback(() => onDashboardCommand);
+    }
+  }, [onDashboardCommand, setDashboardCommandCallback]);
+
+  // Sync current agent with selected manager
+  useEffect(() => {
+    setCurrentAgent(selectedManager);
+  }, [selectedManager, setCurrentAgent]);
 
   // Secure message handling with rate limiting and sanitization
   const handleSendMessage = () => {
@@ -109,13 +127,13 @@ export const ChatSection = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-sm">m1</span>
+              <span className="text-white font-bold text-sm">M</span>
             </div>
             <div>
-              <span className="font-semibold text-gray-900 text-sm lg:text-base">مدير التسويق الذكي</span>
+              <span className="font-semibold text-gray-900 text-sm lg:text-base">مورفو AI</span>
               <div className="flex items-center gap-1 mt-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-500">متصل</span>
+                <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''}`}></div>
+                <span className="text-xs text-gray-500">{isConnected ? 'متصل' : 'غير متصل'}</span>
               </div>
             </div>
           </div>
@@ -134,14 +152,14 @@ export const ChatSection = ({
       {/* Chat messages area */}
       <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
         <div className="space-y-4">
-          {chatHistory.length === 0 && (
+          {messages.length === 0 && (
             <div className="text-center py-8 lg:py-12">
               <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                <span className="text-white font-bold text-xl lg:text-2xl">m1</span>
+                <span className="text-white font-bold text-xl lg:text-2xl">M</span>
               </div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2">مرحباً بك في Morvo AI</h3>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2">مرحباً بك في مورفو AI</h3>
               <p className="text-gray-600 text-sm lg:text-base mb-6 px-4">
-                أنا m1، مدير التسويق الذكي. كيف يمكنني مساعدتك اليوم؟
+                أنا مورفو، مساعدك الذكي في التسويق. كيف يمكنني مساعدتك اليوم؟
               </p>
               <div className="bg-white rounded-xl p-4 lg:p-6 border border-gray-200 shadow-lg mx-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -166,7 +184,7 @@ export const ChatSection = ({
             </div>
           )}
 
-          {chatHistory.map((msg) => (
+          {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
@@ -175,9 +193,9 @@ export const ChatSection = ({
                 {msg.sender === 'ai' && (
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                      <span className="text-white text-xs font-bold">m1</span>
+                      <span className="text-white text-xs font-bold">M</span>
                     </div>
-                    <span className="text-xs text-gray-500">مدير التسويق</span>
+                    <span className="text-xs text-gray-500">مورفو AI</span>
                   </div>
                 )}
                 
@@ -224,9 +242,9 @@ export const ChatSection = ({
               <div className="bg-white border border-gray-200 rounded-2xl p-3 lg:p-4 shadow-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                    <span className="text-white text-xs font-bold">m1</span>
+                    <span className="text-white text-xs font-bold">M</span>
                   </div>
-                  <span className="text-xs text-gray-500">مدير التسويق</span>
+                  <span className="text-xs text-gray-500">مورفو AI</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Bot className="w-4 h-4 text-blue-600" />
@@ -268,12 +286,12 @@ export const ChatSection = ({
         
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-white text-xs font-bold">m1</span>
+            <span className="text-white text-xs font-bold">M</span>
           </div>
           <p className="text-xs text-gray-500">
-            مدير التسويق الذكي جاهز للمساعدة
+            مورفو AI جاهز للمساعدة
           </p>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-auto"></div>
+          <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''} ml-auto`}></div>
         </div>
         
         {/* Rate limit indicator */}
