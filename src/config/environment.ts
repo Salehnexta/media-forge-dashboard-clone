@@ -17,7 +17,7 @@ interface MorvoEnvironment {
   supabaseProjectRef: string;
   supabaseAccessToken: string;
   
-  // Morvo API Configuration
+  // Morvo API Configuration - Updated for Railway Production
   morvoApiUrl: string;
   morvoWebSocketUrl: string;
   
@@ -57,11 +57,11 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
   return value;
 };
 
-// Environment configuration with defaults and validation
+// Environment configuration with Railway Production URLs
 export const environment: MorvoEnvironment = {
   // Core API Configuration
   openaiApiKey: getEnvVar('OPENAI_API_KEY', ''),
-  apiKey: getEnvVar('API_KEY', 'dev-api-key'),
+  apiKey: getEnvVar('MORVO_API_KEY', 'morvo-production-key'),
   apiKeyHeader: getEnvVar('API_KEY_HEADER', 'X-API-Key'),
   
   // Supabase Configuration
@@ -71,15 +71,9 @@ export const environment: MorvoEnvironment = {
   supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', 'teniefzxdikestahndur'),
   supabaseAccessToken: getEnvVar('SUPABASE_ACCESS_TOKEN', ''),
   
-  // Morvo API Configuration
-  morvoApiUrl: getEnvVar('MORVO_API_URL', import.meta.env.PROD 
-    ? 'https://morvo-ai-v2.up.railway.app'
-    : 'http://localhost:8090'
-  ),
-  morvoWebSocketUrl: getEnvVar('MORVO_WS_URL', import.meta.env.PROD
-    ? 'wss://morvo-ai-v2.up.railway.app/ws'
-    : 'ws://localhost:8090/ws'
-  ),
+  // Railway Production URLs - Direct Production Connection
+  morvoApiUrl: getEnvVar('MORVO_BASE_URL', 'https://morvo-ai-v2.up.railway.app'),
+  morvoWebSocketUrl: getEnvVar('MORVO_WS_URL', 'wss://morvo-ai-v2.up.railway.app/ws'),
   
   // MCP Configuration
   mcpEnabled: getEnvVar('MCP_ENABLED', 'true') === 'true',
