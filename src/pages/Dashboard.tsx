@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { AIManager } from '@/types/morvo';
 import { DashboardSection } from '@/components/morvo/DashboardSection';
-import { UniversalChatWidget } from '@/components/chat/UniversalChatWidget';
+import { ChatSection } from '@/components/morvo/ChatSection';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 
@@ -44,7 +45,6 @@ const Dashboard = () => {
   // Chat-controlled dashboard hook with performance optimizations
   const {
     dashboardState,
-    formattedStats,
     handleChatCommand,
     updateActiveTab
   } = useChatControlledDashboard();
@@ -62,6 +62,10 @@ const Dashboard = () => {
       updateActiveTab(command.payload.tab);
     }
   }, [handleChatCommand, updateActiveTab]);
+
+  const handleManagerSelect = useCallback((manager: AIManager) => {
+    updateActiveTab(manager);
+  }, [updateActiveTab]);
 
   if (isLoading) {
     return (
@@ -88,11 +92,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" dir="rtl">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            لوحة التحكم
+    <div className="flex h-screen bg-gray-50" dir="rtl">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow border-b">
+        <div className="flex justify-between items-center p-4">
+          <h1 className="text-2xl font-bold text-gray-900">
+            لوحة التحكم الذكية
           </h1>
           <button
             onClick={handleSignOut}
@@ -101,74 +106,53 @@ const Dashboard = () => {
             تسجيل الخروج
           </button>
         </div>
-      </header>
-      
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة التحكم الذكية</h1>
-            <p className="text-gray-600">إدارة حملاتك التسويقية بذكاء اصطناعي متقدم</p>
-          </div>
+      </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{formattedStats.visitors.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{formattedStats.visitors.value}</p>
-                </div>
-                <div className={`text-sm font-medium ${formattedStats.visitors.positive ? 'text-green-600' : 'text-red-600'}`}>
-                  {formattedStats.visitors.trend}
-                </div>
+      {/* Main Layout with Chat and Dashboard */}
+      <div className="flex w-full pt-20">
+        {/* Chat Panel - 40% */}
+        <div className="w-2/5 border-l border-gray-200 flex flex-col bg-white shadow-lg">
+          <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">M</span>
               </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{formattedStats.conversions.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{formattedStats.conversions.value}</p>
-                </div>
-                <div className={`text-sm font-medium ${formattedStats.conversions.positive ? 'text-green-600' : 'text-red-600'}`}>
-                  {formattedStats.conversions.trend}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{formattedStats.revenue.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{formattedStats.revenue.value}</p>
-                </div>
-                <div className={`text-sm font-medium ${formattedStats.revenue.positive ? 'text-green-600' : 'text-red-600'}`}>
-                  {formattedStats.revenue.trend}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{formattedStats.campaigns.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{formattedStats.campaigns.value}</p>
-                </div>
-                <div className={`text-sm font-medium ${formattedStats.campaigns.positive ? 'text-green-600' : 'text-red-600'}`}>
-                  {formattedStats.campaigns.trend}
-                </div>
-              </div>
+              <h2 className="text-lg font-semibold">مورفو AI المساعد</h2>
             </div>
           </div>
-
-          {/* Dashboard Content */}
-          <DashboardSection selectedManager={dashboardState.activeTab as AIManager} />
+          <div className="flex-grow overflow-hidden">
+            <ChatSection 
+              selectedManager={dashboardState.activeTab as AIManager}
+              onManagerSelect={handleManagerSelect}
+              onDashboardCommand={onDashboardCommand}
+            />
+          </div>
+        </div>
+        
+        {/* Dashboard Panel - 60% */}
+        <div className="w-3/5 flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
+          <div className="p-4 bg-white/90 backdrop-blur-sm border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">لوحة التحكم التفاعلية</h2>
+            <p className="text-sm text-gray-600 mt-1">إدارة حملاتك التسويقية بذكاء اصطناعي متقدم</p>
+          </div>
+          <div className="flex-grow overflow-y-auto p-6">
+            <DashboardSection selectedManager={dashboardState.activeTab as AIManager} />
+          </div>
         </div>
       </div>
 
-      {/* Chat Widget */}
-      <UniversalChatWidget />
+      {/* Mobile Layout Responsive Design */}
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .flex {
+            flex-direction: column !important;
+          }
+          .w-2\/5, .w-3\/5 {
+            width: 100% !important;
+            height: 50vh !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
 import SimpleChat from './pages/SimpleChat';
+import Dashboard from './pages/Dashboard';
 import RailwayDashboardPage from './pages/RailwayDashboard';
 import { MCPProvider } from '@/contexts/MCPContext';
 
@@ -17,6 +18,7 @@ function App() {
         <MCPProvider>
           <Routes>
             <Route path="/" element={<SimpleChat />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/railway" element={<RailwayDashboardPage />} />
           </Routes>
         </MCPProvider>
