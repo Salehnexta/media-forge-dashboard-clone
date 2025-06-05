@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Auth } from '@supabase/ui-react';
+import { Auth } from '@supabase/auth-ui-react';
 import { AIManager } from '@/types/morvo';
 import { DashboardSection } from '@/components/morvo/DashboardSection';
 import { UniversalChatWidget } from '@/components/chat/UniversalChatWidget';
@@ -166,8 +167,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Chat Widget */}
-      <UniversalChatWidget onCommand={onDashboardCommand} />
+      {/* Chat Widget - Remove onCommand prop since it doesn't exist */}
+      <UniversalChatWidget />
     </div>
   );
 };

@@ -1,7 +1,75 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AgentMemory, CrossAgentContext, MCPContextType, MemoryType, StoreMemoryOptions } from './types/mcpTypes';
 import { AgentId } from '@/config/environment';
+
+export interface AgentMemory {
+  id: string;
+  agent_type: string;
+  agent_id?: AgentId;
+  memory_type: MemoryType;
+  content: Record<string, any>;
+  created_at: string;
+  relevance_score: number;
+  tags?: string[];
+  related_memories?: string[];
+  expires_at?: string;
+}
+
+export type MemoryType = 'analysis' | 'insight' | 'context' | 'preference' | 'interaction' | 'learning';
+
+export interface CrossAgentContext {
+  shared_insights: Record<string, any>;
+  collaboration_history: any[];
+  contextual_data: Record<string, any>;
+  agent_interactions: Record<string, any>;
+  cross_pollination: Record<string, any>;
+}
+
+export interface StoreMemoryOptions {
+  agentId?: AgentId;
+  tags?: string[];
+  relatedMemories?: string[];
+  expiresIn?: number;
+}
+
+export interface MCPContextType {
+  agentMemories: AgentMemory[];
+  crossAgentContext: CrossAgentContext;
+  agentSpecificContext: any;
+  isLoading: boolean;
+  storeMemory: (
+    agentType: string, 
+    memoryType: MemoryType, 
+    content: Record<string, any>,
+    options?: StoreMemoryOptions
+  ) => Promise<void>;
+  retrieveMemory: (
+    agentType: string, 
+    memoryType?: MemoryType, 
+    agentId?: AgentId
+  ) => Promise<AgentMemory[]>;
+  getAgentSpecificMemory: (
+    agentId: AgentId, 
+    memoryType?: MemoryType
+  ) => Promise<AgentMemory[]>;
+  shareInsightBetweenAgents: (
+    fromAgent: AgentId, 
+    toAgent: AgentId, 
+    insight: any, 
+    context?: any
+  ) => Promise<void>;
+  getCollaborationHistory: (agentId?: AgentId) => any[];
+  shareContext: (fromAgent: string, toAgent: string, context: any) => Promise<void>;
+  initiateCollaboration: (
+    initiatorAgent: AgentId, 
+    targetAgents: AgentId[], 
+    task: any
+  ) => Promise<void>;
+  clearMemory: (agentType?: string, agentId?: AgentId) => Promise<void>;
+  updateRelevanceScore: (memoryId: string, score: number) => Promise<void>;
+  optimizeMemoryStorage: (agentId?: AgentId) => Promise<void>;
+  getMemoryInsights: (agentId?: AgentId) => Promise<any>;
+  generateCrossAgentReport: () => Promise<any>;
+}
 
 const MCPContext = createContext<MCPContextType | null>(null);
 
