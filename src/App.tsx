@@ -14,7 +14,7 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <Toaster />
+        <Toaster position="top-right" />
         <MCPProvider>
           <Routes>
             <Route path="/" element={<SimpleChat />} />
