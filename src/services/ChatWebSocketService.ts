@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { railwayConnectionService } from './RailwayConnectionService';
 
 // Standardized message type to fix TypeScript errors
 export interface ChatMessage {
@@ -22,7 +23,7 @@ export interface WebSocketConfig {
 export class ChatWebSocketService {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 3; // Reduced from 5
   private reconnectInterval = 3000;
   private isConnecting = false;
   private messageQueue: any[] = [];
@@ -30,9 +31,10 @@ export class ChatWebSocketService {
   private heartbeatInterval: any = null;
   private diagnosticMode = false;
   private connectionHistory: Array<{timestamp: Date, event: string, details?: any}> = [];
+  private fallbackMode = false;
   
   constructor() {
-    console.log('🔧 ChatWebSocketService initialized in PRODUCTION mode');
+    console.log('🔧 ChatWebSocketService initialized with Railway integration');
     this.enableDiagnosticMode();
   }
 
@@ -75,6 +77,16 @@ export class ChatWebSocketService {
     this.isConnecting = true;
     this.logDiagnostic('connect_start', { userId, hasToken: !!token });
 
+    // Check Railway status first
+    const railwayStatus = await railwayConnectionService.checkRailwayHealth();
+    
+    if (!railwayStatus.httpReachable) {
+      this.logDiagnostic('railway_unreachable', railwayStatus);
+      this.enableFallbackMode();
+      this.isConnecting = false;
+      return false;
+    }
+
     try {
       const wsUrl = this.getWebSocketUrl();
       const urlWithAuth = token 
@@ -82,7 +94,7 @@ export class ChatWebSocketService {
         : `${wsUrl}/${userId}`;
 
       this.logDiagnostic('websocket_create', { url: urlWithAuth });
-      console.log('🔌 Connecting to production WebSocket:', wsUrl);
+      console.log('🔌 Connecting to Railway WebSocket:', wsUrl);
       
       this.ws = new WebSocket(urlWithAuth);
       
@@ -122,22 +134,58 @@ export class ChatWebSocketService {
         const timeout = setTimeout(() => {
           this.logDiagnostic('connect_timeout', { duration: 10000 });
           this.isConnecting = false;
+          this.enableFallbackMode();
           resolve(false);
         }, 10000);
 
         this.ws!.onopen = () => {
           clearTimeout(timeout);
           this.handleOpen();
+          this.disableFallbackMode();
           resolve(true);
+        };
+
+        this.ws!.onerror = () => {
+          clearTimeout(timeout);
+          this.enableFallbackMode();
+          resolve(false);
         };
       });
     } catch (error) {
       this.logDiagnostic('connect_exception', { error: error instanceof Error ? error.message : error });
       console.error('❌ WebSocket connection failed:', error);
       this.isConnecting = false;
-      toast.error('فشل الاتصال بالخادم، جاري المحاولة مرة أخرى');
+      this.enableFallbackMode();
       return false;
     }
+  }
+
+  private enableFallbackMode(): void {
+    this.fallbackMode = true;
+    this.logDiagnostic('fallback_mode_enabled');
+    toast.warning('تم التبديل للوضع المحلي - الردود ستكون محلية');
+  }
+
+  private disableFallbackMode(): void {
+    this.fallbackMode = false;
+    this.logDiagnostic('fallback_mode_disabled');
+  }
+
+  private generateFallbackResponse(message: string): any {
+    const responses = [
+      'أعتذر، لا يمكنني الاتصال بالخادم حالياً. سأعمل في الوضع المحلي.',
+      'الخادم غير متاح حالياً. يمكنك المتابعة مع الردود المحلية.',
+      'تم تفعيل الوضع المحلي. سأساعدك بما أستطيع محلياً.'
+    ];
+    
+    return {
+      id: Date.now().toString(),
+      text: responses[Math.floor(Math.random() * responses.length)],
+      sender: 'ai',
+      timestamp: new Date(),
+      manager: 'strategic',
+      isFallback: true
+    };
   }
 
   private parseMessageType(data: string): string {
@@ -306,6 +354,14 @@ export class ChatWebSocketService {
       console.log('📤 Sending WebSocket message:', message);
       this.ws.send(JSON.stringify(message));
       return true;
+    } else if (this.fallbackMode) {
+      // Handle message in fallback mode
+      console.log('📤 Handling message in fallback mode');
+      setTimeout(() => {
+        const fallbackResponse = this.generateFallbackResponse(message.content || message.message);
+        this.config.onMessage?.(fallbackResponse);
+      }, 1000);
+      return true;
     } else {
       console.warn('⚠️ WebSocket not connected, queuing message');
       this.messageQueue.push(message);
@@ -431,6 +487,14 @@ export class ChatWebSocketService {
         }
       };
     }
+  }
+
+  isInFallbackMode(): boolean {
+    return this.fallbackMode;
+  }
+
+  async performHealthCheck(): Promise<{success: boolean, details: any}> {
+    return await railwayConnectionService.checkRailwayHealth();
   }
 }
 

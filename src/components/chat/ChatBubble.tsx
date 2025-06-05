@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatMessage, AIManager } from '@/types/morvo';
+import { Wifi, WifiOff } from 'lucide-react';
 
 interface ChatBubbleProps {
   message: ChatMessage;
@@ -62,6 +63,13 @@ export const ChatBubble = ({ message }: ChatBubbleProps) => {
             <Badge className={`${getManagerColor(message.manager)} text-white text-xs`}>
               {getManagerName(message.manager)}
             </Badge>
+            {/* Fallback indicator */}
+            {(message as any).isFallback && (
+              <Badge variant="outline" className="text-xs">
+                <WifiOff className="w-3 h-3 ml-1" />
+                محلي
+              </Badge>
+            )}
           </div>
         )}
         <p className="text-sm text-gray-800 leading-relaxed">{message.text}</p>

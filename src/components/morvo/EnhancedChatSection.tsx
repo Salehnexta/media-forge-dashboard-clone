@@ -9,6 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { CommandSuggestions } from '@/components/chat/CommandSuggestions';
 import { ConnectionDiagnostics } from '@/components/chat/ConnectionDiagnostics';
+import { EnhancedRailwayStatus } from '@/components/railway/EnhancedRailwayStatus';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 
 interface EnhancedChatSectionProps {
   selectedManager?: AIManager;
@@ -38,6 +41,7 @@ export const EnhancedChatSection = ({
   
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [showRailwayStatus, setShowRailwayStatus] = useState(false);
 
   // Convert string suggestions to CommandSuggestion objects
   const formatCommandSuggestions = () => {
@@ -71,7 +75,7 @@ export const EnhancedChatSection = ({
             </select>
           </div>
           
-          {/* Connection status and diagnostics */}
+          {/* Enhanced Connection status */}
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${
               isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
@@ -85,6 +89,16 @@ export const EnhancedChatSection = ({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowRailwayStatus(!showRailwayStatus)}
+              className="ml-2"
+            >
+              {isConnected ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+              Railway
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowDiagnostics(!showDiagnostics)}
               className="ml-2"
             >
@@ -93,11 +107,28 @@ export const EnhancedChatSection = ({
           </div>
         </div>
         
+        {/* Railway Status Panel */}
+        {showRailwayStatus && (
+          <div className="mt-4">
+            <EnhancedRailwayStatus />
+          </div>
+        )}
+        
         {/* Diagnostics panel */}
         {showDiagnostics && (
           <div className="mt-4">
             <ConnectionDiagnostics />
           </div>
+        )}
+
+        {/* Fallback Mode Alert */}
+        {!isConnected && (
+          <Alert className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              تم تفعيل الوضع المحلي. الردود ستكون أساسية حتى يتم استعادة الاتصال بـ Railway.
+            </AlertDescription>
+          </Alert>
         )}
       </div>
 

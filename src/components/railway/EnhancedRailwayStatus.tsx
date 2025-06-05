@@ -1,120 +1,162 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, AlertTriangle, CheckCircle, Clock, Shield } from 'lucide-react';
-import { useSecureRailwayToken } from '@/hooks/useSecureRailwayToken';
-import { useConnectionStatus } from '@/hooks/useConnectionStatus';
-import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Wifi, 
+  WifiOff, 
+  RefreshCw, 
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
+  Server,
+  Zap
+} from 'lucide-react';
+import { railwayConnectionService, RailwayConnectionStatus } from '@/services/RailwayConnectionService';
 
 export const EnhancedRailwayStatus = () => {
-  const { token, isLoading, error, lastRefresh, refreshToken } = useSecureRailwayToken();
-  const { status, latency, isOnline } = useConnectionStatus();
-  const { toast } = useToast();
+  const [status, setStatus] = useState<RailwayConnectionStatus>({
+    isOnline: false,
+    httpReachable: false,
+    websocketSupported: false,
+    lastChecked: new Date()
+  });
+  const [isChecking, setIsChecking] = useState(false);
 
-  const handleRefreshToken = async () => {
+  const checkConnection = async () => {
+    setIsChecking(true);
     try {
-      await refreshToken();
-      toast({
-        title: "تم تحديث الرمز المميز",
-        description: "تم تحديث رمز Railway بنجاح"
-      });
-    } catch (error) {
-      toast({
-        title: "خطأ في التحديث",
-        description: "فشل في تحديث رمز Railway",
-        variant: "destructive"
-      });
+      const newStatus = await railwayConnectionService.checkRailwayHealth();
+      setStatus(newStatus);
+    } finally {
+      setIsChecking(false);
     }
   };
 
+  const forceReconnect = async () => {
+    await railwayConnectionService.forceReconnect();
+    await checkConnection();
+  };
+
+  useEffect(() => {
+    checkConnection();
+    
+    // Check every 30 seconds
+    const interval = setInterval(checkConnection, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getStatusColor = () => {
-    if (error) return 'destructive';
-    if (!token) return 'secondary';
-    if (!isOnline) return 'outline';
-    return 'default';
+    if (status.isOnline) return 'bg-green-100 text-green-800 border-green-200';
+    return 'bg-red-100 text-red-800 border-red-200';
   };
 
   const getStatusIcon = () => {
-    if (error) return <AlertTriangle className="h-4 w-4" />;
-    if (!token) return <Clock className="h-4 w-4" />;
-    if (!isOnline) return <AlertTriangle className="h-4 w-4" />;
-    return <CheckCircle className="h-4 w-4" />;
+    if (isChecking) return <RefreshCw className="h-4 w-4 animate-spin" />;
+    if (status.isOnline) return <CheckCircle className="h-4 w-4 text-green-600" />;
+    return <AlertTriangle className="h-4 w-4 text-red-600" />;
   };
 
   const getStatusText = () => {
-    if (error) return 'خطأ في الاتصال';
-    if (!token) return 'غير متصل';
-    if (!isOnline) return 'لا يوجد اتصال بالإنترنت';
-    return 'متصل';
+    if (isChecking) return 'جاري الفحص...';
+    if (status.isOnline) return 'Railway متصل';
+    return 'Railway غير متصل';
   };
 
   return (
-    <Card>
+    <Card className="w-full" dir="rtl">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2 rtl:space-x-reverse">
-          <Shield className="h-5 w-5" />
-          <span>حالة Railway المحسنة</span>
+        <CardTitle className="flex items-center gap-2">
+          <Server className="h-5 w-5" />
+          حالة خادم Railway
         </CardTitle>
-        <CardDescription>
-          مراقبة أمان اتصال Railway وإدارة الرموز المميزة
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Main Status */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <div className="flex items-center gap-3">
             {getStatusIcon()}
-            <span className="font-medium">حالة الاتصال:</span>
-            <Badge variant={getStatusColor()}>
+            <Badge className={`${getStatusColor()} border`}>
               {getStatusText()}
             </Badge>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleRefreshToken}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
+            {status.latency && (
+              <span className="text-sm text-gray-500">
+                {status.latency}ms
+              </span>
             )}
-            تحديث الرمز
-          </Button>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={checkConnection}
+              disabled={isChecking}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className={`h-4 w-4 ml-1 ${isChecking ? 'animate-spin' : ''}`} />
+              فحص
+            </Button>
+            
+            {!status.isOnline && (
+              <Button 
+                onClick={forceReconnect}
+                variant="default"
+                size="sm"
+              >
+                <Wifi className="h-4 w-4 ml-1" />
+                إعادة الاتصال
+              </Button>
+            )}
+          </div>
         </div>
 
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse text-destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-sm font-medium">خطأ:</span>
-            </div>
-            <p className="text-sm text-destructive mt-1">{error}</p>
+        {/* Detailed Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="flex items-center gap-2 text-sm">
+            {status.httpReachable ? (
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            )}
+            <span>HTTP: {status.httpReachable ? 'متصل' : 'غير متصل'}</span>
           </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            {status.websocketSupported ? (
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            )}
+            <span>WebSocket: {status.websocketSupported ? 'مدعوم' : 'غير مدعوم'}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <Clock className="h-4 w-4 text-gray-500" />
+            <span>آخر فحص: {status.lastChecked.toLocaleTimeString('ar-SA')}</span>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {status.errorMessage && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>تفاصيل الخطأ:</strong> {status.errorMessage}
+            </AlertDescription>
+          </Alert>
         )}
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">زمن الاستجابة:</span>
-            <p className="font-medium">
-              {latency ? `${latency}ms` : 'غير متوفر'}
+        {/* Connection Info */}
+        <div className="text-xs text-gray-500 space-y-1">
+          <p><strong>Railway URL:</strong> https://morvo-ai-v2.up.railway.app</p>
+          <p><strong>WebSocket URL:</strong> wss://morvo-ai-v2.up.railway.app/ws</p>
+          {!status.isOnline && (
+            <p className="text-amber-600">
+              <strong>نصيحة:</strong> تأكد من أن خادم Railway يعمل في لوحة التحكم
             </p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">آخر تحديث:</span>
-            <p className="font-medium">
-              {lastRefresh ? lastRefresh.toLocaleTimeString('ar') : 'لم يتم بعد'}
-            </p>
-          </div>
-        </div>
-
-        <div className="border-t pt-3">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-muted-foreground">
-            <Shield className="h-3 w-3" />
-            <span>الرمز المميز محمي بتشفير Supabase Vault</span>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
