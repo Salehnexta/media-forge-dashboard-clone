@@ -1,23 +1,22 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { AIManager } from '@/types/morvo';
-import morvoAPI from '@/api/morvoClient';
-import { useApiCache } from './useApiCache';
+import morvoClient from '@/lib/morvoClient';
+import { useComponentPerformance } from './useOptimizedPerformance';
 import { toast } from 'sonner';
+
+interface MorvoMessage {
+  id: string;
+  type: 'user' | 'ai';
+  content: string;
+  timestamp: Date;
+}
 
 interface MorvoIntegrationState {
   connected: boolean;
   loading: boolean;
   error: string | null;
-  messages: Array<{
-    type: 'user' | 'ai';
-    content: string;
-    timestamp: Date;
-    manager?: AIManager;
-  }>;
+  messages: MorvoMessage[];
   platforms: any[];
-  websocket: WebSocket | null;
-  dashboardData: Record<string, any>;
   connectionStatus: {
     api: boolean;
     websocket: boolean;
@@ -26,14 +25,14 @@ interface MorvoIntegrationState {
 }
 
 export const useMorvoIntegration = () => {
+  useComponentPerformance('MorvoIntegration');
+  
   const [state, setState] = useState<MorvoIntegrationState>({
     connected: false,
     loading: false,
     error: null,
     messages: [],
     platforms: [],
-    websocket: null,
-    dashboardData: {},
     connectionStatus: {
       api: false,
       websocket: false,
@@ -41,195 +40,193 @@ export const useMorvoIntegration = () => {
     }
   });
 
-  const wsReconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
+  const wsRef = useRef<WebSocket | null>(null);
+  const messagesRef = useRef<MorvoMessage[]>([]);
 
-  // Cache platforms data
-  const { 
-    data: platformsData, 
-    loading: platformsLoading, 
-    refetch: refetchPlatforms 
-  } = useApiCache(
-    'platforms',
-    () => morvoAPI.getAvailablePlatforms(),
-    { ttl: 600000 } // 10 minutes
-  );
-
-  // WebSocket connection with auto-reconnect
-  const connectWebSocket = useCallback(() => {
-    if (state.websocket?.readyState === WebSocket.OPEN) {
-      return; // Already connected
-    }
-
+  // WebSocket connection
+  const connectWebSocket = useCallback(async () => {
     try {
-      const ws = morvoAPI.connectWebSocket(
-        (data) => {
-          // Handle incoming messages
+      setState(prev => ({ ...prev, loading: true }));
+
+      const ws = await morvoClient.connectWebSocket({
+        onConnect: () => {
+          setState(prev => ({ 
+            ...prev, 
+            connected: true,
+            connectionStatus: { ...prev.connectionStatus, websocket: true },
+            loading: false,
+            error: null
+          }));
+          toast.success('تم الاتصال بنجاح');
+        },
+        onDisconnect: () => {
+          setState(prev => ({ 
+            ...prev, 
+            connected: false,
+            connectionStatus: { ...prev.connectionStatus, websocket: false, overall: false }
+          }));
+        },
+        onMessage: (data) => {
           switch(data.type) {
             case 'chat_response':
+              const newMessage: MorvoMessage = {
+                id: Date.now().toString(),
+                type: 'ai',
+                content: data.content || data.message,
+                timestamp: new Date()
+              };
+              
               setState(prev => ({
                 ...prev,
-                messages: [...prev.messages, {
-                  type: 'ai',
-                  content: data.content,
-                  timestamp: new Date()
-                }],
+                messages: [...prev.messages, newMessage],
                 loading: false
               }));
               break;
               
             case 'dashboard_update':
-              setState(prev => ({
-                ...prev,
-                dashboardData: { ...prev.dashboardData, ...data.updates }
-              }));
-              break;
-              
-            case 'analysis_progress':
-              // Handle progress updates
+              // Handle dashboard updates
               break;
               
             case 'error':
-              setState(prev => ({ ...prev, error: data.message }));
+              setState(prev => ({ 
+                ...prev, 
+                error: data.message,
+                loading: false
+              }));
               toast.error(data.message);
               break;
           }
         },
-        (error) => {
+        onError: (error) => {
+          setState(prev => ({ 
+            ...prev, 
+            error: 'خطأ في الاتصال',
+            connected: false,
+            loading: false
+          }));
           console.error('WebSocket error:', error);
-          setState(prev => ({ 
-            ...prev, 
-            connected: false,
-            connectionStatus: { ...prev.connectionStatus, websocket: false, overall: false }
-          }));
-        },
-        () => {
-          console.log('WebSocket closed');
-          setState(prev => ({ 
-            ...prev, 
-            connected: false,
-            connectionStatus: { ...prev.connectionStatus, websocket: false, overall: false }
-          }));
-          
-          // Auto-reconnect logic
-          if (wsReconnectAttempts.current < maxReconnectAttempts) {
-            wsReconnectAttempts.current++;
-            const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts.current), 30000);
-            
-            console.log(`Attempting to reconnect WebSocket in ${delay}ms (attempt ${wsReconnectAttempts.current})`);
-            setTimeout(connectWebSocket, delay);
-          }
         }
-      );
-      
+      });
+
+      wsRef.current = ws;
+
+    } catch (error: any) {
       setState(prev => ({ 
         ...prev, 
-        websocket: ws, 
-        connected: true,
-        connectionStatus: { ...prev.connectionStatus, websocket: true }
+        error: error.message,
+        connected: false,
+        loading: false
       }));
-      
-      wsReconnectAttempts.current = 0; // Reset on successful connection
-      
-    } catch (error: any) {
-      console.error('Failed to connect WebSocket:', error);
-      setState(prev => ({ ...prev, error: error.message }));
+      toast.error('فشل في الاتصال');
     }
-  }, [state.websocket]);
+  }, []);
 
-  // Test full connectivity
+  // Send message
+  const sendMessage = useCallback(async (content: string) => {
+    const userMessage: MorvoMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content,
+      timestamp: new Date()
+    };
+
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, userMessage],
+      loading: true
+    }));
+
+    try {
+      // Send via WebSocket if connected
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        morvoClient.sendWebSocketMessage({
+          type: 'chat_message',
+          message: content,
+          user_id: 'user_123',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Fallback to HTTP API
+        const response = await morvoClient.sendMessage(content);
+        
+        const aiMessage: MorvoMessage = {
+          id: Date.now().toString(),
+          type: 'ai',
+          content: response.response || response.message || 'تم استلام الرسالة',
+          timestamp: new Date()
+        };
+
+        setState(prev => ({
+          ...prev,
+          messages: [...prev.messages, aiMessage],
+          loading: false
+        }));
+      }
+
+    } catch (error: any) {
+      setState(prev => ({ 
+        ...prev, 
+        error: error.message,
+        loading: false
+      }));
+      toast.error('فشل في إرسال الرسالة');
+    }
+  }, []);
+
+  // Test connection
   const testConnection = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true }));
     
     try {
-      const results = await morvoAPI.testConnection();
+      const results = await morvoClient.testConnection();
       
       setState(prev => ({
         ...prev,
         connectionStatus: results,
-        connected: results.overall,
         loading: false,
         error: results.overall ? null : 'فشل في الاتصال ببعض الخدمات'
       }));
-      
+
       if (results.overall) {
-        toast.success('تم الاتصال بنجاح');
+        toast.success('جميع الخدمات متصلة');
       } else {
         toast.warning('مشاكل في الاتصال');
       }
-      
+
       return results;
-      
+
     } catch (error: any) {
       setState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: error.message,
-        connected: false 
+        error: error.message
       }));
       toast.error('فشل في اختبار الاتصال');
       throw error;
     }
   }, []);
 
-  // Send message
-  const sendMessage = useCallback(async (message: string, manager?: AIManager) => {
-    setState(prev => ({ 
-      ...prev, 
-      loading: true,
-      messages: [...prev.messages, {
-        type: 'user',
-        content: message,
-        timestamp: new Date(),
-        manager
-      }]
-    }));
-
+  // Load platforms
+  const loadPlatforms = useCallback(async () => {
     try {
-      // Send via WebSocket for immediate response
-      if (state.websocket?.readyState === WebSocket.OPEN) {
-        morvoAPI.sendWebSocketMessage(state.websocket, message);
-      }
-
-      // Send via API for full processing
-      const response = await morvoAPI.sendMessage(message);
-      
-      // Response will come via WebSocket, but fallback to direct response
-      if (!state.connected && response) {
-        setState(prev => ({
-          ...prev,
-          messages: [...prev.messages, {
-            type: 'ai',
-            content: response.response || response.message || 'تم استلام الرسالة',
-            timestamp: new Date()
-          }],
-          loading: false
-        }));
-      }
-
-      return response;
-
+      const platforms = await morvoClient.getAvailablePlatforms();
+      setState(prev => ({ ...prev, platforms: platforms || [] }));
+      return platforms;
     } catch (error: any) {
-      setState(prev => ({ 
-        ...prev, 
-        error: error.message, 
-        loading: false 
-      }));
-      toast.error('فشل في إرسال الرسالة');
-      throw error;
+      console.error('Failed to load platforms:', error);
+      return [];
     }
-  }, [state.websocket, state.connected]);
+  }, []);
 
   // Analyze website
   const analyzeWebsite = useCallback(async (url: string) => {
     setState(prev => ({ ...prev, loading: true }));
     
     try {
-      const result = await morvoAPI.analyzeWebsite(url);
+      const result = await morvoClient.analyzeWebsite(url);
       setState(prev => ({ ...prev, loading: false }));
       toast.success('تم بدء تحليل الموقع');
       return result;
-      
     } catch (error: any) {
       setState(prev => ({ ...prev, error: error.message, loading: false }));
       toast.error('فشل في تحليل الموقع');
@@ -237,51 +234,25 @@ export const useMorvoIntegration = () => {
     }
   }, []);
 
-  // Connect platform
-  const connectPlatform = useCallback(async (platform: string, credentials: any) => {
-    setState(prev => ({ ...prev, loading: true }));
-    
-    try {
-      const result = await morvoAPI.connectPlatform(platform, credentials);
-      await refetchPlatforms(); // Refresh platforms list
-      setState(prev => ({ ...prev, loading: false }));
-      toast.success('تم ربط المنصة بنجاح');
-      return result;
-      
-    } catch (error: any) {
-      setState(prev => ({ ...prev, error: error.message, loading: false }));
-      toast.error('فشل في ربط المنصة');
-      throw error;
-    }
-  }, [refetchPlatforms]);
-
-  // Update platforms from cache
-  useEffect(() => {
-    if (platformsData && Array.isArray(platformsData)) {
-      setState(prev => ({ ...prev, platforms: platformsData }));
-    }
-  }, [platformsData]);
-
-  // Initialize connection on mount
+  // Initialize on mount
   useEffect(() => {
     testConnection();
     connectWebSocket();
-    
+    loadPlatforms();
+
     return () => {
-      if (state.websocket) {
-        state.websocket.close();
+      if (wsRef.current) {
+        wsRef.current.close();
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     ...state,
-    platformsLoading,
     sendMessage,
-    analyzeWebsite,
-    connectPlatform,
     testConnection,
-    reconnectWebSocket: connectWebSocket,
-    refetchPlatforms
+    analyzeWebsite,
+    loadPlatforms,
+    reconnect: connectWebSocket
   };
 };

@@ -1,141 +1,116 @@
+
 import { useState, useCallback, useMemo } from 'react';
-import { AIManager } from '@/types/morvo';
-import { useComponentPerformance } from '@/hooks/useEnhancedPerformance';
+import { useComponentPerformance } from './useOptimizedPerformance';
+
+interface DashboardCommand {
+  type: 'SWITCH_TAB' | 'UPDATE_STATS' | 'SHOW_CHART' | 'ADD_NOTIFICATION' | 'UPDATE_WIDGET';
+  payload: any;
+}
 
 interface DashboardState {
-  activeTab: AIManager;
+  activeTab: string;
   widgets: any[];
   charts: any[];
   notifications: any[];
-  stats: {
-    visitors: number;
-    sales: number;
-    conversions: number;
-    roi: number;
-  };
-  loading: boolean;
-  lastUpdate: number;
-}
-
-interface DashboardCommand {
-  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB' | 'ADD_NOTIFICATION' | 'CREATE_WIDGET' | 'REMOVE_WIDGET';
-  payload: any;
+  stats: Record<string, any>;
 }
 
 export const useChatControlledDashboard = () => {
   useComponentPerformance('ChatControlledDashboard');
   
   const [dashboardState, setDashboardState] = useState<DashboardState>({
-    activeTab: 'strategic',
+    activeTab: 'overview',
     widgets: [],
     charts: [],
     notifications: [],
     stats: {
       visitors: 2847,
-      sales: 47250,
-      conversions: 3.2,
-      roi: 285
-    },
-    loading: false,
-    lastUpdate: Date.now()
+      conversions: 125,
+      revenue: 47250,
+      campaigns: 8
+    }
   });
 
-  // Memoized stats for performance
-  const formattedStats = useMemo(() => ({
-    visitors: dashboardState.stats.visitors.toLocaleString('ar-SA'),
-    sales: dashboardState.stats.sales.toLocaleString('ar-SA'),
-    conversions: `${dashboardState.stats.conversions}%`,
-    roi: `${dashboardState.stats.roi}%`
-  }), [dashboardState.stats]);
-
   const handleChatCommand = useCallback((command: DashboardCommand) => {
-    console.log('Executing dashboard command:', command);
+    console.log('Processing dashboard command:', command);
     
-    setDashboardState(prev => {
-      const newState = { ...prev, lastUpdate: Date.now() };
-      
-      switch (command.type) {
-        case 'UPDATE_STATS':
-          newState.stats = { ...prev.stats, ...command.payload };
-          break;
-          
-        case 'SHOW_CHART':
-          newState.charts = [...prev.charts.filter(c => c.id !== command.payload.id), command.payload];
-          break;
-          
-        case 'SWITCH_TAB':
-          newState.activeTab = command.payload.tab;
-          break;
-          
-        case 'ADD_NOTIFICATION':
-          newState.notifications = [...prev.notifications, {
-            ...command.payload,
-            id: Date.now(),
-            timestamp: new Date()
-          }];
-          break;
-          
-        case 'CREATE_WIDGET':
-          newState.widgets = [...prev.widgets, {
-            ...command.payload,
-            id: Date.now(),
-            created: new Date()
-          }];
-          break;
-          
-        case 'REMOVE_WIDGET':
-          newState.widgets = prev.widgets.filter(w => w.id !== command.payload.id);
-          break;
-      }
-      
-      return newState;
-    });
+    switch(command.type) {
+      case 'SWITCH_TAB':
+        setDashboardState(prev => ({
+          ...prev,
+          activeTab: command.payload.tab
+        }));
+        break;
+        
+      case 'UPDATE_STATS':
+        setDashboardState(prev => ({
+          ...prev,
+          stats: { ...prev.stats, ...command.payload.stats }
+        }));
+        break;
+        
+      case 'SHOW_CHART':
+        setDashboardState(prev => ({
+          ...prev,
+          charts: [...prev.charts, command.payload.chart]
+        }));
+        break;
+        
+      case 'ADD_NOTIFICATION':
+        setDashboardState(prev => ({
+          ...prev,
+          notifications: [...prev.notifications, command.payload.notification]
+        }));
+        break;
+        
+      case 'UPDATE_WIDGET':
+        setDashboardState(prev => ({
+          ...prev,
+          widgets: prev.widgets.map(widget => 
+            widget.id === command.payload.widgetId 
+              ? { ...widget, ...command.payload.updates }
+              : widget
+          )
+        }));
+        break;
+    }
   }, []);
 
-  const updateActiveTab = useCallback((tab: AIManager) => {
-    setDashboardState(prev => ({ 
-      ...prev, 
-      activeTab: tab,
-      lastUpdate: Date.now()
-    }));
-  }, []);
+  const updateActiveTab = useCallback((tab: string) => {
+    handleChatCommand({ type: 'SWITCH_TAB', payload: { tab } });
+  }, [handleChatCommand]);
 
-  // Batch updates for performance
-  const batchUpdate = useCallback((commands: DashboardCommand[]) => {
-    setDashboardState(prev => {
-      let newState = { ...prev, lastUpdate: Date.now() };
-      
-      commands.forEach(command => {
-        switch (command.type) {
-          case 'UPDATE_STATS':
-            newState.stats = { ...newState.stats, ...command.payload };
-            break;
-          case 'SWITCH_TAB':
-            newState.activeTab = command.payload.tab;
-            break;
-          // ... other cases
-        }
-      });
-      
-      return newState;
-    });
-  }, []);
-
-  // Clear notifications
-  const clearNotifications = useCallback(() => {
-    setDashboardState(prev => ({
-      ...prev,
-      notifications: [],
-      lastUpdate: Date.now()
-    }));
-  }, []);
+  const formattedStats = useMemo(() => ({
+    visitors: {
+      value: dashboardState.stats.visitors?.toLocaleString('ar-SA') || '0',
+      label: 'الزوار اليوم',
+      trend: '+12%',
+      positive: true
+    },
+    conversions: {
+      value: dashboardState.stats.conversions?.toString() || '0',
+      label: 'التحويلات',
+      trend: '+8%',
+      positive: true
+    },
+    revenue: {
+      value: `${dashboardState.stats.revenue?.toLocaleString('ar-SA') || '0'} ريال`,
+      label: 'الإيرادات',
+      trend: '+15%',
+      positive: true
+    },
+    campaigns: {
+      value: dashboardState.stats.campaigns?.toString() || '0',
+      label: 'الحملات النشطة',
+      trend: '+2',
+      positive: true
+    }
+  }), [dashboardState.stats]);
 
   return {
     dashboardState,
     formattedStats,
     handleChatCommand,
-    updateActiveTab,
-    batchUpdate,
-    clearNotifications
+    updateActiveTab
   };
 };
