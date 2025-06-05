@@ -1,9 +1,9 @@
-
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
 import { supabase } from '@/integrations/supabase/client';
 import { chatWebSocketService, WebSocketConfig } from '@/services/ChatWebSocketService';
-import { chatCommandProcessor, DashboardCommand } from '@/services/ChatCommandProcessor';
+import { chatCommandProcessor } from '@/services/ChatCommandProcessor';
+import { DashboardCommand } from '@/types/dashboard';
 import { toast } from 'sonner';
 
 interface ChatState {
