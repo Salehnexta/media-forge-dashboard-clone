@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
@@ -6,6 +5,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { AIManager } from '@/types/morvo';
 import { DashboardSection } from '@/components/morvo/DashboardSection';
 import { EnhancedChatSection } from '@/components/morvo/EnhancedChatSection';
+import { WebhookListener } from '@/components/railway/WebhookListener';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 
@@ -93,6 +93,9 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dashboard-container" dir="rtl">
+      {/* Add webhook listener */}
+      <WebhookListener />
+      
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow border-b">
         <div className="flex justify-between items-center p-4">
