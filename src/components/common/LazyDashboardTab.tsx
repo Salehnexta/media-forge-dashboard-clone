@@ -40,8 +40,8 @@ const LazyDashboardTabInner: React.FC<LazyDashboardTabProps> = ({
 export const LazyDashboardTab = memo(LazyDashboardTabInner);
 LazyDashboardTab.displayName = 'LazyDashboardTab';
 
-// HOC for creating lazy dashboard tabs
-export const withLazyLoading = <P extends object>(
+// HOC for creating lazy dashboard tabs with proper TypeScript constraints
+export const withLazyLoading = <P extends Record<string, any>>(
   WrappedComponent: React.ComponentType<P>,
   tabName: string
 ) => {
@@ -51,7 +51,7 @@ export const withLazyLoading = <P extends object>(
   
   const WithLazyLoadingComponent = memo((props: P) => (
     <LazyDashboardTab tabName={tabName}>
-      <LazyComponent {...props} />
+      <LazyComponent {...(props as P)} />
     </LazyDashboardTab>
   ));
   
