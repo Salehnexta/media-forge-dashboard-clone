@@ -41,17 +41,17 @@ export const LazyDashboardTab = memo(LazyDashboardTabInner);
 LazyDashboardTab.displayName = 'LazyDashboardTab';
 
 // Simplified HOC for creating lazy dashboard tabs
-export const withLazyLoading = <P extends Record<string, unknown> = Record<string, unknown>>(
-  WrappedComponent: React.ComponentType<P>,
+export const withLazyLoading = (
+  WrappedComponent: React.ComponentType<any>,
   tabName: string
 ) => {
   const LazyComponent = React.lazy(() => 
     Promise.resolve({ default: WrappedComponent })
   );
   
-  const WithLazyLoadingComponent = memo((props: P) => (
+  const WithLazyLoadingComponent = memo((props: any) => (
     <LazyDashboardTab tabName={tabName}>
-      <LazyComponent {...props as React.ComponentProps<typeof WrappedComponent>} />
+      <LazyComponent {...props} />
     </LazyDashboardTab>
   ));
   
