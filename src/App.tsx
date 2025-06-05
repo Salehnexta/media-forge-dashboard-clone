@@ -31,6 +31,7 @@ const Status = lazy(() => import("./pages/Status"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SimpleChat = lazy(() => import("./pages/SimpleChat"));
 
 // Enhanced Query Client with better defaults
 const queryClient = new QueryClient({
@@ -74,6 +75,7 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/simple-chat" element={<SimpleChat />} />
                     <Route path="/ai-analysis" element={<AIAnalysis />} />
                     <Route path="/product" element={<Product />} />
                     <Route path="/features" element={<Features />} />
