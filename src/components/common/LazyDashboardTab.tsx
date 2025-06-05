@@ -40,22 +40,80 @@ const LazyDashboardTabInner: React.FC<LazyDashboardTabProps> = ({
 export const LazyDashboardTab = memo(LazyDashboardTabInner);
 LazyDashboardTab.displayName = 'LazyDashboardTab';
 
-// Simplified HOC for creating lazy dashboard tabs
-export const withLazyLoading = (
-  WrappedComponent: React.ComponentType<any>,
-  tabName: string
+// Fixed HOC with simplified types
+export const withLazyLoading = <P extends object = {}>(
+  WrappedComponent: React.ComponentType<P>,
+  tabName: string,
+  fallback?: React.ReactNode
 ) => {
+  // Create lazy component with proper async loading
   const LazyComponent = React.lazy(() => 
-    Promise.resolve({ default: WrappedComponent })
+    new Promise<{ default: React.ComponentType<P> }>((resolve) => {
+      // Small delay to show loading state
+      setTimeout(() => {
+        resolve({ default: WrappedComponent });
+      }, 100);
+    })
   );
   
-  const WithLazyLoadingComponent = memo((props: any) => (
-    <LazyDashboardTab tabName={tabName}>
-      <LazyComponent {...props} />
+  const WithLazyLoadingComponent = memo<P>((props: P) => (
+    <LazyDashboardTab tabName={tabName} fallback={fallback}>
+      <LazyComponent {...(props as P)} />
     </LazyDashboardTab>
   ));
   
-  WithLazyLoadingComponent.displayName = `withLazyLoading(${WrappedComponent.displayName || WrappedComponent.name})`;
+  WithLazyLoadingComponent.displayName = `withLazyLoading(${
+    WrappedComponent.displayName || WrappedComponent.name || 'Component'
+  })`;
   
   return WithLazyLoadingComponent;
 };
+
+// Alternative factory function with better type safety
+export const createLazyTab = <P extends object = {}>(
+  component: React.ComponentType<P>,
+  options: {
+    tabName: string;
+    fallback?: React.ReactNode;
+    delay?: number;
+  }
+) => {
+  const { tabName, fallback, delay = 100 } = options;
+  
+  const LazyComponent = React.lazy(() => 
+    new Promise<{ default: React.ComponentType<P> }>((resolve) => {
+      setTimeout(() => {
+        resolve({ default: component });
+      }, delay);
+    })
+  );
+  
+  const CreatedLazyTab = memo<P>((props: P) => (
+    <LazyDashboardTab tabName={tabName} fallback={fallback}>
+      <LazyComponent {...(props as P)} />
+    </LazyDashboardTab>
+  ));
+  
+  CreatedLazyTab.displayName = `LazyTab(${
+    component.displayName || component.name || 'Component'
+  })`;
+  
+  return CreatedLazyTab;
+};
+
+// Usage example for the HOC
+export const useLazyTabLoader = () => {
+  const [loadedTabs, setLoadedTabs] = React.useState<Set<string>>(new Set());
+  
+  const loadTab = React.useCallback((tabName: string) => {
+    setLoadedTabs(prev => new Set([...prev, tabName]));
+  }, []);
+  
+  const isTabLoaded = React.useCallback((tabName: string) => {
+    return loadedTabs.has(tabName);
+  }, [loadedTabs]);
+  
+  return { loadTab, isTabLoaded, loadedTabs: Array.from(loadedTabs) };
+};
+
+export default LazyDashboardTab;
