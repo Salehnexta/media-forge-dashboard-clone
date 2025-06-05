@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo } from 'react';
 import {
   ReactFlow,
@@ -430,7 +429,7 @@ const BackendFlowVisualization = () => {
                 background: '#f8f9fa'
               }}
             />
-            <Background variant="dots" gap={12} size={1} />
+            <Background gap={12} size={1} />
           </ReactFlow>
         </div>
         
