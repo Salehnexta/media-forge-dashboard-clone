@@ -6,7 +6,6 @@ interface DashboardState {
   activeTab: AIManager;
   widgets: any[];
   charts: any[];
-  notifications: any[];
   stats: {
     visitors: number;
     sales: number;
@@ -16,7 +15,7 @@ interface DashboardState {
 }
 
 interface DashboardCommand {
-  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB' | 'ADD_NOTIFICATION';
+  type: 'UPDATE_STATS' | 'SHOW_CHART' | 'SWITCH_TAB';
   payload: any;
 }
 
@@ -25,7 +24,6 @@ export const useChatControlledDashboard = () => {
     activeTab: 'strategic',
     widgets: [],
     charts: [],
-    notifications: [],
     stats: {
       visitors: 2847,
       sales: 47250,
@@ -58,17 +56,6 @@ export const useChatControlledDashboard = () => {
           activeTab: command.payload.tab
         }));
         break;
-        
-      case 'ADD_NOTIFICATION':
-        setDashboardState(prev => ({
-          ...prev,
-          notifications: [...prev.notifications, {
-            id: Date.now(),
-            ...command.payload,
-            timestamp: new Date()
-          }]
-        }));
-        break;
     }
   }, []);
 
@@ -76,14 +63,9 @@ export const useChatControlledDashboard = () => {
     setDashboardState(prev => ({ ...prev, activeTab: tab }));
   }, []);
 
-  const clearNotifications = useCallback(() => {
-    setDashboardState(prev => ({ ...prev, notifications: [] }));
-  }, []);
-
   return {
     dashboardState,
     handleChatCommand,
-    updateActiveTab,
-    clearNotifications
+    updateActiveTab
   };
 };

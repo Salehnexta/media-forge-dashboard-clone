@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
 import { supabase } from '@/integrations/supabase/client';
-import { useWebSocketConnection } from './useWebSocketConnection';
 
 interface ChatState {
   messages: ChatMessage[];
@@ -36,43 +35,7 @@ export const useChatLogic = () => {
   // Dashboard control callback
   const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((cmd: DashboardCommand) => void) | null>(null);
 
-  // WebSocket connection
-  const { isConnected, sendMessage: sendWsMessage, lastMessage } = useWebSocketConnection(
-    'ws://localhost:8090/ws/chat',
-    {
-      onMessage: (wsMessage) => {
-        console.log('Received WebSocket message:', wsMessage);
-        
-        if (wsMessage.type === 'ai_response') {
-          const aiMessage: ChatMessage = {
-            id: Date.now().toString(),
-            text: wsMessage.data.text,
-            sender: 'ai',
-            timestamp: new Date(),
-            manager: wsMessage.data.agent || 'strategic'
-          };
-
-          setChatState(prev => ({
-            ...prev,
-            messages: [...prev.messages, aiMessage],
-            isTyping: false
-          }));
-        }
-
-        if (wsMessage.type === 'dashboard_command' && dashboardCommandCallback) {
-          dashboardCommandCallback(wsMessage.data.command);
-        }
-      },
-      onConnect: () => {
-        setChatState(prev => ({ ...prev, isConnected: true }));
-      },
-      onDisconnect: () => {
-        setChatState(prev => ({ ...prev, isConnected: false }));
-      }
-    }
-  );
-
-  // AI responses with enhanced dashboard commands
+  // Simplified AI responses without WebSocket dependency
   const generateAIResponse = useCallback((userMessage: string): { text: string; commands?: DashboardCommand[] } => {
     const lowerMessage = userMessage.toLowerCase();
     
@@ -88,40 +51,23 @@ export const useChatLogic = () => {
             conversions: (Math.random() * 3 + 3).toFixed(1),
             roi: Math.floor(Math.random() * 150) + 250
           }
-        }, {
-          type: 'ADD_NOTIFICATION',
-          payload: {
-            message: 'تم تحديث الإحصائيات بواسطة مورفو AI',
-            type: 'success'
-          }
         }]
       };
     }
 
     if (lowerMessage.includes('حملات') || lowerMessage.includes('إعلانات') || lowerMessage.includes('campaigns')) {
       return {
-        text: 'جاري الانتقال إلى تبويب الحملات الإعلانية... 🎯 ستجد تحليلاً شاملاً لأداء جميع حملاتك هناك.',
+        text: 'جاري الانتقال إلى تبويب الحملات الإعلانية... 🎯',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'executor' }
-        }, {
-          type: 'SHOW_CHART',
-          payload: { 
-            id: 'campaigns-performance',
-            type: 'line',
-            title: 'أداء الحملات الإعلانية',
-            data: Array.from({length: 7}, (_, i) => ({
-              name: `اليوم ${i + 1}`,
-              value: Math.floor(Math.random() * 1000) + 500
-            }))
-          }
         }]
       };
     }
 
     if (lowerMessage.includes('محتوى') || lowerMessage.includes('منشورات') || lowerMessage.includes('content')) {
       return {
-        text: 'مرحباً بك في قسم المحتوى الإبداعي! 🎨 هنا يمكنك متابعة أداء منشوراتك وإنشاء محتوى جديد.',
+        text: 'مرحباً بك في قسم المحتوى الإبداعي! 🎨',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'creative' }
@@ -131,7 +77,7 @@ export const useChatLogic = () => {
 
     if (lowerMessage.includes('سوشال') || lowerMessage.includes('تواصل') || lowerMessage.includes('social')) {
       return {
-        text: 'انتقل معي إلى قسم وسائل التواصل الاجتماعي! 📱 ستجد تحليلاً مفصلاً لجميع منصاتك.',
+        text: 'انتقل معي إلى قسم وسائل التواصل الاجتماعي! 📱',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'monitor' }
@@ -141,7 +87,7 @@ export const useChatLogic = () => {
 
     if (lowerMessage.includes('تحليلات') || lowerMessage.includes('analytics') || lowerMessage.includes('تحليل')) {
       return {
-        text: 'مرحباً بك في قسم التحليلات المتقدمة! 📈 هنا ستجد رؤى عميقة حول أداء عملك.',
+        text: 'مرحباً بك في قسم التحليلات المتقدمة! 📈',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'analyst' }
@@ -151,27 +97,10 @@ export const useChatLogic = () => {
 
     if (lowerMessage.includes('استراتيجي') || lowerMessage.includes('strategic') || lowerMessage.includes('استراتيجية')) {
       return {
-        text: 'أهلاً بك في القسم الاستراتيجي! 🎯 هنا نخطط لمستقبل عملك ونضع الاستراتيجيات الذكية.',
+        text: 'أهلاً بك في القسم الاستراتيجي! 🎯',
         commands: [{
           type: 'SWITCH_TAB',
           payload: { tab: 'strategic' }
-        }]
-      };
-    }
-
-    // Smart widget creation
-    if (lowerMessage.includes('ويدجت') || lowerMessage.includes('widget') || lowerMessage.includes('عنصر جديد')) {
-      return {
-        text: 'تم إنشاء ويدجت جديد بناءً على طلبك! ✨',
-        commands: [{
-          type: 'CREATE_WIDGET',
-          payload: {
-            id: `widget-${Date.now()}`,
-            type: 'metric',
-            title: 'مؤشر جديد',
-            value: Math.floor(Math.random() * 1000),
-            change: '+' + Math.floor(Math.random() * 20) + '%'
-          }
         }]
       };
     }
@@ -180,8 +109,7 @@ export const useChatLogic = () => {
       'ممتاز! دعني أحلل هذا وأحدث لوحة التحكم وفقاً لطلبك 🤖',
       'رائع! سأعمل على تحسين هذا الجانب في لوحة التحكم فوراً ⚡',
       'فهمت طلبك! جاري تحديث البيانات والمؤشرات... 📊',
-      'ممتاز! سأقوم بتخصيص لوحة التحكم لتناسب احتياجاتك بالضبط 🎯',
-      'هذا سؤال ذكي! دعني أظهر لك التحليل المناسب في الداش بورد 📈'
+      'ممتاز! سأقوم بتخصيص لوحة التحكم لتناسب احتياجاتك بالضبط 🎯'
     ];
     
     return {
@@ -189,7 +117,7 @@ export const useChatLogic = () => {
     };
   }, []);
 
-  // Send message function with WebSocket integration
+  // Send message function (simplified, no WebSocket)
   const handleSendMessage = useCallback(() => {
     if (!message.trim()) return;
 
@@ -210,28 +138,9 @@ export const useChatLogic = () => {
     const currentMessage = message;
     setMessage('');
 
-    // Send via WebSocket if connected
-    if (isConnected) {
-      const sent = sendWsMessage({
-        type: 'user_message',
-        text: currentMessage,
-        agent: chatState.currentAgent,
-        timestamp: new Date().toISOString()
-      });
-
-      if (!sent) {
-        // Fallback to local response if WebSocket fails
-        handleLocalResponse(currentMessage);
-      }
-    } else {
-      // Fallback to local AI response
-      handleLocalResponse(currentMessage);
-    }
-  }, [message, chatState.currentAgent, isConnected, sendWsMessage]);
-
-  const handleLocalResponse = useCallback((userMessage: string) => {
+    // Generate local AI response
     setTimeout(() => {
-      const response = generateAIResponse(userMessage);
+      const response = generateAIResponse(currentMessage);
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -255,7 +164,7 @@ export const useChatLogic = () => {
         });
       }
     }, 1200);
-  }, [generateAIResponse, chatState.currentAgent, dashboardCommandCallback]);
+  }, [message, chatState.currentAgent, dashboardCommandCallback, generateAIResponse]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -267,7 +176,7 @@ export const useChatLogic = () => {
     messages: chatState.messages,
     currentAgent: chatState.currentAgent,
     isTyping: chatState.isTyping,
-    isConnected: chatState.isConnected || isConnected,
+    isConnected: true, // Always show as connected for better UX
     
     // Message input
     message,

@@ -25,8 +25,7 @@ const Dashboard = () => {
   const {
     dashboardState,
     handleChatCommand,
-    updateActiveTab,
-    clearNotifications
+    updateActiveTab
   } = useChatControlledDashboard();
 
   useEffect(() => {
@@ -59,34 +58,14 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Handle dashboard commands from chat
+  // Handle dashboard commands from chat (simplified)
   const onDashboardCommand = (command: any) => {
     console.log('Dashboard received command from chat:', command);
     handleChatCommand(command);
     
-    // Show user feedback for certain commands
+    // Show minimal user feedback
     if (command.type === 'SWITCH_TAB') {
-      toast.success(`تم التبديل إلى ${getTabName(command.payload.tab)} بواسطة مورفو AI`);
-    } else if (command.type === 'UPDATE_STATS') {
-      toast.success('تم تحديث الإحصائيات بواسطة مورفو AI');
-    } else if (command.type === 'CREATE_WIDGET') {
-      toast.success('تم إنشاء ويدجت جديد بواسطة مورفو AI');
-    }
-  };
-
-  // Handle user actions on dashboard
-  const onUserAction = (action: any) => {
-    console.log('User action on dashboard:', action);
-    
-    // Send notification to chat about user interaction
-    if (action.type === 'widget_click') {
-      handleChatCommand({
-        type: 'ADD_NOTIFICATION',
-        payload: {
-          message: `تفاعل المستخدم مع: ${action.widget}`,
-          type: 'info'
-        }
-      });
+      toast.success(`تم التبديل إلى ${getTabName(command.payload.tab)}`);
     }
   };
 
@@ -139,7 +118,7 @@ const Dashboard = () => {
             </button>
           )}
 
-          {/* Chat Section - Now controls the dashboard */}
+          {/* Chat Section */}
           <div className={`${
             isMobile 
               ? `fixed inset-y-0 right-0 z-40 w-full transform transition-transform duration-300 ${
@@ -164,16 +143,16 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Main Dashboard Content - Controlled by Chat */}
+          {/* Main Dashboard Content */}
           <div className="flex-1 flex flex-col bg-gradient-to-br from-gray-50 to-white">
-            {/* Header with Chat-controlled stats */}
+            {/* Simplified Header */}
             <div className="p-4 lg:p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     لوحة تحكم مورفو AI
                   </h1>
-                  <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة - يديرها الذكاء الاصطناعي</p>
+                  <p className="text-gray-600 text-sm lg:text-base">منصة التسويق الذكي المتكاملة</p>
                 </div>
                 
                 {/* AI Control Indicator */}
@@ -185,7 +164,7 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Stats Display - Updated by Chat Commands */}
+              {/* Simplified Stats Display */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white/60 p-3 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                   <p className="text-xs text-gray-500">الزوار</p>
@@ -204,29 +183,9 @@ const Dashboard = () => {
                   <p className="text-lg font-bold text-orange-600">{dashboardState.stats.roi}%</p>
                 </div>
               </div>
-
-              {/* Notifications from Chat */}
-              {dashboardState.notifications.length > 0 && (
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-blue-800 font-medium">📨 إشعارات من مورفو AI</span>
-                    <button 
-                      onClick={clearNotifications}
-                      className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      مسح الكل
-                    </button>
-                  </div>
-                  {dashboardState.notifications.slice(0, 3).map((notification: any) => (
-                    <p key={notification.id} className="text-xs text-blue-700 mt-1">
-                      • {notification.message}
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* Dashboard Content with Tabs - Controlled by Chat */}
+            {/* Dashboard Content with Tabs */}
             <div className="flex-1 p-4 lg:p-6 overflow-auto">
               <Tabs value={dashboardState.activeTab} onValueChange={(value) => handleManagerSelect(value as AIManager)}>
                 <TabsList className={`${
@@ -268,39 +227,19 @@ const Dashboard = () => {
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                   <TabsContent value="strategic" className="m-0">
-                    <DashboardSection 
-                      selectedManager="strategic" 
-                      dashboardState={dashboardState}
-                      onUserAction={onUserAction}
-                    />
+                    <DashboardSection selectedManager="strategic" />
                   </TabsContent>
                   <TabsContent value="monitor" className="m-0">
-                    <DashboardSection 
-                      selectedManager="monitor" 
-                      dashboardState={dashboardState}
-                      onUserAction={onUserAction}
-                    />
+                    <DashboardSection selectedManager="monitor" />
                   </TabsContent>
                   <TabsContent value="executor" className="m-0">
-                    <DashboardSection 
-                      selectedManager="executor" 
-                      dashboardState={dashboardState}
-                      onUserAction={onUserAction}
-                    />
+                    <DashboardSection selectedManager="executor" />
                   </TabsContent>
                   <TabsContent value="creative" className="m-0">
-                    <DashboardSection 
-                      selectedManager="creative" 
-                      dashboardState={dashboardState}
-                      onUserAction={onUserAction}
-                    />
+                    <DashboardSection selectedManager="creative" />
                   </TabsContent>
                   <TabsContent value="analyst" className="m-0">
-                    <DashboardSection 
-                      selectedManager="analyst" 
-                      dashboardState={dashboardState}
-                      onUserAction={onUserAction}
-                    />
+                    <DashboardSection selectedManager="analyst" />
                   </TabsContent>
                 </div>
               </Tabs>
