@@ -15,6 +15,16 @@ import FAQ from './pages/FAQ';
 import HelpCenter from './pages/HelpCenter';
 import Support from './pages/Support';
 import Payment from './pages/Payment';
+import AIAnalysis from './pages/AIAnalysis';
+import SuccessStories from './pages/SuccessStories';
+import PaymentCallback from './pages/PaymentCallback';
+import NotFound from './pages/NotFound';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import HowItWorks from './pages/HowItWorks';
+import Product from './pages/Product';
+import Status from './pages/Status';
+import Updates from './pages/Updates';
 import { MCPProvider } from '@/contexts/MCPContext';
 
 function App() {
@@ -38,6 +48,16 @@ function App() {
             <Route path="/help" element={<HelpCenter />} />
             <Route path="/support" element={<Support />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
+            <Route path="/ai-analysis" element={<AIAnalysis />} />
+            <Route path="/success-stories" element={<SuccessStories />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/status" element={<Status />} />
+            <Route path="/updates" element={<Updates />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </MCPProvider>
       </QueryClientProvider>
