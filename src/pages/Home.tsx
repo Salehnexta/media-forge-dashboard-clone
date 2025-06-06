@@ -466,7 +466,7 @@ const Home = () => {
                   <td className="px-6 py-4 font-medium text-gray-900">وكالة سعودية متوسطة</td>
                   <td className="px-6 py-4 text-center text-red-600 font-semibold">15,000 - 60,000 ر.س</td>
                   <td className="px-6 py-4 text-center text-gray-600">خبرة محلية وحضور ميداني</td>
-                  <td className="px-6 py-4 text-center text-green-600 font-bold">↓ >93٪</td>
+                  <td className="px-6 py-4 text-center text-green-600 font-bold">{"↓ >93٪"}</td>
                 </tr>
                 <tr className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">فريق داخلي (5 وظائف)</td>
