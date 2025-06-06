@@ -11,7 +11,8 @@ import { CommandSuggestions } from '@/components/chat/CommandSuggestions';
 import { ConnectionDiagnostics } from '@/components/chat/ConnectionDiagnostics';
 import { EnhancedRailwayStatus } from '@/components/railway/EnhancedRailwayStatus';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { Wifi, WifiOff, AlertTriangle, MessageCircle } from 'lucide-react';
+import { EnhancedMorvoChat } from './EnhancedMorvoChat';
 
 interface EnhancedChatSectionProps {
   selectedManager?: AIManager;
@@ -24,33 +25,9 @@ export const EnhancedChatSection = ({
   onManagerSelect, 
   onDashboardCommand 
 }: EnhancedChatSectionProps) => {
-  const {
-    messages,
-    message,
-    setMessage,
-    handleSendMessage,
-    currentAgent,
-    setCurrentAgent,
-    isTyping,
-    isConnected,
-    messagesEndRef,
-    setDashboardCommandCallback,
-    getCommandSuggestions,
-    connectionState
-  } = useChatLogic();
-  
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showRailwayStatus, setShowRailwayStatus] = useState(false);
-
-  // Convert string suggestions to CommandSuggestion objects
-  const formatCommandSuggestions = () => {
-    const suggestions = getCommandSuggestions();
-    return suggestions.map((suggestion: string) => ({
-      command: suggestion,
-      description: `تنفيذ الأمر: ${suggestion}`
-    }));
-  };
+  const [chatMode, setChatMode] = useState<'enhanced' | 'legacy'>('enhanced');
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-purple-50" dir="rtl">
@@ -59,32 +36,32 @@ export const EnhancedChatSection = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src={`/morvo-${currentAgent}.png`} />
-              <AvatarFallback>Morvo</AvatarFallback>
+              <AvatarImage src="/morvo-ai-avatar.png" />
+              <AvatarFallback>
+                <MessageCircle className="w-5 h-5" />
+              </AvatarFallback>
             </Avatar>
-            <select
-              className="border rounded px-3 py-2 bg-white"
-              value={currentAgent}
-              onChange={(e) => setCurrentAgent(e.target.value as AIManager)}
-            >
-              <option value="strategic">الاستراتيجي</option>
-              <option value="monitor">المراقب</option>
-              <option value="executor">المنفذ</option>
-              <option value="creative">المبدع</option>
-              <option value="analyst">المحلل</option>
-            </select>
+            <div>
+              <h2 className="text-lg font-semibold">مورفو AI المساعد</h2>
+              <p className="text-sm text-gray-600">نسخة محسّنة مع WebSocket</p>
+            </div>
           </div>
           
-          {/* Enhanced Connection status */}
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${
-              isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-            }`} />
-            <span className={`text-sm ${
-              isConnected ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {isConnected ? 'متصل' : 'غير متصل'}
-            </span>
+            <Button
+              variant={chatMode === 'enhanced' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChatMode('enhanced')}
+            >
+              محسّن
+            </Button>
+            <Button
+              variant={chatMode === 'legacy' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setChatMode('legacy')}
+            >
+              تقليدي
+            </Button>
             
             <Button
               variant="outline"
@@ -92,7 +69,6 @@ export const EnhancedChatSection = ({
               onClick={() => setShowRailwayStatus(!showRailwayStatus)}
               className="ml-2"
             >
-              {isConnected ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
               Railway
             </Button>
 
@@ -120,13 +96,88 @@ export const EnhancedChatSection = ({
             <ConnectionDiagnostics />
           </div>
         )}
+      </div>
+
+      {/* Chat content */}
+      <div className="flex-grow overflow-hidden">
+        {chatMode === 'enhanced' ? (
+          <div className="h-full p-4 flex items-center justify-center">
+            <EnhancedMorvoChat />
+          </div>
+        ) : (
+          <LegacyChatContent 
+            selectedManager={selectedManager}
+            onManagerSelect={onManagerSelect}
+            onDashboardCommand={onDashboardCommand}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Legacy chat component for backward compatibility
+const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardCommand }: any) => {
+  const {
+    messages,
+    message,
+    setMessage,
+    handleSendMessage,
+    currentAgent,
+    setCurrentAgent,
+    isTyping,
+    isConnected,
+    messagesEndRef,
+    setDashboardCommandCallback,
+    getCommandSuggestions,
+    connectionState
+  } = useChatLogic();
+  
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Convert string suggestions to CommandSuggestion objects
+  const formatCommandSuggestions = () => {
+    const suggestions = getCommandSuggestions();
+    return suggestions.map((suggestion: string) => ({
+      command: suggestion,
+      description: `تنفيذ الأمر: ${suggestion}`
+    }));
+  };
+
+  return (
+    <>
+      {/* Manager selector */}
+      <div className="p-4 bg-white border-b">
+        <select
+          className="border rounded px-3 py-2 bg-white w-full"
+          value={currentAgent}
+          onChange={(e) => setCurrentAgent(e.target.value as AIManager)}
+        >
+          <option value="strategic">الاستراتيجي</option>
+          <option value="monitor">المراقب</option>
+          <option value="executor">المنفذ</option>
+          <option value="creative">المبدع</option>
+          <option value="analyst">المحلل</option>
+        </select>
+        
+        {/* Connection status */}
+        <div className="flex items-center gap-2 mt-2">
+          <div className={`w-3 h-3 rounded-full ${
+            isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+          }`} />
+          <span className={`text-sm ${
+            isConnected ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {isConnected ? 'متصل' : 'غير متصل'}
+          </span>
+        </div>
 
         {/* Fallback Mode Alert */}
         {!isConnected && (
-          <Alert className="mt-4">
+          <Alert className="mt-2">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              تم تفعيل الوضع المحلي. الردود ستكون أساسية حتى يتم استعادة الاتصال بـ Railway.
+              تم تفعيل الوضع المحلي. الردود ستكون أساسية حتى يتم استعادة الاتصال.
             </AlertDescription>
           </Alert>
         )}
@@ -183,6 +234,6 @@ export const EnhancedChatSection = ({
           />
         )}
       </div>
-    </div>
+    </>
   );
 };
