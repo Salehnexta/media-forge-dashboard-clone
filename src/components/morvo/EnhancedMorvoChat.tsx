@@ -4,17 +4,19 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User } from 'lucide-react';
-import { MorvoWebSocketService, MorvoMessage, ConnectionStatus } from '@/services/MorvoWebSocketService';
+import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { MorvoWebSocketService, MorvoMessage, ConnectionStatus, SmartAlert } from '@/services/MorvoWebSocketService';
 import { RichComponentRenderer } from './RichComponentRenderer';
 import { ConnectionStatusIndicator } from './ConnectionStatusIndicator';
+import { smartAlertsManager } from '@/services/SmartAlertsManager';
 import { supabase } from '@/integrations/supabase/client';
 
 interface EnhancedMorvoChatProps {
   className?: string;
+  onSmartAlert?: (alert: SmartAlert) => void;
 }
 
-export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) => {
+export const EnhancedMorvoChat = ({ className = '', onSmartAlert }: EnhancedMorvoChatProps) => {
   const [messages, setMessages] = useState<MorvoMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,13 +34,14 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
         const userIdValue = user?.id || `guest_${Date.now()}`;
         setUserId(userIdValue);
 
-        // Initialize WebSocket service
+        // Initialize WebSocket service with smart alerts support
         wsServiceRef.current = new MorvoWebSocketService(userIdValue, {
           onMessage: handleIncomingMessage,
           onConnect: () => setConnectionStatus('connected'),
           onDisconnect: () => setConnectionStatus('disconnected'),
           onError: () => setConnectionStatus('error'),
-          onStatusChange: setConnectionStatus
+          onStatusChange: setConnectionStatus,
+          onSmartAlert: handleSmartAlert
         });
 
         // Connect to WebSocket
@@ -65,6 +68,16 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
     setIsLoading(false);
   };
 
+  const handleSmartAlert = (alert: SmartAlert) => {
+    // Add to smart alerts manager
+    smartAlertsManager.addAlert(alert);
+    
+    // Call parent callback if provided
+    onSmartAlert?.(alert);
+    
+    console.log('🔔 Smart alert received in chat:', alert);
+  };
+
   const sendMessage = async () => {
     if (!inputMessage.trim() || !wsServiceRef.current) return;
 
@@ -85,7 +98,6 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
     
     if (!sent) {
       setIsLoading(false);
-      // Could add fallback HTTP request here if needed
     }
 
     setInputMessage('');
@@ -122,8 +134,11 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-lg">مورفو AI</h3>
-              <p className="text-sm text-gray-600">مساعدك الذكي في التسويق الرقمي</p>
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                مورفو AI v2.0
+                <Sparkles className="w-4 h-4 text-purple-500" />
+              </h3>
+              <p className="text-sm text-gray-600">مساعدك الذكي مع التنبيهات الذكية</p>
             </div>
           </div>
           <ConnectionStatusIndicator status={connectionStatus} />
@@ -136,10 +151,33 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
             {messages.length === 0 && (
               <div className="text-center py-8">
                 <Bot className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h4 className="font-bold text-gray-700 mb-2">مرحباً بك في مورفو AI!</h4>
-                <p className="text-sm text-gray-600">
-                  أنا هنا لمساعدتك في التسويق الرقمي. كيف يمكنني مساعدتك اليوم؟
+                <h4 className="font-bold text-gray-700 mb-2">مرحباً بك في مورفو AI v2.0!</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  أنا هنا لمساعدتك في التسويق الرقمي مع ميزات ذكية جديدة
                 </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInputMessage('أريد تحليل موقعي')}
+                  >
+                    تحليل الموقع
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInputMessage('ما هي أحدث التنبيهات؟')}
+                  >
+                    التنبيهات الذكية
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInputMessage('اربط منصات التواصل')}
+                  >
+                    ربط المنصات
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -164,6 +202,21 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
                     dir={getTextDirection(message.content || '')}
                     lang={getTextLanguage(message.content || '')}
                   >
+                    {/* Intent Detection Badge */}
+                    {message.intent_detected && message.sender === 'assistant' && (
+                      <div className="mb-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                          <Sparkles className="w-3 h-3" />
+                          {message.intent_detected}
+                          {message.confidence_score && (
+                            <span className="opacity-75">
+                              ({Math.round(message.confidence_score * 100)}%)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+
                     <p className="text-sm whitespace-pre-line">
                       {message.content || message.message}
                     </p>
@@ -199,7 +252,7 @@ export const EnhancedMorvoChat = ({ className = '' }: EnhancedMorvoChatProps) =>
                 </div>
                 <div className="bg-gray-100 rounded-2xl p-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">يكتب...</span>
+                    <span className="text-sm text-gray-600">يفكر...</span>
                     <div className="flex gap-1">
                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" />
                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />

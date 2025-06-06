@@ -11,8 +11,12 @@ import { CommandSuggestions } from '@/components/chat/CommandSuggestions';
 import { ConnectionDiagnostics } from '@/components/chat/ConnectionDiagnostics';
 import { EnhancedRailwayStatus } from '@/components/railway/EnhancedRailwayStatus';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wifi, WifiOff, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Wifi, WifiOff, AlertTriangle, MessageCircle, Bell, Settings, Sparkles } from 'lucide-react';
 import { EnhancedMorvoChat } from './EnhancedMorvoChat';
+import { SmartAlertsPanel } from './SmartAlertsPanel';
+import { PlatformSelector } from './PlatformSelector';
+import { SmartAlert } from '@/services/MorvoWebSocketService';
+import { toast } from 'sonner';
 
 interface EnhancedChatSectionProps {
   selectedManager?: AIManager;
@@ -28,12 +32,41 @@ export const EnhancedChatSection = ({
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showRailwayStatus, setShowRailwayStatus] = useState(false);
   const [chatMode, setChatMode] = useState<'enhanced' | 'legacy'>('enhanced');
+  const [activeTab, setActiveTab] = useState<'chat' | 'alerts' | 'platforms'>('chat');
+  const [unreadAlerts, setUnreadAlerts] = useState(0);
+
+  const handleSmartAlert = useCallback((alert: SmartAlert) => {
+    setUnreadAlerts(prev => prev + 1);
+    
+    // Show toast notification
+    const priorityEmoji = {
+      low: '🟢',
+      medium: '🟡', 
+      high: '🟠',
+      critical: '🔴'
+    };
+    
+    const emoji = priorityEmoji[alert.priority] || '🔔';
+    toast.info(`${emoji} تنبيه جديد: ${alert.title}`, {
+      action: {
+        label: 'عرض',
+        onClick: () => setActiveTab('alerts')
+      }
+    });
+  }, []);
+
+  const handleTabChange = (tab: 'chat' | 'alerts' | 'platforms') => {
+    setActiveTab(tab);
+    if (tab === 'alerts') {
+      setUnreadAlerts(0);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-purple-50" dir="rtl">
-      {/* Chat header */}
+      {/* Enhanced header */}
       <div className="bg-white border-b border-gray-200 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar>
               <AvatarImage src="/morvo-ai-avatar.png" />
@@ -42,12 +75,16 @@ export const EnhancedChatSection = ({
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-lg font-semibold">مورفو AI المساعد</h2>
-              <p className="text-sm text-gray-600">نسخة محسّنة مع WebSocket</p>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                مورفو AI v2.0
+                <Sparkles className="w-4 h-4 text-purple-500" />
+              </h2>
+              <p className="text-sm text-gray-600">مساعد ذكي مع تنبيهات وتكامل المنصات</p>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Mode Selector */}
             <Button
               variant={chatMode === 'enhanced' ? 'default' : 'outline'}
               size="sm"
@@ -63,6 +100,7 @@ export const EnhancedChatSection = ({
               تقليدي
             </Button>
             
+            {/* Additional Controls */}
             <Button
               variant="outline"
               size="sm"
@@ -78,10 +116,48 @@ export const EnhancedChatSection = ({
               onClick={() => setShowDiagnostics(!showDiagnostics)}
               className="ml-2"
             >
-              {showDiagnostics ? 'إخفاء التشخيص' : 'تشخيص الاتصال'}
+              <Settings className="w-4 h-4" />
             </Button>
           </div>
         </div>
+
+        {/* Tab Navigation for Enhanced Mode */}
+        {chatMode === 'enhanced' && (
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            <Button
+              variant={activeTab === 'chat' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => handleTabChange('chat')}
+              className="flex-1"
+            >
+              <MessageCircle className="w-4 h-4 ml-1" />
+              المحادثة
+            </Button>
+            <Button
+              variant={activeTab === 'alerts' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => handleTabChange('alerts')}
+              className="flex-1 relative"
+            >
+              <Bell className="w-4 h-4 ml-1" />
+              التنبيهات
+              {unreadAlerts > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadAlerts}
+                </span>
+              )}
+            </Button>
+            <Button
+              variant={activeTab === 'platforms' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => handleTabChange('platforms')}
+              className="flex-1"
+            >
+              <Wifi className="w-4 h-4 ml-1" />
+              المنصات
+            </Button>
+          </div>
+        )}
         
         {/* Railway Status Panel */}
         {showRailwayStatus && (
@@ -98,11 +174,19 @@ export const EnhancedChatSection = ({
         )}
       </div>
 
-      {/* Chat content */}
+      {/* Content Area */}
       <div className="flex-grow overflow-hidden">
         {chatMode === 'enhanced' ? (
-          <div className="h-full p-4 flex items-center justify-center">
-            <EnhancedMorvoChat />
+          <div className="h-full p-4">
+            {activeTab === 'chat' && (
+              <EnhancedMorvoChat onSmartAlert={handleSmartAlert} />
+            )}
+            {activeTab === 'alerts' && (
+              <SmartAlertsPanel />
+            )}
+            {activeTab === 'platforms' && (
+              <PlatformSelector />
+            )}
           </div>
         ) : (
           <LegacyChatContent 
@@ -135,7 +219,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
   
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Convert string suggestions to CommandSuggestion objects
   const formatCommandSuggestions = () => {
     const suggestions = getCommandSuggestions();
     return suggestions.map((suggestion: string) => ({
@@ -146,7 +229,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
 
   return (
     <>
-      {/* Manager selector */}
       <div className="p-4 bg-white border-b">
         <select
           className="border rounded px-3 py-2 bg-white w-full"
@@ -160,7 +242,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
           <option value="analyst">المحلل</option>
         </select>
         
-        {/* Connection status */}
         <div className="flex items-center gap-2 mt-2">
           <div className={`w-3 h-3 rounded-full ${
             isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
@@ -172,7 +253,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
           </span>
         </div>
 
-        {/* Fallback Mode Alert */}
         {!isConnected && (
           <Alert className="mt-2">
             <AlertTriangle className="h-4 w-4" />
@@ -183,7 +263,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
         )}
       </div>
 
-      {/* Messages list */}
       <div className="flex-grow overflow-y-auto p-4">
         <ScrollArea className="h-[65vh] rounded-md">
           {messages.map((msg) => (
@@ -204,7 +283,6 @@ const LegacyChatContent = ({ selectedManager, onManagerSelect, onDashboardComman
         </ScrollArea>
       </div>
 
-      {/* Input area */}
       <div className="p-4 border-t border-gray-200 bg-white">
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
           <Input
