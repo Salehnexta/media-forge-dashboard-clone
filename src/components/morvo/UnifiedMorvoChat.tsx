@@ -97,7 +97,7 @@ export const UnifiedMorvoChat = () => {
         content: response.content,
         sender: 'morvo',
         timestamp: new Date(),
-        type: response.type || 'text',
+        type: response.type as 'text' | 'analytics' | 'content' | 'campaign' || 'text',
         data: response.data
       };
 
@@ -143,9 +143,9 @@ export const UnifiedMorvoChat = () => {
     }
   };
 
-  const sendToMorvoAI = async (message: string, context: any) => {
+  const sendToMorvoAI = async (message: string, context: any): Promise<{content: string, type?: 'text' | 'analytics' | 'content' | 'campaign', data?: any}> => {
     // Simulate AI response with the new unified approach
-    return new Promise<{content: string, type?: string, data?: any}>((resolve) => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         const response = generateMorvoResponse(message, context);
         resolve(response);
@@ -153,7 +153,7 @@ export const UnifiedMorvoChat = () => {
     });
   };
 
-  const generateMorvoResponse = (message: string, context: any) => {
+  const generateMorvoResponse = (message: string, context: any): {content: string, type?: 'text' | 'analytics' | 'content' | 'campaign', data?: any} => {
     const lowerMessage = message.toLowerCase();
 
     // Analytics request
@@ -168,7 +168,7 @@ export const UnifiedMorvoChat = () => {
 **التوصية:** ركز ميزانية إضافية 20% على إنستغرام لاستغلال الزخم الحالي.
 
 🌐 المزيد في التقارير المرفقة`,
-        type: 'analytics'
+        type: 'analytics' as const
       };
     }
 
@@ -182,7 +182,7 @@ export const UnifiedMorvoChat = () => {
 **فكرة الصورة:** شخص ينام والرسوم البيانية ترتفع حوله
 
 **أفضل وقت للنشر:** 8 مساءً (ذروة التفاعل +45%)`,
-        type: 'content'
+        type: 'content' as const
       };
     }
 
@@ -200,7 +200,7 @@ export const UnifiedMorvoChat = () => {
 **اختبار A/B تلقائي:** نص "خصم محدود" vs "عرض حصري"
 
 تريد أبدأ الحملة فوراً؟`,
-        type: 'campaign'
+        type: 'campaign' as const
       };
     }
 
@@ -215,7 +215,7 @@ export const UnifiedMorvoChat = () => {
 • "صمم لي حملة إعلانية" - للحملات
 
 إيش اللي تبي نشتغل عليه؟`,
-      type: 'text'
+      type: 'text' as const
     };
   };
 
