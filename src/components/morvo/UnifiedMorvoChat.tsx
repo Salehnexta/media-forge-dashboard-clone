@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,7 +96,7 @@ export const UnifiedMorvoChat = () => {
         content: response.content,
         sender: 'morvo',
         timestamp: new Date(),
-        type: response.type as 'text' | 'analytics' | 'content' | 'campaign' || 'text',
+        type: (response.type || 'text') as 'text' | 'analytics' | 'content' | 'campaign',
         data: response.data
       };
 
