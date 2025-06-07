@@ -12,14 +12,18 @@ import { WebhookListener } from '@/components/railway/WebhookListener';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MetricsOverview } from '@/components/morvo/MetricsOverview';
+import { ChartsSection } from '@/components/morvo/ChartsSection';
+import { Button } from "@/components/ui/button";
 import { 
-  Home,
-  BarChart3,
   Users,
   Megaphone,
   PenTool,
-  Link,
+  BarChart3,
+  Target,
+  Bell,
+  Search,
+  User,
   Brain,
   LogOut
 } from 'lucide-react';
@@ -30,7 +34,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('استراتيجي');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -122,126 +126,122 @@ const Dashboard = () => {
     );
   }
 
+  const tabs = [
+    { id: 'استراتيجي', label: 'استراتيجي', icon: Target },
+    { id: 'محتوى', label: 'محتوى', icon: PenTool },
+    { id: 'حملات', label: 'حملات', icon: Megaphone },
+    { id: 'سوشال', label: 'سوشال', icon: Users },
+    { id: 'تحليلات', label: 'تحليلات', icon: BarChart3 }
+  ];
+
   return (
-    <div className="min-h-screen flex w-full bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20" dir="rtl">
+    <div className="min-h-screen bg-gray-50" dir="rtl">
       <WebhookListener />
       
       <DashboardSplitContent>
         <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="bg-gradient-to-l from-blue-600 via-blue-700 to-purple-700 px-8 py-6 shadow-lg relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
-              <div className="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
-              <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white rounded-full opacity-50"></div>
-            </div>
-            
-            <div className="relative flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/30">
-                  <Brain className="w-8 h-8 text-white" />
+          {/* Top Header */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Logo and Brand */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white mb-1">
-                    مرحباً بك في مورفو AI
-                  </h1>
-                  <p className="text-blue-100 text-lg">
-                    أهلاً {user?.email?.split('@')[0]}، مرحباً بك في منصة مورفو
-                  </p>
+                  <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
+                  <p className="text-sm text-gray-600">فريق التسويق الذكي المتكامل</p>
                 </div>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 px-6 py-3 text-sm text-white/90 hover:text-white border border-white/30 rounded-xl hover:bg-white/10 transition-all duration-200 backdrop-blur-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                تسجيل الخروج
-              </button>
+
+              {/* Top Navigation Tabs */}
+              <div className="flex items-center gap-1">
+                {tabs.map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 ${
+                      activeTab === tab.id 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm">
+                  <Search className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Bell className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <User className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Dashboard Tabs */}
-          <div className="flex-1 overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border-b border-gray-200 rounded-none h-16 shadow-sm">
-                <TabsTrigger 
-                  value="dashboard" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-blue-50"
-                >
-                  <Home className="w-4 h-4" />
-                  الرئيسية
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="agents" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-purple-50"
-                >
-                  <Users className="w-4 h-4" />
-                  الوكلاء
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="campaigns" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-purple-50"
-                >
-                  <Megaphone className="w-4 h-4" />
-                  الحملات
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="content" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-green-50"
-                >
-                  <PenTool className="w-4 h-4" />
-                  المحتوى
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="analytics" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-orange-50"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  التحليلات
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="integrations" 
-                  className="flex items-center gap-2 data-[state=active]:bg-gradient-to-l data-[state=active]:from-teal-600 data-[state=active]:to-teal-700 data-[state=active]:text-white rounded-lg mx-1 transition-all duration-300 hover:bg-teal-50"
-                >
-                  <Link className="w-4 h-4" />
-                  التكاملات
-                </TabsTrigger>
-              </TabsList>
+          {/* Main Content */}
+          <div className="flex-1 overflow-auto p-6">
+            {/* Page Title */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {activeTab} - يخطط الرؤية ويحدد أولويات الميزانيات
+              </h2>
+              <p className="text-gray-600 text-lg">
+                قائد حكيم وخبير استراتيجي يفكر بعقلية الرئيس التنفيذي
+              </p>
+            </div>
 
-              <div className="flex-1 overflow-auto">
-                <TabsContent value="dashboard" className="h-full p-8 m-0">
-                  <EnhancedDashboardLayout />
-                </TabsContent>
-                <TabsContent value="agents" className="h-full p-8 m-0">
-                  <AgentManager />
-                </TabsContent>
-                <TabsContent value="campaigns" className="h-full p-8 m-0">
-                  <CampaignBuilder />
-                </TabsContent>
-                <TabsContent value="content" className="h-full p-8 m-0">
-                  <div className="text-center py-16">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <PenTool className="w-10 h-10 text-green-600" />
-                    </div>
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-3">مبدع المحتوى</h3>
-                    <p className="text-gray-600 text-lg">قادم قريباً - أدوات إنتاج المحتوى الإبداعي</p>
-                  </div>
-                </TabsContent>
-                <TabsContent value="analytics" className="h-full p-8 m-0">
-                  <div className="text-center py-16">
-                    <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <BarChart3 className="w-10 h-10 text-orange-600" />
-                    </div>
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-3">التحليلات المتقدمة</h3>
-                    <p className="text-gray-600 text-lg">قادم قريباً - تحليلات شاملة بالذكاء الاصطناعي</p>
-                  </div>
-                </TabsContent>
-                <TabsContent value="integrations" className="h-full p-8 m-0">
-                  <IntegrationManager />
-                </TabsContent>
+            {/* Metrics Overview */}
+            <div className="mb-8">
+              <MetricsOverview />
+            </div>
+
+            {/* Charts Section */}
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-blue-600 mb-4">
+                المؤشرات الاستراتيجية - الاستراتيجي
+              </h3>
+              <p className="text-gray-600 mb-6">
+                مؤشرات الأداء الاستراتيجي وتوزيع الميزانيات
+              </p>
+              <ChartsSection selectedManager="strategic" />
+            </div>
+
+            {/* Welcome Message */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2">
+                    مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo.
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    مرحباً أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. إنشاء المخططات والتحليلات ووسائل التواصل الاجتماعي، والصور تحدث مع أي من فريقنا الخبير المتخصصين
+                  </p>
+                  <p className="text-xs text-gray-500">11:47 ص</p>
+                </div>
               </div>
-            </Tabs>
+            </div>
           </div>
         </div>
       </DashboardSplitContent>
