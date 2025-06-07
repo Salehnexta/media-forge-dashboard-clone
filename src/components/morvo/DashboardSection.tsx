@@ -2,7 +2,6 @@
 import React, { memo } from "react";
 import { AIManager } from "@/types/morvo";
 import { LazyDashboardTab } from "@/components/common/LazyDashboardTab";
-import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 
 // Lazy import للداش بوردات
 const EnhancedStrategicDashboard = React.lazy(() => 
@@ -40,7 +39,7 @@ interface DashboardSectionProps {
 }
 
 const DashboardSectionInner = ({ selectedManager }: DashboardSectionProps) => {
-  useComponentPerformance('DashboardSection');
+  // Removed useComponentPerformance hook call to prevent React context errors
   
   const renderDashboard = () => {
     switch (selectedManager) {

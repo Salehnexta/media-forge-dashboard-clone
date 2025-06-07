@@ -7,14 +7,23 @@ interface PerformanceMetrics {
   timestamp: number;
 }
 
-// Enhanced performance monitoring hook with error handling
+// Safe performance monitoring hook with fallback
 export const useComponentPerformance = (componentName: string) => {
-  const startTime = useRef<number>();
-  const mounted = useRef<boolean>(true);
+  // Add safety check for React context
+  let startTime: React.MutableRefObject<number | undefined> | null = null;
+  let mounted: React.MutableRefObject<boolean> | null = null;
+
+  try {
+    startTime = useRef<number>();
+    mounted = useRef<boolean>(true);
+  } catch (error) {
+    console.warn('React hooks not available, skipping performance monitoring');
+    return { measureOperation: (name: string, op: () => void) => op() };
+  }
 
   useEffect(() => {
     // Only run if we have a valid React context
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !startTime) return;
     
     if (!startTime.current) {
       startTime.current = Date.now();
@@ -27,7 +36,9 @@ export const useComponentPerformance = (componentName: string) => {
     }
 
     return () => {
-      mounted.current = false;
+      if (mounted) {
+        mounted.current = false;
+      }
     };
   }, [componentName]);
 
@@ -49,9 +60,17 @@ export const useComponentPerformance = (componentName: string) => {
   return { measureOperation };
 };
 
-// Enhanced dashboard optimization hook
+// Safe dashboard optimization hook
 export const useDashboardOptimization = (dashboardName: string) => {
-  const { measureOperation } = useComponentPerformance(dashboardName);
+  let measureOperation: (name: string, operation: () => void) => void;
+
+  try {
+    const result = useComponentPerformance(dashboardName);
+    measureOperation = result.measureOperation;
+  } catch (error) {
+    console.warn('Performance monitoring unavailable, using fallback');
+    measureOperation = (name: string, operation: () => void) => operation();
+  }
 
   const optimizeChartRendering = useCallback(() => {
     if (typeof document === 'undefined') return;
@@ -72,10 +91,15 @@ export const useDashboardOptimization = (dashboardName: string) => {
     }
   }, [dashboardName]);
 
-  useEffect(() => {
+  try {
+    useEffect(() => {
+      optimizeChartRendering();
+      return cleanup;
+    }, [optimizeChartRendering, cleanup]);
+  } catch (error) {
+    console.warn('Effect hook unavailable, running optimization immediately');
     optimizeChartRendering();
-    return cleanup;
-  }, [optimizeChartRendering, cleanup]);
+  }
 
   return { optimizeChartRendering, cleanup };
 };
