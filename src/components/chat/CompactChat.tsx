@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Sparkles, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, Sparkles, MessageCircle, Plus, X, Minimize2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Message {
@@ -31,33 +31,33 @@ const agents: Agent[] = [
   {
     id: 'content1',
     name: 'وكيل المحتوى الاستراتيجي',
-    role: 'وكيل المحتوى',
+    role: 'استراتيجي',
     avatar: '📝',
-    color: 'from-blue-600 to-blue-700',
+    color: 'from-blue-500 to-blue-600',
     isOnline: true
   },
   {
     id: 'content2',
     name: 'وكيل المحتوى الإبداعي',
-    role: 'وكيل المحتوى',
+    role: 'إبداعي',
     avatar: '🎨',
-    color: 'from-purple-600 to-purple-700',
+    color: 'from-purple-500 to-purple-600',
     isOnline: true
   },
   {
     id: 'content3',
     name: 'وكيل المحتوى التحليلي',
-    role: 'وكيل المحتوى',
+    role: 'تحليلي',
     avatar: '📊',
-    color: 'from-green-600 to-green-700',
+    color: 'from-green-500 to-green-600',
     isOnline: true
   },
   {
     id: 'content4',
     name: 'وكيل المحتوى التقني',
-    role: 'وكيل المحتوى',
+    role: 'تقني',
     avatar: '⚙️',
-    color: 'from-orange-600 to-orange-700',
+    color: 'from-orange-500 to-orange-600',
     isOnline: true
   }
 ];
@@ -67,6 +67,7 @@ export const CompactChat = () => {
   const [input, setInput] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<Agent>(agents[0]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -114,29 +115,75 @@ export const CompactChat = () => {
     }
   };
 
+  if (isMinimized) {
+    return (
+      <div className="fixed right-4 bottom-4 w-80 bg-white rounded-lg shadow-xl border" dir="rtl">
+        <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5" />
+            <span className="font-medium">وكلاء المحتوى AI</span>
+          </div>
+          <Button
+            onClick={() => setIsMinimized(false)}
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/20"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-white" dir="rtl">
+    <div className="flex flex-col h-full bg-white shadow-lg" dir="rtl">
+      {/* Chat Header */}
+      <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <Bot className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-semibold">وكلاء المحتوى AI</h3>
+            <p className="text-sm opacity-90">مساعدك الذكي لإنشاء المحتوى</p>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            onClick={() => setIsMinimized(true)}
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/20"
+          >
+            <Minimize2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Agent Selector */}
-      <div className="p-4 bg-gradient-to-l from-blue-50 to-purple-50 border-b border-blue-100">
-        <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="p-3 bg-gray-50 border-b">
+        <div className="flex gap-2 overflow-x-auto">
           {agents.map(agent => (
             <Button
               key={agent.id}
-              variant={selectedAgent.id === agent.id ? "default" : "ghost"}
+              variant={selectedAgent.id === agent.id ? "default" : "outline"}
               size="sm"
-              className={`flex items-center gap-2 flex-shrink-0 transition-all duration-300 ${
-                selectedAgent.id === agent.id ? 
-                `bg-gradient-to-l ${agent.color} text-white shadow-lg transform scale-105` : 
-                "text-gray-700 hover:bg-white hover:shadow-md"
+              className={`flex items-center gap-2 whitespace-nowrap ${
+                selectedAgent.id === agent.id 
+                  ? `bg-gradient-to-r ${agent.color} text-white` 
+                  : "text-gray-600"
               }`}
               onClick={() => {
                 setSelectedAgent(agent);
                 toast.success(`تم التبديل إلى ${agent.name}`);
               }}
             >
-              <span className="text-base">{agent.avatar}</span>
-              <span className="text-sm font-medium">{agent.name}</span>
-              {agent.isOnline && <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>}
+              <span>{agent.avatar}</span>
+              <span className="text-xs">{agent.role}</span>
+              {agent.isOnline && (
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              )}
             </Button>
           ))}
         </div>
@@ -147,10 +194,10 @@ export const CompactChat = () => {
         <div className="space-y-4">
           {messages.length === 0 && (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-blue-500" />
               </div>
-              <h4 className="font-semibold text-gray-800 mb-2 text-lg">مرحباً بك!</h4>
+              <h4 className="font-medium text-gray-800 mb-2">مرحباً بك!</h4>
               <p className="text-sm text-gray-600">ابدأ محادثة مع وكلاء المحتوى المتخصصين</p>
             </div>
           )}
@@ -161,30 +208,25 @@ export const CompactChat = () => {
               className={`flex gap-3 ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
             >
               {message.sender === 'ai' && (
-                <div className={`w-8 h-8 bg-gradient-to-br ${selectedAgent.color} rounded-full flex items-center justify-center flex-shrink-0 shadow-md`}>
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className={`bg-gradient-to-r ${selectedAgent.color} text-white text-xs`}>
+                    {selectedAgent.avatar}
+                  </AvatarFallback>
+                </Avatar>
               )}
               
               <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
                 <div
-                  className={`p-4 rounded-2xl text-sm shadow-md transition-all duration-300 hover:shadow-lg ${
+                  className={`p-3 rounded-lg text-sm ${
                     message.sender === 'user'
-                      ? 'bg-gradient-to-l from-blue-600 to-blue-700 text-white'
-                      : 'bg-white text-gray-900 border border-gray-200'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <p className="leading-relaxed">{message.content}</p>
-                  
-                  {message.sender === 'ai' && (
-                    <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
-                      <Sparkles className="w-3 h-3" />
-                      <span>{selectedAgent.name}</span>
-                    </div>
-                  )}
+                  <p>{message.content}</p>
                 </div>
                 
-                <div className="text-xs text-gray-400 mt-2 px-2">
+                <div className="text-xs text-gray-400 mt-1">
                   {message.timestamp.toLocaleTimeString('ar-SA', {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -193,25 +235,29 @@ export const CompactChat = () => {
               </div>
 
               {message.sender === 'user' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-                  <User className="w-4 h-4 text-white" />
-                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-gray-500 text-white">
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
               )}
             </div>
           ))}
 
           {isTyping && (
             <div className="flex gap-3 justify-end">
-              <div className={`w-8 h-8 bg-gradient-to-br ${selectedAgent.color} rounded-full flex items-center justify-center flex-shrink-0 shadow-md`}>
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
-                <div className="flex items-center gap-3">
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className={`bg-gradient-to-r ${selectedAgent.color} text-white text-xs`}>
+                  {selectedAgent.avatar}
+                </AvatarFallback>
+              </Avatar>
+              <div className="bg-gray-100 rounded-lg p-3">
+                <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">{selectedAgent.name} يكتب...</span>
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -223,20 +269,20 @@ export const CompactChat = () => {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 bg-gradient-to-l from-blue-50/50 to-purple-50/50">
-        <div className="flex items-center gap-3">
+      <div className="p-4 border-t bg-white">
+        <div className="flex items-center gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`تحدث مع ${selectedAgent.name}...`}
-            className="text-sm bg-white border-gray-300 focus:border-blue-400 focus:ring-blue-400/20 rounded-full px-4 py-3 shadow-sm"
+            className="flex-1 text-sm"
             onKeyPress={handleKeyPress}
           />
           
           <Button
             onClick={handleSendMessage}
             disabled={!input.trim() || isTyping}
-            className={`bg-gradient-to-l ${selectedAgent.color} hover:opacity-90 rounded-full px-4 py-3 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}
+            className={`bg-gradient-to-r ${selectedAgent.color} hover:opacity-90`}
             size="sm"
           >
             <Send className="w-4 h-4" />
