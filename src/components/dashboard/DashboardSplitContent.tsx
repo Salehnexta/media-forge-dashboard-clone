@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { MessageCircle, Sparkles, Bot } from 'lucide-react';
 import { CompactChat } from '@/components/chat/CompactChat';
 
 interface DashboardSplitContentProps {
@@ -9,15 +8,15 @@ interface DashboardSplitContentProps {
 
 export const DashboardSplitContent = ({ children }: DashboardSplitContentProps) => {
   return (
-    <div className="flex h-screen bg-gray-50" dir="rtl">
-      {/* Chat Area - 40% - على اليسار في RTL */}
-      <div className="w-2/5 bg-white border-r border-gray-200 flex flex-col">
-        <CompactChat />
+    <div className="flex flex-col h-screen bg-gray-50" dir="rtl">
+      {/* Dashboard Content Area - القسم العلوي */}
+      <div className="flex-1 overflow-auto bg-white">
+        {children}
       </div>
 
-      {/* Dashboard Content Area - 60% - على اليمين في RTL */}
-      <div className="flex-1 w-3/5 overflow-auto bg-white">
-        {children}
+      {/* Chat Area - القسم السفلي */}
+      <div className="h-80 bg-white border-t border-gray-200">
+        <CompactChat />
       </div>
     </div>
   );
