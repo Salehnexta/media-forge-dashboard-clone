@@ -14,6 +14,7 @@ import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
+import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
 import { Button } from "@/components/ui/button";
 import { 
   Users,

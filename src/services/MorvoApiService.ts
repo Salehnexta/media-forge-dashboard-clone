@@ -53,10 +53,12 @@ export class MorvoApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
     
     try {
       const response = await fetch(url, {
-        timeout: this.timeout,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
@@ -64,12 +66,15 @@ export class MorvoApiService {
         ...options,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       return await response.json();
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error(`API Error for ${endpoint}:`, error);
       throw error;
     }
