@@ -3,24 +3,39 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { SimplifiedDashboardLayout } from '@/components/dashboard/SimplifiedDashboardLayout';
+import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout';
+import { AgentManager } from '@/components/dashboard/AgentManager';
+import { CampaignBuilder } from '@/components/dashboard/CampaignBuilder';
+import { IntegrationManager } from '@/components/dashboard/IntegrationManager';
+import { AssetLibrary } from '@/components/dashboard/AssetLibrary';
 import { WebhookListener } from '@/components/railway/WebhookListener';
+import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
+import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
+import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
+import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
 import { Button } from "@/components/ui/button";
 import { 
-  Brain,
-  LogOut,
-  Sparkles,
+  Users,
+  Megaphone,
+  PenTool,
   BarChart3,
   Target,
-  TrendingUp
+  Bell,
+  Search,
+  User,
+  Brain,
+  LogOut
 } from 'lucide-react';
 
 const Dashboard = () => {
+  useComponentPerformance('Dashboard');
+  
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('استراتيجي');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -48,6 +63,12 @@ const Dashboard = () => {
     fetchUser();
   }, [session]);
 
+  const {
+    dashboardState,
+    handleChatCommand,
+    updateActiveTab
+  } = useChatControlledDashboard();
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -71,10 +92,10 @@ const Dashboard = () => {
           <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Sparkles className="w-10 h-10 text-white" />
+                <Brain className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">مورفو AI</h1>
-              <p className="text-gray-600 mt-2">رفيق التسويق الذكي</p>
+              <p className="text-gray-600 mt-2">منصة التسويق الذكي</p>
             </div>
             <Auth 
               supabaseClient={supabase} 
@@ -106,28 +127,65 @@ const Dashboard = () => {
     );
   }
 
+  const tabs = [
+    { id: 'استراتيجي', label: 'استراتيجي', icon: Target },
+    { id: 'محتوى', label: 'محتوى', icon: PenTool },
+    { id: 'حملات', label: 'حملات', icon: Megaphone },
+    { id: 'سوشال', label: 'سوشال', icon: Users },
+    { id: 'تحليلات', label: 'تحليلات', icon: BarChart3 }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <WebhookListener />
       
-      <SimplifiedDashboardLayout>
+      <DashboardSplitContent>
         <div className="h-full flex flex-col">
-          {/* Simplified Header */}
+          {/* Top Header */}
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               {/* Logo and Brand */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">مورفو - رفيق التسويق</h1>
-                  <p className="text-sm text-gray-600">تحليل وإبداع وحملات في مكان واحد</p>
+                  <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
+                  <p className="text-sm text-gray-600">النظام الجديد - Railway API</p>
                 </div>
+              </div>
+
+              {/* Top Navigation Tabs */}
+              <div className="flex items-center gap-1">
+                {tabs.map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 ${
+                      activeTab === tab.id 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </Button>
+                ))}
               </div>
 
               {/* Right Actions */}
               <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm">
+                  <Search className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Bell className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <User className="w-4 h-4" />
+                </Button>
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
@@ -142,67 +200,62 @@ const Dashboard = () => {
 
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-6">
-            {/* Welcome Section */}
+            {/* Page Title */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                مرحباً بك في تجربة التسويق الجديدة 🚀
+                لوحة تحكم Morvo AI الجديدة
               </h2>
               <p className="text-gray-600 text-lg">
-                كل ما تحتاجه من تحليل وإبداع ونشر - في محادثة واحدة مع مورفو
+                نظام متطور مع تكامل Railway API
               </p>
             </div>
 
-            {/* Quick Stats */}
+            {/* Agent Status Dashboard */}
+            <div className="mb-8">
+              <AgentStatusDashboard />
+            </div>
+
+            {/* Metrics Overview */}
             <div className="mb-8">
               <MetricsOverview />
             </div>
 
-            {/* Performance Charts */}
+            {/* Charts Section */}
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                نظرة سريعة على الأداء
+              <h3 className="text-xl font-bold text-blue-600 mb-4">
+                المؤشرات الاستراتيجية - {activeTab}
               </h3>
               <p className="text-gray-600 mb-6">
-                مؤشرات أداء سريعة - للتحليل المفصل، تحدث مع مورفو في الشات
+                مؤشرات الأداء مع التكامل الجديد
               </p>
               <ChartsSection selectedManager="strategic" />
             </div>
 
-            {/* Call to Action */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-6 h-6 text-white" />
+            {/* API Status Message */}
+            <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Brain className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    ابدأ محادثتك مع مورفو الآن
-                    <TrendingUp className="w-4 h-4 text-green-600" />
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2">
+                    🚀 تم تفعيل النظام الجديد بنجاح!
                   </h4>
-                  <p className="text-gray-700 leading-relaxed">
-                    اسأل عن أي شيء: "كيف أداء متجري؟" أو "اكتب منشور للمنتج الجديد" أو "صمم حملة بميزانية 5000 ريال"
+                  <p className="text-gray-700 leading-relaxed mb-4">
+                    يستخدم النظام الآن Railway Production API مع 5 وكلاء ذكيين متخصصين. 
+                    جميع المحادثات والتحليلات تتم عبر الخوادم الجديدة المحسّنة.
                   </p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <Target className="w-3 h-3" />
-                    <span>تحليل فوري</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <Sparkles className="w-3 h-3" />
-                    <span>محتوى إبداعي</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <BarChart3 className="w-3 h-3" />
-                    <span>حملات ذكية</span>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <div>• API Base: https://morvo-production.up.railway.app</div>
+                    <div>• WebSocket: متاح للمحادثات المباشرة</div>
+                    <div>• SEO Audit: متاح للتحليلات المتقدمة</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </SimplifiedDashboardLayout>
+      </DashboardSplitContent>
     </div>
   );
 };
