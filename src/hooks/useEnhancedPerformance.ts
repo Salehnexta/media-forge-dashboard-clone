@@ -7,12 +7,19 @@ interface PerformanceMetrics {
   timestamp: number;
 }
 
-// Enhanced performance monitoring hook
+// Enhanced performance monitoring hook with error handling
 export const useComponentPerformance = (componentName: string) => {
-  const startTime = useRef<number>(Date.now());
+  const startTime = useRef<number>();
   const mounted = useRef<boolean>(true);
 
   useEffect(() => {
+    // Only run if we have a valid React context
+    if (typeof window === 'undefined') return;
+    
+    if (!startTime.current) {
+      startTime.current = Date.now();
+    }
+    
     const renderTime = Date.now() - startTime.current;
     
     if (renderTime > 100) {
@@ -25,6 +32,11 @@ export const useComponentPerformance = (componentName: string) => {
   }, [componentName]);
 
   const measureOperation = useCallback((operationName: string, operation: () => void) => {
+    if (typeof performance === 'undefined') {
+      operation();
+      return;
+    }
+
     const start = performance.now();
     operation();
     const end = performance.now();
@@ -42,6 +54,8 @@ export const useDashboardOptimization = (dashboardName: string) => {
   const { measureOperation } = useComponentPerformance(dashboardName);
 
   const optimizeChartRendering = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    
     measureOperation('chartOptimization', () => {
       const charts = document.querySelectorAll('[data-chart]');
       charts.forEach((chart) => {

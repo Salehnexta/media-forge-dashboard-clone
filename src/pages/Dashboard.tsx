@@ -10,7 +10,6 @@ import { IntegrationManager } from '@/components/dashboard/IntegrationManager';
 import { AssetLibrary } from '@/components/dashboard/AssetLibrary';
 import { WebhookListener } from '@/components/railway/WebhookListener';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
-import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
@@ -30,8 +29,6 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  useComponentPerformance('Dashboard');
-  
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
