@@ -29,27 +29,35 @@ interface Agent {
 
 const agents: Agent[] = [
   {
-    id: 'strategic',
-    name: 'سارة الاستراتيجية',
-    role: 'المدير الاستراتيجي',
-    avatar: '👩‍💼',
+    id: 'content1',
+    name: 'وكيل المحتوى الاستراتيجي',
+    role: 'وكيل المحتوى',
+    avatar: '📝',
     color: 'from-blue-600 to-blue-700',
     isOnline: true
   },
   {
-    id: 'creative',
-    name: 'ليلى الإبداعية',
-    role: 'مبدعة المحتوى',
+    id: 'content2',
+    name: 'وكيل المحتوى الإبداعي',
+    role: 'وكيل المحتوى',
     avatar: '🎨',
     color: 'from-purple-600 to-purple-700',
     isOnline: true
   },
   {
-    id: 'analyst',
-    name: 'أحمد المحلل',
-    role: 'محلل البيانات',
+    id: 'content3',
+    name: 'وكيل المحتوى التحليلي',
+    role: 'وكيل المحتوى',
     avatar: '📊',
     color: 'from-green-600 to-green-700',
+    isOnline: true
+  },
+  {
+    id: 'content4',
+    name: 'وكيل المحتوى التقني',
+    role: 'وكيل المحتوى',
+    avatar: '⚙️',
+    color: 'from-orange-600 to-orange-700',
     isOnline: true
   }
 ];
@@ -88,7 +96,7 @@ export const CompactChat = () => {
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: `مرحباً! أنا ${selectedAgent.name}. كيف يمكنني مساعدتك في التسويق الرقمي اليوم؟`,
+        content: `مرحباً! أنا ${selectedAgent.name}. كيف يمكنني مساعدتك في إنشاء وتطوير المحتوى اليوم؟`,
         sender: 'ai',
         timestamp: new Date(),
         agentId: selectedAgent.id,
@@ -143,7 +151,7 @@ export const CompactChat = () => {
                 <MessageCircle className="w-8 h-8 text-blue-600" />
               </div>
               <h4 className="font-semibold text-gray-800 mb-2 text-lg">مرحباً بك!</h4>
-              <p className="text-sm text-gray-600">ابدأ محادثة مع فريق مورفو AI المتخصص</p>
+              <p className="text-sm text-gray-600">ابدأ محادثة مع وكلاء المحتوى المتخصصين</p>
             </div>
           )}
 

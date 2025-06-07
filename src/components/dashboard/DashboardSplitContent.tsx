@@ -27,8 +27,8 @@ export const DashboardSplitContent = ({ children }: DashboardSplitContentProps) 
                 <Brain className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-white text-xl mb-1">مورفو AI</h3>
-                <p className="text-blue-100 text-sm">مساعدك الذكي للتسويق الرقمي</p>
+                <h3 className="font-bold text-white text-xl mb-1">وكلاء المحتوى AI</h3>
+                <p className="text-blue-100 text-sm">مساعدك الذكي لإنشاء المحتوى</p>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
