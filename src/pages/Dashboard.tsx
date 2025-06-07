@@ -9,7 +9,6 @@ import { CampaignBuilder } from '@/components/dashboard/CampaignBuilder';
 import { IntegrationManager } from '@/components/dashboard/IntegrationManager';
 import { AssetLibrary } from '@/components/dashboard/AssetLibrary';
 import { WebhookListener } from '@/components/railway/WebhookListener';
-import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
