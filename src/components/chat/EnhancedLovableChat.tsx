@@ -1,28 +1,22 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { 
   Send, 
   Mic, 
   MicOff, 
   Paperclip, 
-  Smile, 
-  Settings, 
-  MoreVertical,
   Bot,
   User,
   Sparkles,
-  Zap,
-  Code,
-  FileText,
-  Image as ImageIcon
+  MessageCircle,
+  Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -52,7 +46,7 @@ const agents: Agent[] = [
     name: 'سارة الاستراتيجية',
     role: 'المدير الاستراتيجي',
     avatar: '👩‍💼',
-    color: 'bg-blue-500',
+    color: 'from-blue-500 to-blue-600',
     description: 'خبيرة التخطيط والاستراتيجية',
     isOnline: true
   },
@@ -61,7 +55,7 @@ const agents: Agent[] = [
     name: 'ليلى الإبداعية',
     role: 'مبدعة المحتوى',
     avatar: '🎨',
-    color: 'bg-purple-500',
+    color: 'from-purple-500 to-purple-600',
     description: 'متخصصة في المحتوى الإبداعي',
     isOnline: true
   },
@@ -70,7 +64,7 @@ const agents: Agent[] = [
     name: 'أحمد المحلل',
     role: 'محلل البيانات',
     avatar: '📊',
-    color: 'bg-green-500',
+    color: 'from-green-500 to-green-600',
     description: 'خبير تحليل البيانات والأرقام',
     isOnline: true
   },
@@ -79,7 +73,7 @@ const agents: Agent[] = [
     name: 'نور السوشال',
     role: 'مديرة وسائل التواصل',
     avatar: '📱',
-    color: 'bg-pink-500',
+    color: 'from-pink-500 to-pink-600',
     description: 'متخصصة في إدارة المنصات الاجتماعية',
     isOnline: true
   },
@@ -88,7 +82,7 @@ const agents: Agent[] = [
     name: 'خالد المنفذ',
     role: 'مدير الحملات',
     avatar: '🚀',
-    color: 'bg-orange-500',
+    color: 'from-orange-500 to-orange-600',
     description: 'خبير تنفيذ الحملات الإعلانية',
     isOnline: true
   }
@@ -131,7 +125,15 @@ export const EnhancedLovableChat = () => {
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: `مرحباً! أنا ${selectedAgent.name}، ${selectedAgent.description}. كيف يمكنني مساعدتك اليوم؟`,
+        content: `مرحباً! أنا ${selectedAgent.name}، ${selectedAgent.description}. 
+
+كيف يمكنني مساعدتك اليوم؟ يمكنني:
+• تحليل استراتيجياتك التسويقية
+• تطوير حملات جديدة
+• تحسين المحتوى الحالي
+• تقديم رؤى مبنية على البيانات
+
+ما هو التحدي الذي تواجهه؟`,
         sender: 'ai',
         timestamp: new Date(),
         agentId: selectedAgent.id,
@@ -164,84 +166,56 @@ export const EnhancedLovableChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-lg border overflow-hidden">
-      {/* Chat Header */}
-      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Avatar className="w-10 h-10">
-                <AvatarFallback className={`${selectedAgent.color} text-white text-lg`}>
-                  {selectedAgent.avatar}
-                </AvatarFallback>
-              </Avatar>
-              {selectedAgent.isOnline && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{selectedAgent.name}</h3>
-              <p className="text-sm text-gray-600">{selectedAgent.role}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAgents(!showAgents)}
-            >
-              <Bot className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+    <div className="flex flex-col h-full bg-white">
+      {/* Agent Selector */}
+      {showAgents && (
+        <div className="p-4 bg-gray-50 border-b">
+          <div className="grid grid-cols-1 gap-2">
+            {agents.map((agent) => (
+              <Button
+                key={agent.id}
+                variant={selectedAgent.id === agent.id ? "default" : "ghost"}
+                className={`flex items-center gap-3 justify-start h-auto p-3 ${
+                  selectedAgent.id === agent.id 
+                    ? `bg-gradient-to-r ${agent.color} text-white shadow-lg` 
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  setSelectedAgent(agent);
+                  setShowAgents(false);
+                  toast.success(`تم التبديل إلى ${agent.name}`);
+                }}
+              >
+                <span className="text-lg">{agent.avatar}</span>
+                <div className="text-right flex-1">
+                  <div className="font-medium text-sm">{agent.name}</div>
+                  <div className="text-xs opacity-75">{agent.role}</div>
+                </div>
+                {agent.isOnline && (
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                )}
+              </Button>
+            ))}
           </div>
         </div>
-
-        {/* Agent Selector */}
-        {showAgents && (
-          <div className="mt-4 p-3 bg-white rounded-lg border shadow-sm">
-            <div className="grid grid-cols-2 gap-2">
-              {agents.map((agent) => (
-                <Button
-                  key={agent.id}
-                  variant={selectedAgent.id === agent.id ? "default" : "ghost"}
-                  className="flex items-center gap-2 justify-start h-auto p-3"
-                  onClick={() => {
-                    setSelectedAgent(agent);
-                    setShowAgents(false);
-                    toast.success(`تم التبديل إلى ${agent.name}`);
-                  }}
-                >
-                  <span className="text-lg">{agent.avatar}</span>
-                  <div className="text-right">
-                    <div className="font-medium text-sm">{agent.name}</div>
-                    <div className="text-xs opacity-70">{agent.role}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.length === 0 && (
             <div className="text-center py-8">
-              <div className="text-6xl mb-4">{selectedAgent.avatar}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${selectedAgent.color} rounded-2xl flex items-center justify-center shadow-lg`}>
+                <span className="text-2xl">{selectedAgent.avatar}</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
                 مرحباً! أنا {selectedAgent.name}
               </h3>
               <p className="text-gray-600 mb-4">{selectedAgent.description}</p>
               <div className="flex flex-wrap gap-2 justify-center">
-                <Badge variant="secondary">تحليل السوق</Badge>
-                <Badge variant="secondary">خطط التسويق</Badge>
-                <Badge variant="secondary">استراتيجيات النمو</Badge>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">تحليل السوق</Badge>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700">خطط التسويق</Badge>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">استراتيجيات النمو</Badge>
               </div>
             </div>
           )}
@@ -249,49 +223,56 @@ export const EnhancedLovableChat = () => {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
+              {message.sender === 'ai' && (
+                <div className={`w-8 h-8 bg-gradient-to-r ${selectedAgent.color} rounded-full flex items-center justify-center flex-shrink-0 shadow-md`}>
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+              )}
+              
+              <div className={`max-w-[85%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
                 <div
-                  className={`p-3 rounded-2xl ${
+                  className={`p-4 rounded-2xl shadow-sm ${
                     message.sender === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-900 border'
                   }`}
                 >
-                  {message.type === 'code' && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <Code className="w-4 h-4" />
-                      <span className="text-xs font-medium">كود</span>
-                    </div>
-                  )}
-                  
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                   
                   {message.sender === 'ai' && (
-                    <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
+                    <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
                       <Sparkles className="w-3 h-3" />
                       <span>بواسطة {selectedAgent.name}</span>
                     </div>
                   )}
                 </div>
                 
-                <div className="text-xs text-gray-500 mt-1 px-2">
+                <div className="text-xs text-gray-400 mt-1 px-2">
                   {message.timestamp.toLocaleTimeString('ar-SA', {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
                 </div>
               </div>
+
+              {message.sender === 'user' && (
+                <div className="w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              )}
             </div>
           ))}
 
           {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-2xl p-3 max-w-[80%]">
+            <div className="flex gap-3 justify-start">
+              <div className={`w-8 h-8 bg-gradient-to-r ${selectedAgent.color} rounded-full flex items-center justify-center flex-shrink-0 shadow-md`}>
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-gray-100 rounded-2xl p-4 border">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{selectedAgent.avatar}</span>
-                  <span className="text-sm text-gray-600">يكتب...</span>
+                  <span className="text-sm text-gray-600">{selectedAgent.name} يكتب...</span>
                   <div className="flex gap-1">
                     <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -308,13 +289,29 @@ export const EnhancedLovableChat = () => {
 
       {/* Input Area */}
       <div className="p-4 border-t bg-gray-50">
+        {/* Agent Selection Button */}
+        <div className="mb-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAgents(!showAgents)}
+            className="w-full justify-between bg-white"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{selectedAgent.avatar}</span>
+              <span className="text-sm font-medium">{selectedAgent.name}</span>
+            </div>
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        </div>
+
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={`اسأل ${selectedAgent.name}...`}
-              className="min-h-[44px] max-h-[120px] resize-none"
+              className="min-h-[48px] max-h-[120px] resize-none bg-white border-gray-200 focus:border-blue-300"
               onKeyPress={handleKeyPress}
             />
           </div>
@@ -324,7 +321,7 @@ export const EnhancedLovableChat = () => {
               variant="outline"
               size="sm"
               onClick={handleFileUpload}
-              className="w-10 h-10 p-0"
+              className="w-10 h-10 p-0 bg-white hover:bg-gray-100"
             >
               <Paperclip className="w-4 h-4" />
             </Button>
@@ -333,7 +330,7 @@ export const EnhancedLovableChat = () => {
               variant="outline"
               size="sm"
               onClick={handleVoiceInput}
-              className={`w-10 h-10 p-0 ${isListening ? 'bg-red-100 border-red-300' : ''}`}
+              className={`w-10 h-10 p-0 ${isListening ? 'bg-red-100 border-red-300 text-red-600' : 'bg-white hover:bg-gray-100'}`}
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </Button>
@@ -341,7 +338,7 @@ export const EnhancedLovableChat = () => {
             <Button
               onClick={handleSendMessage}
               disabled={!input.trim() || isTyping}
-              className="w-10 h-10 p-0"
+              className={`w-10 h-10 p-0 bg-gradient-to-r ${selectedAgent.color} hover:opacity-90`}
             >
               <Send className="w-4 h-4" />
             </Button>
