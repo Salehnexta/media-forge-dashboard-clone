@@ -11,10 +11,8 @@ import { AssetLibrary } from '@/components/dashboard/AssetLibrary';
 import { WebhookListener } from '@/components/railway/WebhookListener';
 import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
-import { DashboardTopHeader } from '@/components/dashboard/DashboardTopHeader';
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Home,
   BarChart3,
@@ -25,25 +23,13 @@ import {
   FolderOpen
 } from 'lucide-react';
 
-// Define the sidebar navigation items
-const navigationItems = [
-  { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
-  { id: 'agents', label: 'إدارة الوكلاء', icon: Users },
-  { id: 'campaigns', label: 'منشئ الحملات', icon: Megaphone },
-  { id: 'content', label: 'المحتوى الإبداعي', icon: PenTool },
-  { id: 'analytics', label: 'التحليلات', icon: BarChart3 },
-  { id: 'integrations', label: 'التكاملات', icon: Link },
-  { id: 'assets', label: 'مكتبة الأصول', icon: FolderOpen }
-];
-
 const Dashboard = () => {
   useComponentPerformance('Dashboard');
   
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('dashboard');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -82,8 +68,8 @@ const Dashboard = () => {
     await supabase.auth.signOut();
   };
 
-  const renderActiveSection = () => {
-    switch (activeSection) {
+  const renderTabContent = () => {
+    switch (activeTab) {
       case 'dashboard':
         return <EnhancedDashboardLayout />;
       case 'agents':
@@ -143,36 +129,96 @@ const Dashboard = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50" dir="rtl">
-        {/* Add webhook listener */}
-        <WebhookListener />
-        
-        {/* Enhanced Sidebar */}
-        <DashboardSidebar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-          isSidebarCollapsed={isSidebarCollapsed}
-          user={user}
-          handleSignOut={handleSignOut}
-        />
+    <div className="min-h-screen flex w-full bg-gray-50" dir="rtl">
+      {/* Add webhook listener */}
+      <WebhookListener />
+      
+      {/* Split Content Area: 60% Dashboard + 40% Chat */}
+      <DashboardSplitContent>
+        <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  مرحباً بك في مورفو AI
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  أهلاً {user?.email?.split('@')[0]}، مرحباً بك في منصة مورفو
+                </p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                تسجيل الخروج
+              </button>
+            </div>
+          </div>
 
-        {/* Main Content Area - Split Layout */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Top Header */}
-          <DashboardTopHeader
-            activeSection={activeSection}
-            navigationItems={navigationItems}
-            user={user}
-          />
+          {/* Dashboard Tabs */}
+          <div className="flex-1 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-6 bg-white border-b">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                  <Home className="w-4 h-4" />
+                  الرئيسية
+                </TabsTrigger>
+                <TabsTrigger value="agents" className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  الوكلاء
+                </TabsTrigger>
+                <TabsTrigger value="campaigns" className="flex items-center gap-2">
+                  <Megaphone className="w-4 h-4" />
+                  الحملات
+                </TabsTrigger>
+                <TabsTrigger value="content" className="flex items-center gap-2">
+                  <PenTool className="w-4 h-4" />
+                  المحتوى
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  التحليلات
+                </TabsTrigger>
+                <TabsTrigger value="integrations" className="flex items-center gap-2">
+                  <Link className="w-4 h-4" />
+                  التكاملات
+                </TabsTrigger>
+              </TabsList>
 
-          {/* Split Content Area: 60% Dashboard + 40% Chat */}
-          <DashboardSplitContent>
-            {renderActiveSection()}
-          </DashboardSplitContent>
+              <div className="flex-1 overflow-auto">
+                <TabsContent value="dashboard" className="h-full p-6">
+                  <EnhancedDashboardLayout />
+                </TabsContent>
+                <TabsContent value="agents" className="h-full p-6">
+                  <AgentManager />
+                </TabsContent>
+                <TabsContent value="campaigns" className="h-full p-6">
+                  <CampaignBuilder />
+                </TabsContent>
+                <TabsContent value="content" className="h-full p-6">
+                  <div className="text-center py-12">
+                    <PenTool className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">مبدع المحتوى</h3>
+                    <p className="text-gray-600">قادم قريباً - أدوات إنتاج المحتوى الإبداعي</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="analytics" className="h-full p-6">
+                  <div className="text-center py-12">
+                    <BarChart3 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">التحليلات المتقدمة</h3>
+                    <p className="text-gray-600">قادم قريباً - تحليلات شاملة بالذكاء الاصطناعي</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="integrations" className="h-full p-6">
+                  <IntegrationManager />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </DashboardSplitContent>
+    </div>
   );
 };
 
