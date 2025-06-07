@@ -1131,36 +1131,6 @@ export type Database = {
           },
         ]
       }
-      morvo_conversations: {
-        Row: {
-          content: string
-          context_data: Json | null
-          conversation_id: string
-          created_at: string | null
-          id: string
-          message_type: string
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          context_data?: Json | null
-          conversation_id: string
-          created_at?: string | null
-          id?: string
-          message_type: string
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          context_data?: Json | null
-          conversation_id?: string
-          created_at?: string | null
-          id?: string
-          message_type?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -1600,39 +1570,6 @@ export type Database = {
           },
         ]
       }
-      system_prompts: {
-        Row: {
-          created_at: string | null
-          id: string
-          industry_tone: string | null
-          is_active: boolean | null
-          name: string
-          prompt_text: string
-          updated_at: string | null
-          version: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          industry_tone?: string | null
-          is_active?: boolean | null
-          name: string
-          prompt_text: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          industry_tone?: string | null
-          is_active?: boolean | null
-          name?: string
-          prompt_text?: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Relationships: []
-      }
       target_audiences: {
         Row: {
           company_id: string | null
@@ -1676,36 +1613,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      unified_customer_data: {
-        Row: {
-          data_payload: Json
-          data_type: string
-          id: string
-          kpi_metrics: Json | null
-          last_synced: string | null
-          source_platform: string | null
-          user_id: string | null
-        }
-        Insert: {
-          data_payload: Json
-          data_type: string
-          id?: string
-          kpi_metrics?: Json | null
-          last_synced?: string | null
-          source_platform?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          data_payload?: Json
-          data_type?: string
-          id?: string
-          kpi_metrics?: Json | null
-          last_synced?: string | null
-          source_platform?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       user_preferences: {
         Row: {

@@ -14,7 +14,6 @@ import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
-import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
 import { Button } from "@/components/ui/button";
 import { 
   Users,
@@ -151,7 +150,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
-                  <p className="text-sm text-gray-600">النظام الجديد - Railway API</p>
+                  <p className="text-sm text-gray-600">فريق التسويق الذكي المتكامل</p>
                 </div>
               </div>
 
@@ -203,16 +202,11 @@ const Dashboard = () => {
             {/* Page Title */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                لوحة تحكم Morvo AI الجديدة
+                {activeTab} - يخطط الرؤية ويحدد أولويات الميزانيات
               </h2>
               <p className="text-gray-600 text-lg">
-                نظام متطور مع تكامل Railway API
+                قائد حكيم وخبير استراتيجي يفكر بعقلية الرئيس التنفيذي
               </p>
-            </div>
-
-            {/* Agent Status Dashboard */}
-            <div className="mb-8">
-              <AgentStatusDashboard />
             </div>
 
             {/* Metrics Overview */}
@@ -223,33 +217,28 @@ const Dashboard = () => {
             {/* Charts Section */}
             <div className="mb-8">
               <h3 className="text-xl font-bold text-blue-600 mb-4">
-                المؤشرات الاستراتيجية - {activeTab}
+                المؤشرات الاستراتيجية - الاستراتيجي
               </h3>
               <p className="text-gray-600 mb-6">
-                مؤشرات الأداء مع التكامل الجديد
+                مؤشرات الأداء الاستراتيجي وتوزيع الميزانيات
               </p>
               <ChartsSection selectedManager="strategic" />
             </div>
 
-            {/* API Status Message */}
-            <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+            {/* Welcome Message */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">
-                    🚀 تم تفعيل النظام الجديد بنجاح!
+                    مرحباً! أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo.
                   </h4>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    يستخدم النظام الآن Railway Production API مع 5 وكلاء ذكيين متخصصين. 
-                    جميع المحادثات والتحليلات تتم عبر الخوادم الجديدة المحسّنة.
+                    مرحباً أنا جزء من فريق التسويق الذكي المتكامل في منصة Morvo. إنشاء المخططات والتحليلات ووسائل التواصل الاجتماعي، والصور تحدث مع أي من فريقنا الخبير المتخصصين
                   </p>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• API Base: https://morvo-production.up.railway.app</div>
-                    <div>• WebSocket: متاح للمحادثات المباشرة</div>
-                    <div>• SEO Audit: متاح للتحليلات المتقدمة</div>
-                  </div>
+                  <p className="text-xs text-gray-500">11:47 ص</p>
                 </div>
               </div>
             </div>
