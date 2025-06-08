@@ -15,6 +15,36 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Handle URL fragments (password reset tokens)
+    const handleAuthFragment = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      if (accessToken && refreshToken && type === 'recovery') {
+        // Set the session with the tokens from URL
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error('Error setting session:', error);
+            toast.error('خطأ في استعادة كلمة المرور');
+          } else {
+            console.log('Password reset session set successfully');
+            toast.success('تم تسجيل الدخول بنجاح! يمكنك الآن تغيير كلمة المرور');
+            // Clear the URL fragment
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate('/dashboard');
+          }
+        });
+      }
+    };
+
+    // Check for auth fragments first
+    handleAuthFragment();
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -23,10 +53,14 @@ const Auth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Redirect authenticated users to dashboard
-        if (session?.user) {
+        // Handle different auth events
+        if (event === 'SIGNED_IN' && session?.user) {
           toast.success('تم تسجيل الدخول بنجاح!');
           navigate('/dashboard');
+        } else if (event === 'PASSWORD_RECOVERY') {
+          toast.success('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني');
+        } else if (event === 'USER_UPDATED') {
+          toast.success('تم تحديث بياناتك بنجاح');
         }
       }
     );
@@ -63,6 +97,12 @@ const Auth = () => {
     navigate('/dashboard');
     return null;
   }
+
+  // Get the correct redirect URL for this environment
+  const getRedirectUrl = () => {
+    // Use the current window location origin (works for both localhost and deployed URLs)
+    return `${window.location.origin}/dashboard`;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 py-6 flex flex-col justify-center sm:py-12">
@@ -106,7 +146,7 @@ const Auth = () => {
               }
             }} 
             providers={[]}
-            redirectTo={`${window.location.origin}/dashboard`}
+            redirectTo={getRedirectUrl()}
             localization={{
               variables: {
                 sign_in: {
@@ -122,6 +162,20 @@ const Auth = () => {
                   button_label: 'إنشاء حساب',
                   loading_button_label: 'جاري إنشاء الحساب...',
                   link_text: 'ليس لديك حساب؟ أنشئ حساباً جديداً'
+                },
+                forgotten_password: {
+                  email_label: 'البريد الإلكتروني',
+                  password_label: 'كلمة المرور',
+                  button_label: 'إرسال تعليمات الاستعادة',
+                  loading_button_label: 'جاري الإرسال...',
+                  link_text: 'نسيت كلمة المرور؟',
+                  confirmation_text: 'تحقق من بريدك الإلكتروني لرابط استعادة كلمة المرور'
+                },
+                update_password: {
+                  password_label: 'كلمة المرور الجديدة',
+                  password_confirmation_label: 'تأكيد كلمة المرور',
+                  button_label: 'تحديث كلمة المرور',
+                  loading_button_label: 'جاري التحديث...'
                 }
               }
             }}
