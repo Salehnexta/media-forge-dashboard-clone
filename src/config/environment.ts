@@ -57,18 +57,18 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
   return value;
 };
 
-// Environment configuration with Railway Production URLs
+// Environment configuration - Now reads from environment variables
 export const environment: MorvoEnvironment = {
   // Core API Configuration
   openaiApiKey: getEnvVar('OPENAI_API_KEY', ''),
   apiKey: getEnvVar('MORVO_API_KEY', 'morvo-production-key'),
   apiKeyHeader: getEnvVar('API_KEY_HEADER', 'X-API-Key'),
   
-  // Supabase Configuration
-  supabaseUrl: getEnvVar('SUPABASE_URL', 'https://teniefzxdikestahndur.supabase.co'),
-  supabaseAnonKey: getEnvVar('SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjI2NTIsImV4cCI6MjA2NDE5ODY1Mn0.k5eor_-j2aTheb1q6OhGK8DWGjucRWK11eFAOpAZP3I'),
+  // Supabase Configuration - Read from environment variables
+  supabaseUrl: getEnvVar('SUPABASE_URL', ''),
+  supabaseAnonKey: getEnvVar('SUPABASE_ANON_KEY', ''),
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ''),
-  supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', 'teniefzxdikestahndur'),
+  supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', ''),
   supabaseAccessToken: getEnvVar('SUPABASE_ACCESS_TOKEN', ''),
   
   // Railway Production URLs - Direct Production Connection
