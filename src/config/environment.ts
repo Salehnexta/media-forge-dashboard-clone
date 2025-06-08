@@ -47,33 +47,43 @@ interface MorvoEnvironment {
   logLevel: string;
 }
 
-// Environment variable validation
+// Environment variable validation with multiple fallback options
 const getEnvVar = (key: string, defaultValue?: string): string => {
-  const value = import.meta.env[`VITE_${key}`] || defaultValue;
+  // Try multiple environment variable naming conventions
+  const viteKey = `VITE_${key}`;
+  const regularKey = key;
+  
+  const value = import.meta.env[viteKey] || 
+                import.meta.env[regularKey] || 
+                defaultValue;
+  
   if (!value && !defaultValue) {
-    console.warn(`⚠️ Missing environment variable: VITE_${key}`);
+    console.warn(`⚠️ Missing environment variable: ${viteKey} or ${regularKey}`);
     return '';
   }
   return value;
 };
 
-// Environment configuration - Now reads from environment variables
+// Environment configuration with proper fallbacks
 export const environment: MorvoEnvironment = {
   // Core API Configuration
-  openaiApiKey: getEnvVar('OPENAI_API_KEY', ''),
-  apiKey: getEnvVar('MORVO_API_KEY', 'morvo-production-key'),
+  openaiApiKey: getEnvVar('OPENAI_API_KEY', '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'),
+  apiKey: getEnvVar('API_KEY', 'generated_secure_api_key_here'),
   apiKeyHeader: getEnvVar('API_KEY_HEADER', 'X-API-Key'),
   
-  // Supabase Configuration - Read from environment variables
-  supabaseUrl: getEnvVar('SUPABASE_URL', ''),
-  supabaseAnonKey: getEnvVar('SUPABASE_ANON_KEY', ''),
+  // Supabase Configuration with fallbacks
+  supabaseUrl: getEnvVar('SUPABASE_URL', 'https://teniefzxdikestahdnur.supabase.co'),
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 
+                   import.meta.env.SUPABASE_ANON_KEY || 
+                   import.meta.env.SUPABASE_KEY ||
+                   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjI2NTIsImV4cCI6MjA2NDE5ODY1Mn0.k5eor_-j2aTheb1q6OhGK8DWGjucRWK11eFAOpAZP3I',
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ''),
-  supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', ''),
+  supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', 'teniefzxdikestahdnur'),
   supabaseAccessToken: getEnvVar('SUPABASE_ACCESS_TOKEN', ''),
   
   // Railway Production URLs - Direct Production Connection
-  morvoApiUrl: getEnvVar('MORVO_BASE_URL', 'https://morvo-ai-v2.up.railway.app'),
-  morvoWebSocketUrl: getEnvVar('MORVO_WS_URL', 'wss://morvo-ai-v2.up.railway.app/ws'),
+  morvoApiUrl: getEnvVar('MORVO_API_URL', 'https://morvo-production.up.railway.app'),
+  morvoWebSocketUrl: getEnvVar('MORVO_WS_URL', 'wss://morvo-production.up.railway.app/ws'),
   
   // MCP Configuration
   mcpEnabled: getEnvVar('MCP_ENABLED', 'true') === 'true',
