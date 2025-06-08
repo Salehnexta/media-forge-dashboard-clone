@@ -173,7 +173,6 @@ const Auth = () => {
                 },
                 update_password: {
                   password_label: 'كلمة المرور الجديدة',
-                  password_confirmation_label: 'تأكيد كلمة المرور',
                   button_label: 'تحديث كلمة المرور',
                   loading_button_label: 'جاري التحديث...'
                 }
