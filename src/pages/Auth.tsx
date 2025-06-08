@@ -1,60 +1,20 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Auth as SupabaseAuth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { User, Session } from '@supabase/supabase-js';
-import { OnboardingSystem } from '@/components/auth/OnboardingSystem';
 import { toast } from 'sonner';
+import { Brain } from 'lucide-react';
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    // Handle email verification from URL fragments
-    const handleEmailVerification = async () => {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const type = hashParams.get('type');
-
-      if (accessToken && refreshToken && type === 'signup') {
-        setVerifying(true);
-        console.log('Processing email verification...');
-        
-        try {
-          // Set the session with the tokens from the URL
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (error) {
-            console.error('Error setting session:', error);
-            toast.error('خطأ في تأكيد البريد الإلكتروني');
-          } else if (data.session) {
-            console.log('Email verified successfully');
-            toast.success('تم تأكيد البريد الإلكتروني بنجاح!');
-            // Clear the URL hash
-            window.history.replaceState(null, '', window.location.pathname);
-            navigate('/dashboard');
-            return;
-          }
-        } catch (error) {
-          console.error('Verification error:', error);
-          toast.error('حدث خطأ أثناء التحقق من البريد الإلكتروني');
-        } finally {
-          setVerifying(false);
-        }
-      }
-    };
-
-    handleEmailVerification();
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -64,7 +24,8 @@ const Auth = () => {
         setLoading(false);
         
         // Redirect authenticated users to dashboard
-        if (session?.user && !verifying) {
+        if (session?.user) {
+          toast.success('تم تسجيل الدخول بنجاح!');
           navigate('/dashboard');
         }
       }
@@ -76,30 +37,99 @@ const Auth = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      if (session?.user && !verifying) {
+      if (session?.user) {
         navigate('/dashboard');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, location.hash, verifying]);
+  }, [navigate]);
 
-  if (loading || verifying) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="text-white font-bold text-xl">M</span>
+            <Brain className="w-8 h-8 text-white" />
           </div>
-          <p className="text-gray-600">
-            {verifying ? 'جاري تأكيد البريد الإلكتروني...' : 'جاري التحميل...'}
-          </p>
+          <p className="text-gray-600">جاري التحميل...</p>
         </div>
       </div>
     );
   }
 
-  return <OnboardingSystem />;
+  if (user) {
+    // User is already authenticated, redirect to dashboard
+    navigate('/dashboard');
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 py-6 flex flex-col justify-center sm:py-12">
+      <div className="relative py-3 sm:max-w-md sm:mx-auto w-full">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Brain className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              مورفو AI
+            </h1>
+            <p className="text-gray-600 mt-2">منصة التسويق الذكي</p>
+          </div>
+          
+          <SupabaseAuth 
+            supabaseClient={supabase} 
+            appearance={{ 
+              theme: ThemeSupa,
+              style: {
+                button: {
+                  background: 'linear-gradient(to right, #2563eb, #7c3aed)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: '600'
+                },
+                input: {
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  padding: '12px 16px',
+                  fontSize: '16px'
+                },
+                message: {
+                  borderRadius: '8px',
+                  padding: '12px',
+                  marginBottom: '16px'
+                }
+              }
+            }} 
+            providers={[]}
+            redirectTo={`${window.location.origin}/dashboard`}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'البريد الإلكتروني',
+                  password_label: 'كلمة المرور',
+                  button_label: 'تسجيل الدخول',
+                  loading_button_label: 'جاري تسجيل الدخول...',
+                  link_text: 'هل لديك حساب؟ سجل دخولك'
+                },
+                sign_up: {
+                  email_label: 'البريد الإلكتروني',
+                  password_label: 'كلمة المرور',
+                  button_label: 'إنشاء حساب',
+                  loading_button_label: 'جاري إنشاء الحساب...',
+                  link_text: 'ليس لديك حساب؟ أنشئ حساباً جديداً'
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Auth;

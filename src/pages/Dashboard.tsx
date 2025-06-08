@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
@@ -26,35 +25,45 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('استراتيجي');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-  }, [])
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      setIsLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Dashboard auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
         setIsLoading(false);
+        
+        // Redirect to auth if no session
+        if (!session) {
+          navigate('/auth');
+        }
       }
-    };
+    );
 
-    fetchUser();
-  }, [session]);
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+      
+      if (!session) {
+        navigate('/auth');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   if (isLoading) {
@@ -68,47 +77,10 @@ const Dashboard = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 py-6 flex flex-col justify-center sm:py-12">
-        <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-          <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Brain className="w-10 h-10 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">مورفو AI</h1>
-              <p className="text-gray-600 mt-2">منصة التسويق الذكي</p>
-            </div>
-            <Auth 
-              supabaseClient={supabase} 
-              appearance={{ 
-                theme: ThemeSupa,
-                style: {
-                  button: {
-                    background: 'linear-gradient(to right, #2563eb, #7c3aed)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    fontWeight: '600'
-                  },
-                  input: {
-                    borderRadius: '12px',
-                    border: '2px solid #e5e7eb',
-                    padding: '12px 16px',
-                    fontSize: '16px'
-                  }
-                }
-              }} 
-              providers={['google']} 
-              redirectTo={window.location.origin}
-            />
-          </div>
-        </div>
-      </div>
-    );
+  if (!user || !session) {
+    // Redirect to auth page if not authenticated
+    navigate('/auth');
+    return null;
   }
 
   const tabs = [
@@ -132,8 +104,8 @@ const Dashboard = () => {
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
-                  <p className="text-sm text-gray-600">النظام المحلي - Supabase فقط</p>
+                  <h1 className="text-xl font-bold text-gray-900">منصة مورفو</h1>
+                  <p className="text-sm text-gray-600">مرحباً، {user?.email}</p>
                 </div>
               </div>
 
@@ -185,10 +157,10 @@ const Dashboard = () => {
             {/* Page Title */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                لوحة تحكم Morvo AI - الوضع المحلي
+                لوحة تحكم مورفو AI
               </h2>
               <p className="text-gray-600 text-lg">
-                نظام متطور مع تكامل Supabase فقط
+                نظام التسويق الذكي مع Supabase
               </p>
             </div>
 
@@ -214,23 +186,23 @@ const Dashboard = () => {
             </div>
 
             {/* Status Message */}
-            <div className="rounded-xl p-6 border bg-blue-50 border-blue-200">
+            <div className="rounded-xl p-6 border bg-green-50 border-green-200">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-600">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-green-600">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">
-                    ✅ النظام يعمل بالوضع المحلي بنجاح!
+                    ✅ تم تسجيل الدخول بنجاح!
                   </h4>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    النظام متصل مع قاعدة بيانات Supabase ويعمل بكامل طاقته محلياً. جميع البيانات محفوظة بأمان في قاعدة البيانات وجاهزة للاستخدام.
+                    مرحباً بك في منصة مورفو AI. النظام متصل مع قاعدة بيانات Supabase ويعمل بكامل طاقته.
                   </p>
                   <div className="text-xs text-gray-500 space-y-1">
-                    <div>• Database: Supabase (متصل)</div>
-                    <div>• Authentication: Supabase Auth (متاح)</div>
-                    <div>• Data Storage: محلي وآمن</div>
-                    <div>• Chat System: محلي مع حفظ المحادثات</div>
+                    <div>• المستخدم: {user?.email}</div>
+                    <div>• قاعدة البيانات: Supabase (متصل)</div>
+                    <div>• الحفظ: آمن ومحمي</div>
+                    <div>• النظام: جاهز للاستخدام</div>
                   </div>
                 </div>
               </div>
