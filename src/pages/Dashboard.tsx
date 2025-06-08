@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
@@ -14,7 +13,7 @@ import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitCont
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
 import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
-import { morvoApiService } from '@/services/MorvoApiService';
+import { supabaseOnlyService } from '@/services/SupabaseOnlyService';
 import { Button } from "@/components/ui/button";
 import { 
   Users,
@@ -34,7 +33,7 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('استراتيجي');
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'online' | 'fallback' | 'offline'>('checking');
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'local' | 'ready'>('checking');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,9 +52,9 @@ const Dashboard = () => {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
         
-        // Check connection status after user is loaded
+        // Check local connection status
         if (user) {
-          checkConnectionStatus();
+          checkLocalConnection();
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -67,21 +66,19 @@ const Dashboard = () => {
     fetchUser();
   }, [session]);
 
-  const checkConnectionStatus = async () => {
+  const checkLocalConnection = async () => {
     try {
       setConnectionStatus('checking');
-      const health = await morvoApiService.checkHealth();
+      const health = await supabaseOnlyService.checkHealth();
       
-      if (health.status === 'fallback') {
-        setConnectionStatus('fallback');
-      } else if (health.status === 'online' || health.status === 'OK') {
-        setConnectionStatus('online');
+      if (health.mode === 'local') {
+        setConnectionStatus('local');
       } else {
-        setConnectionStatus('offline');
+        setConnectionStatus('ready');
       }
     } catch (error) {
       console.error('Connection check failed:', error);
-      setConnectionStatus('fallback');
+      setConnectionStatus('local');
     }
   };
 
@@ -95,9 +92,8 @@ const Dashboard = () => {
     await supabase.auth.signOut();
   };
 
-  const handleRetryConnection = async () => {
-    morvoApiService.resetFallbackMode();
-    await checkConnectionStatus();
+  const handleRefreshConnection = async () => {
+    await checkLocalConnection();
   };
 
   if (isLoading) {
@@ -164,31 +160,18 @@ const Dashboard = () => {
 
   const getConnectionStatusBadge = () => {
     switch (connectionStatus) {
-      case 'online':
+      case 'local':
+        return (
+          <div className="flex items-center gap-2 text-blue-600">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">وضع محلي</span>
+          </div>
+        );
+      case 'ready':
         return (
           <div className="flex items-center gap-2 text-green-600">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-sm">متصل</span>
-          </div>
-        );
-      case 'fallback':
-        return (
-          <div className="flex items-center gap-2 text-yellow-600">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <span className="text-sm">وضع محلي</span>
-            <Button onClick={handleRetryConnection} variant="ghost" size="sm" className="text-xs">
-              إعادة المحاولة
-            </Button>
-          </div>
-        );
-      case 'offline':
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <span className="text-sm">غير متصل</span>
-            <Button onClick={handleRetryConnection} variant="ghost" size="sm" className="text-xs">
-              إعادة المحاولة
-            </Button>
           </div>
         );
       default:
@@ -218,7 +201,7 @@ const Dashboard = () => {
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-600">النظام الجديد - Railway API</p>
+                    <p className="text-sm text-gray-600">النظام المحلي - Supabase فقط</p>
                     {getConnectionStatusBadge()}
                   </div>
                 </div>
@@ -267,35 +250,15 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Connection Status Alert */}
-          {connectionStatus === 'fallback' && (
-            <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Bell className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-yellow-800 font-medium">النظام يعمل في الوضع المحلي</p>
-                    <p className="text-yellow-600 text-sm">بعض الميزات قد تكون محدودة</p>
-                  </div>
-                </div>
-                <Button onClick={handleRetryConnection} variant="outline" size="sm">
-                  إعادة الاتصال
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-6">
             {/* Page Title */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                لوحة تحكم Morvo AI الجديدة
+                لوحة تحكم Morvo AI - الوضع المحلي
               </h2>
               <p className="text-gray-600 text-lg">
-                نظام متطور مع تكامل Railway API
+                نظام متطور مع تكامل Supabase فقط
               </p>
             </div>
 
@@ -315,50 +278,29 @@ const Dashboard = () => {
                 المؤشرات الاستراتيجية - {activeTab}
               </h3>
               <p className="text-gray-600 mb-6">
-                مؤشرات الأداء مع التكامل الجديد
+                مؤشرات الأداء مع البيانات المحلية
               </p>
               <ChartsSection selectedManager="strategic" />
             </div>
 
-            {/* Updated API Status Message */}
-            <div className={`rounded-xl p-6 border ${
-              connectionStatus === 'online' 
-                ? 'bg-green-50 border-green-200' 
-                : connectionStatus === 'fallback'
-                ? 'bg-yellow-50 border-yellow-200'
-                : 'bg-red-50 border-red-200'
-            }`}>
+            {/* Status Message */}
+            <div className="rounded-xl p-6 border bg-blue-50 border-blue-200">
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  connectionStatus === 'online'
-                    ? 'bg-green-600'
-                    : connectionStatus === 'fallback'
-                    ? 'bg-yellow-600'
-                    : 'bg-red-600'
-                }`}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-600">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">
-                    {connectionStatus === 'online' && '🚀 تم تفعيل النظام الجديد بنجاح!'}
-                    {connectionStatus === 'fallback' && '⚠️ النظام يعمل في الوضع المحلي'}
-                    {connectionStatus === 'offline' && '❌ النظام غير متصل حالياً'}
+                    ✅ النظام يعمل بالوضع المحلي بنجاح!
                   </h4>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    {connectionStatus === 'online' && 
-                      'يستخدم النظام الآن Railway Production API مع 5 وكلاء ذكيين متخصصين. جميع المحادثات والتحليلات تتم عبر الخوادم الجديدة المحسّنة.'
-                    }
-                    {connectionStatus === 'fallback' && 
-                      'النظام متاح مع البيانات المحلية. يمكنك استخدام الميزات الأساسية مع إمكانية محدودة للاتصال بالخوادم الخارجية.'
-                    }
-                    {connectionStatus === 'offline' && 
-                      'لا يمكن الاتصال بالخوادم حالياً. يرجى التحقق من الاتصال بالإنترنت وإعادة المحاولة.'
-                    }
+                    النظام متصل مع قاعدة بيانات Supabase ويعمل بكامل طاقته محلياً. جميع البيانات محفوظة بأمان في قاعدة البيانات وجاهزة للاستخدام.
                   </p>
                   <div className="text-xs text-gray-500 space-y-1">
-                    <div>• API Base: https://morvo-production.up.railway.app</div>
-                    <div>• WebSocket: {connectionStatus === 'online' ? 'متاح للمحادثات المباشرة' : 'غير متاح'}</div>
-                    <div>• SEO Audit: {connectionStatus === 'online' ? 'متاح للتحليلات المتقدمة' : 'وضع محلي'}</div>
+                    <div>• Database: Supabase (متصل)</div>
+                    <div>• Authentication: Supabase Auth (متاح)</div>
+                    <div>• Data Storage: محلي وآمن</div>
+                    <div>• Chat System: محلي مع حفظ المحادثات</div>
                   </div>
                 </div>
               </div>
