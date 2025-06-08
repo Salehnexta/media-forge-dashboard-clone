@@ -76,7 +76,7 @@ export const environment: MorvoEnvironment = {
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 
                    import.meta.env.SUPABASE_ANON_KEY || 
                    import.meta.env.SUPABASE_KEY ||
-                   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjI2NTIsImV4cCI6MjA2NDE5ODY1Mn0.k5eor_-j2aTheb1q6OhGK8DWGjucRWK11eFAOpAZP3I',
+                   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMDczMjcsImV4cCI6MjA2NDg4MzMyN30.9-WD35_UTe4_nBLMxZaSNS-VWfZit5ORUI6jahEYQUM',
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ''),
   supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', 'teniefzxdikestahdnur'),
   supabaseAccessToken: getEnvVar('SUPABASE_ACCESS_TOKEN', ''),
