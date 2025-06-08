@@ -1,19 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout';
-import { AgentManager } from '@/components/dashboard/AgentManager';
-import { CampaignBuilder } from '@/components/dashboard/CampaignBuilder';
-import { IntegrationManager } from '@/components/dashboard/IntegrationManager';
-import { AssetLibrary } from '@/components/dashboard/AssetLibrary';
-import { WebhookListener } from '@/components/railway/WebhookListener';
-import { useChatControlledDashboard } from "@/hooks/useChatControlledDashboard";
 import { DashboardSplitContent } from '@/components/dashboard/DashboardSplitContent';
 import { MetricsOverview } from '@/components/morvo/MetricsOverview';
 import { ChartsSection } from '@/components/morvo/ChartsSection';
 import { AgentStatusDashboard } from '@/components/morvo/AgentStatusDashboard';
-import { supabaseOnlyService } from '@/services/SupabaseOnlyService';
 import { Button } from "@/components/ui/button";
 import { 
   Users,
@@ -33,7 +26,6 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('استراتيجي');
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'local' | 'ready'>('checking');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,11 +43,6 @@ const Dashboard = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
-        
-        // Check local connection status
-        if (user) {
-          checkLocalConnection();
-        }
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -66,34 +53,8 @@ const Dashboard = () => {
     fetchUser();
   }, [session]);
 
-  const checkLocalConnection = async () => {
-    try {
-      setConnectionStatus('checking');
-      const health = await supabaseOnlyService.checkHealth();
-      
-      if (health.mode === 'local') {
-        setConnectionStatus('local');
-      } else {
-        setConnectionStatus('ready');
-      }
-    } catch (error) {
-      console.error('Connection check failed:', error);
-      setConnectionStatus('local');
-    }
-  };
-
-  const {
-    dashboardState,
-    handleChatCommand,
-    updateActiveTab
-  } = useChatControlledDashboard();
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-  };
-
-  const handleRefreshConnection = async () => {
-    await checkLocalConnection();
   };
 
   if (isLoading) {
@@ -158,36 +119,8 @@ const Dashboard = () => {
     { id: 'تحليلات', label: 'تحليلات', icon: BarChart3 }
   ];
 
-  const getConnectionStatusBadge = () => {
-    switch (connectionStatus) {
-      case 'local':
-        return (
-          <div className="flex items-center gap-2 text-blue-600">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">وضع محلي</span>
-          </div>
-        );
-      case 'ready':
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">متصل</span>
-          </div>
-        );
-      default:
-        return (
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">جاري التحقق...</span>
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
-      <WebhookListener />
-      
       <DashboardSplitContent>
         <div className="h-full flex flex-col">
           {/* Top Header */}
@@ -200,10 +133,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-gray-600">النظام المحلي - Supabase فقط</p>
-                    {getConnectionStatusBadge()}
-                  </div>
+                  <p className="text-sm text-gray-600">النظام المحلي - Supabase فقط</p>
                 </div>
               </div>
 
