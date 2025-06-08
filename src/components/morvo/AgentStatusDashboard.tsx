@@ -12,6 +12,7 @@ export const AgentStatusDashboard = () => {
   const [agents, setAgents] = useState<AgentStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
 
   const fetchAgentStatus = async () => {
     try {
@@ -19,8 +20,14 @@ export const AgentStatusDashboard = () => {
       const agentData = await morvoApiService.getAgentStatus();
       setAgents(agentData);
       setLastUpdated(new Date());
+      setIsFallbackMode(morvoApiService.isInFallbackMode());
+      
+      if (morvoApiService.isInFallbackMode()) {
+        toast.warning('عرض البيانات المحلية - الخادم غير متاح');
+      }
     } catch (error) {
       console.error('Failed to fetch agent status:', error);
+      setIsFallbackMode(true);
       toast.error('فشل في تحديث حالة الوكلاء');
     } finally {
       setIsLoading(false);
@@ -65,7 +72,14 @@ export const AgentStatusDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">حالة الوكلاء الذكيين</h2>
-          <p className="text-gray-600">مراقبة الوكلاء في الوقت الفعلي</p>
+          <div className="flex items-center gap-2">
+            <p className="text-gray-600">مراقبة الوكلاء في الوقت الفعلي</p>
+            {isFallbackMode && (
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                وضع محلي
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {lastUpdated && (
@@ -99,12 +113,14 @@ export const AgentStatusDashboard = () => {
                 <div className="flex items-center justify-between">
                   <div className="text-2xl">{agentInfo.emoji}</div>
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(agent.status)} animate-pulse`} />
+                    <div className={`w-2 h-2 rounded-full ${getStatusColor(agent.status)} ${
+                      !isFallbackMode ? 'animate-pulse' : ''
+                    }`} />
                     <Badge 
                       variant={agent.status === 'online' ? 'default' : 'secondary'}
                       className="text-xs"
                     >
-                      {getStatusText(agent.status)}
+                      {isFallbackMode ? 'محلي' : getStatusText(agent.status)}
                     </Badge>
                   </div>
                 </div>
@@ -132,10 +148,10 @@ export const AgentStatusDashboard = () => {
                   <Button
                     size="sm"
                     className={`w-full bg-gradient-to-r ${agentInfo.color} hover:opacity-90 text-white text-xs`}
-                    disabled={agent.status !== 'online'}
+                    disabled={agent.status !== 'online' || isFallbackMode}
                   >
                     <User className="w-3 h-3 ml-1" />
-                    تحدث مع {agent.agent_id.toUpperCase()}
+                    {isFallbackMode ? 'غير متاح' : `تحدث مع ${agent.agent_id.toUpperCase()}`}
                   </Button>
                 </div>
               </CardContent>

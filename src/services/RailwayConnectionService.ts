@@ -8,17 +8,20 @@ export interface RailwayConnectionStatus {
   lastChecked: Date;
   errorMessage?: string;
   latency?: number;
+  fallbackMode?: boolean;
 }
 
 export class RailwayConnectionService {
   private static instance: RailwayConnectionService;
-  private railwayBaseUrl = 'https://crewai-production-d99a.up.railway.app:8000';
-  private websocketUrl = 'wss://crewai-production-d99a.up.railway.app:8000/ws';
+  private railwayBaseUrl = 'https://morvo-production.up.railway.app';
+  private websocketUrl = 'wss://morvo-production.up.railway.app/ws';
+  private fallbackMode = false;
   private status: RailwayConnectionStatus = {
     isOnline: false,
     httpReachable: false,
     websocketSupported: typeof WebSocket !== 'undefined',
-    lastChecked: new Date()
+    lastChecked: new Date(),
+    fallbackMode: false
   };
 
   static getInstance(): RailwayConnectionService {
@@ -41,7 +44,8 @@ export class RailwayConnectionService {
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-API-Key': 'fallback-development-key'
         }
       });
       
@@ -49,17 +53,31 @@ export class RailwayConnectionService {
       const latency = Date.now() - startTime;
       
       if (response.ok) {
+        this.fallbackMode = false;
         this.status = {
           isOnline: true,
           httpReachable: true,
           websocketSupported: typeof WebSocket !== 'undefined',
           lastChecked: new Date(),
-          latency
+          latency,
+          fallbackMode: false
         };
         
         // Test WebSocket connection if HTTP is working
         await this.testWebSocketConnection();
         
+      } else if (response.status === 401 || response.status === 403) {
+        // API key error - enable fallback mode
+        this.fallbackMode = true;
+        this.status = {
+          isOnline: false,
+          httpReachable: false,
+          websocketSupported: typeof WebSocket !== 'undefined',
+          lastChecked: new Date(),
+          errorMessage: 'API key authentication failed - using fallback mode',
+          latency,
+          fallbackMode: true
+        };
       } else {
         this.status = {
           isOnline: false,
@@ -67,17 +85,20 @@ export class RailwayConnectionService {
           websocketSupported: typeof WebSocket !== 'undefined',
           lastChecked: new Date(),
           errorMessage: `HTTP ${response.status}: ${response.statusText}`,
-          latency
+          latency,
+          fallbackMode: this.fallbackMode
         };
       }
       
     } catch (error: any) {
+      this.fallbackMode = true;
       this.status = {
         isOnline: false,
         httpReachable: false,
         websocketSupported: typeof WebSocket !== 'undefined',
         lastChecked: new Date(),
-        errorMessage: this.parseConnectionError(error)
+        errorMessage: this.parseConnectionError(error),
+        fallbackMode: true
       };
     }
     
@@ -131,12 +152,19 @@ export class RailwayConnectionService {
     return this.status;
   }
 
+  isInFallbackMode(): boolean {
+    return this.fallbackMode;
+  }
+
   async forceReconnect(): Promise<RailwayConnectionStatus> {
+    this.fallbackMode = false; // Reset fallback mode
     toast.info('جاري فحص الاتصال...');
     const status = await this.checkRailwayHealth();
     
     if (status.isOnline) {
       toast.success('تم الاتصال بالخادم بنجاح');
+    } else if (status.fallbackMode) {
+      toast.warning('يعمل النظام في الوضع المحلي');
     } else {
       toast.error(`فشل الاتصال: ${status.errorMessage}`);
     }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Auth } from '@supabase/auth-ui-react';
@@ -33,6 +32,7 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('استراتيجي');
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'online' | 'fallback' | 'offline'>('checking');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -50,6 +50,11 @@ const Dashboard = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
+        
+        // Check connection status after user is loaded
+        if (user) {
+          checkConnectionStatus();
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -60,6 +65,24 @@ const Dashboard = () => {
     fetchUser();
   }, [session]);
 
+  const checkConnectionStatus = async () => {
+    try {
+      setConnectionStatus('checking');
+      const health = await morvoApiService.checkHealth();
+      
+      if (health.status === 'fallback') {
+        setConnectionStatus('fallback');
+      } else if (health.status === 'online' || health.status === 'OK') {
+        setConnectionStatus('online');
+      } else {
+        setConnectionStatus('offline');
+      }
+    } catch (error) {
+      console.error('Connection check failed:', error);
+      setConnectionStatus('fallback');
+    }
+  };
+
   const {
     dashboardState,
     handleChatCommand,
@@ -68,6 +91,11 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleRetryConnection = async () => {
+    morvoApiService.resetFallbackMode();
+    await checkConnectionStatus();
   };
 
   if (isLoading) {
@@ -132,6 +160,45 @@ const Dashboard = () => {
     { id: 'تحليلات', label: 'تحليلات', icon: BarChart3 }
   ];
 
+  const getConnectionStatusBadge = () => {
+    switch (connectionStatus) {
+      case 'online':
+        return (
+          <div className="flex items-center gap-2 text-green-600">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">متصل</span>
+          </div>
+        );
+      case 'fallback':
+        return (
+          <div className="flex items-center gap-2 text-yellow-600">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span className="text-sm">وضع محلي</span>
+            <Button onClick={handleRetryConnection} variant="ghost" size="sm" className="text-xs">
+              إعادة المحاولة
+            </Button>
+          </div>
+        );
+      case 'offline':
+        return (
+          <div className="flex items-center gap-2 text-red-600">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span className="text-sm">غير متصل</span>
+            <Button onClick={handleRetryConnection} variant="ghost" size="sm" className="text-xs">
+              إعادة المحاولة
+            </Button>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center gap-2 text-gray-600">
+            <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+            <span className="text-sm">جاري التحقق...</span>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       <WebhookListener />
@@ -148,7 +215,10 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Morvo منصة</h1>
-                  <p className="text-sm text-gray-600">النظام الجديد - Railway API</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-600">النظام الجديد - Railway API</p>
+                    {getConnectionStatusBadge()}
+                  </div>
                 </div>
               </div>
 
@@ -195,6 +265,26 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Connection Status Alert */}
+          {connectionStatus === 'fallback' && (
+            <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Bell className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-yellow-800 font-medium">النظام يعمل في الوضع المحلي</p>
+                    <p className="text-yellow-600 text-sm">بعض الميزات قد تكون محدودة</p>
+                  </div>
+                </div>
+                <Button onClick={handleRetryConnection} variant="outline" size="sm">
+                  إعادة الاتصال
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-6">
             {/* Page Title */}
@@ -228,24 +318,45 @@ const Dashboard = () => {
               <ChartsSection selectedManager="strategic" />
             </div>
 
-            {/* API Status Message */}
-            <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+            {/* Updated API Status Message */}
+            <div className={`rounded-xl p-6 border ${
+              connectionStatus === 'online' 
+                ? 'bg-green-50 border-green-200' 
+                : connectionStatus === 'fallback'
+                ? 'bg-yellow-50 border-yellow-200'
+                : 'bg-red-50 border-red-200'
+            }`}>
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  connectionStatus === 'online'
+                    ? 'bg-green-600'
+                    : connectionStatus === 'fallback'
+                    ? 'bg-yellow-600'
+                    : 'bg-red-600'
+                }`}>
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 mb-2">
-                    🚀 تم تفعيل النظام الجديد بنجاح!
+                    {connectionStatus === 'online' && '🚀 تم تفعيل النظام الجديد بنجاح!'}
+                    {connectionStatus === 'fallback' && '⚠️ النظام يعمل في الوضع المحلي'}
+                    {connectionStatus === 'offline' && '❌ النظام غير متصل حالياً'}
                   </h4>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    يستخدم النظام الآن Railway Production API مع 5 وكلاء ذكيين متخصصين. 
-                    جميع المحادثات والتحليلات تتم عبر الخوادم الجديدة المحسّنة.
+                    {connectionStatus === 'online' && 
+                      'يستخدم النظام الآن Railway Production API مع 5 وكلاء ذكيين متخصصين. جميع المحادثات والتحليلات تتم عبر الخوادم الجديدة المحسّنة.'
+                    }
+                    {connectionStatus === 'fallback' && 
+                      'النظام متاح مع البيانات المحلية. يمكنك استخدام الميزات الأساسية مع إمكانية محدودة للاتصال بالخوادم الخارجية.'
+                    }
+                    {connectionStatus === 'offline' && 
+                      'لا يمكن الاتصال بالخوادم حالياً. يرجى التحقق من الاتصال بالإنترنت وإعادة المحاولة.'
+                    }
                   </p>
                   <div className="text-xs text-gray-500 space-y-1">
                     <div>• API Base: https://morvo-production.up.railway.app</div>
-                    <div>• WebSocket: متاح للمحادثات المباشرة</div>
-                    <div>• SEO Audit: متاح للتحليلات المتقدمة</div>
+                    <div>• WebSocket: {connectionStatus === 'online' ? 'متاح للمحادثات المباشرة' : 'غير متاح'}</div>
+                    <div>• SEO Audit: {connectionStatus === 'online' ? 'متاح للتحليلات المتقدمة' : 'وضع محلي'}</div>
                   </div>
                 </div>
               </div>
