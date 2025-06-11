@@ -1,6 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MessageCircle, Hotel, Plane, MapPin, Send, Plus, Settings, User, Calendar, Search, Star, Clock, Navigation, Filter, Map, List, Brain } from 'lucide-react';
+
+import { ConversationalDashboard } from './ConversationalDashboard';
 
 interface Message {
   id: number;
@@ -9,7 +10,7 @@ interface Message {
 }
 
 export const TravelStyleDashboard = () => {
-  const [activeView, setActiveView] = useState('welcome');
+  const [currentView, setCurrentView] = useState<'conversational' | 'traditional'>('conversational');
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "مرحباً! أنا هنا لمساعدتك في التسويق الذكي. اسألني أي شيء عن الحملات، المحتوى، أو التحليلات.", sender: 'assistant' }
   ]);
@@ -30,7 +31,7 @@ export const TravelStyleDashboard = () => {
     } else if (lowerMessage.includes('سوشال') || lowerMessage.includes('تواصل') || lowerMessage.includes('social') || lowerMessage.includes('media')) {
       return 'social';
     }
-    return activeView;
+    return currentView;
   };
 
   // Generate contextual response based on user message
@@ -61,7 +62,7 @@ export const TravelStyleDashboard = () => {
       
       // Analyze message and change dashboard
       const newView = analyzeMessage(inputMessage);
-      setActiveView(newView);
+      setCurrentView(newView);
       
       // Show typing indicator
       setIsTyping(true);
@@ -81,8 +82,82 @@ export const TravelStyleDashboard = () => {
     }
   };
 
+  const renderHeader = () => (
+    <div className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">M</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">مورفو AI</h1>
+              <p className="text-xs text-gray-500">منصة التسويق الذكي</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* View Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setCurrentView('conversational')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-all ${
+                  currentView === 'conversational'
+                    ? 'bg-white text-blue-600 shadow-sm font-medium'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🤖 التفاعلي
+              </button>
+              <button
+                onClick={() => setCurrentView('traditional')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-all ${
+                  currentView === 'traditional'
+                    ? 'bg-white text-blue-600 shadow-sm font-medium'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                📊 التقليدي
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setInputMessage("أنشئ حملة تسويقية")}
+                className="px-6 py-3 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full border border-white border-opacity-30 hover:bg-opacity-30 transition-all duration-300"
+              >
+                + إنشاء حملة
+              </button>
+              <button 
+                onClick={() => setInputMessage("أعرض المحتوى")}
+                className="px-6 py-3 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full border border-white border-opacity-30 hover:bg-opacity-30 transition-all duration-300"
+              >
+                + إدارة المحتوى
+              </button>
+              <button 
+                onClick={() => setInputMessage("اعرض التحليلات")}
+                className="px-6 py-3 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full border border-white border-opacity-30 hover:bg-opacity-30 transition-all duration-300"
+              >
+                + عرض التحليلات
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (currentView === 'conversational') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {renderHeader()}
+        <ConversationalDashboard className="h-[calc(100vh-64px)]" />
+      </div>
+    );
+  }
+
   const renderDashboardContent = () => {
-    switch(activeView) {
+    switch(currentView) {
       case 'welcome':
         return (
           <div className="relative h-full">
@@ -609,7 +684,7 @@ export const TravelStyleDashboard = () => {
         </div>
         
         {/* Quick Suggestions */}
-        {activeView === 'welcome' && (
+        {currentView === 'welcome' && (
           <div className="p-4 border-t border-gray-200">
             <div className="flex flex-wrap gap-2 mb-4">
               <button 
