@@ -107,7 +107,7 @@ export const useRailwayIntegration = () => {
       if (!user) return;
 
       const { data: company } = await supabase
-        .from('companies')
+        .from('company_profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();

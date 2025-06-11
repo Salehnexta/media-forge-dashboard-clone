@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,9 @@ import { useRailwayIntegration, CompanyData } from '@/hooks/useRailwayIntegratio
 import { RailwayConnectionStatus } from './RailwayConnectionStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Play, CheckCircle, XCircle, Clock, Zap } from 'lucide-react';
-
 interface RailwayAgentPanelProps {
   className?: string;
 }
-
 export const RailwayAgentPanel = ({
   className
 }: RailwayAgentPanelProps) => {
@@ -44,15 +41,15 @@ export const RailwayAgentPanel = ({
         if (!user) return;
         const {
           data: companies
-        } = await supabase.from('companies').select('*').eq('user_id', user.id).limit(1);
+        } = await supabase.from('company_profiles').select('*').eq('user_id', user.id).limit(1);
         if (companies && companies.length > 0) {
           const company = companies[0];
           setCompanyData({
-            company_name: company.name,
+            company_name: company.company_name,
             industry: company.industry,
-            website_url: company.website,
-            description: company.description,
-            target_market: company.primary_markets || []
+            website_url: company.website_url,
+            description: company.company_description,
+            target_market: company.target_markets || []
           });
         }
       } catch (error) {
@@ -61,7 +58,6 @@ export const RailwayAgentPanel = ({
     };
     loadCompanyData();
   }, []);
-
   const handleExecute = async () => {
     if (!companyData || !railwayConnected) return;
     try {
@@ -70,7 +66,6 @@ export const RailwayAgentPanel = ({
       console.error('Agent execution failed:', error);
     }
   };
-
   const getStatusIcon = () => {
     switch (status) {
       case 'running':
@@ -83,7 +78,6 @@ export const RailwayAgentPanel = ({
         return <Play className="w-4 h-4 text-gray-600" />;
     }
   };
-
   const getStatusText = () => {
     switch (status) {
       case 'running':
@@ -96,13 +90,11 @@ export const RailwayAgentPanel = ({
         return 'جاهز للتشغيل';
     }
   };
-
   const formatEstimatedTime = (ms: number | null) => {
     if (!ms) return '';
     const seconds = Math.round(ms / 1000);
     return `~${seconds} ثانية`;
   };
-
   return <Card className={className}>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-bold flex items-center gap-2">

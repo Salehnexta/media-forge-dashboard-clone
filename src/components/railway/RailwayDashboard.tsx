@@ -25,18 +25,18 @@ export const RailwayDashboard = () => {
       if (!user) return;
 
       const { data: profile } = await supabase
-        .from('companies')
+        .from('company_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
       if (profile) {
         setCompanyData({
-          company_name: profile.name,
+          company_name: profile.company_name,
           industry: profile.industry,
-          website_url: profile.website || undefined,
-          description: profile.description || undefined,
-          target_market: profile.primary_markets || undefined
+          website_url: profile.website_url || undefined,
+          description: profile.company_description || undefined,
+          target_market: profile.target_markets || undefined
         });
       }
     } catch (error) {

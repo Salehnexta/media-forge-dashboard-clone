@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
 import { ContextualResponse } from '@/components/chat/types';
@@ -64,22 +63,22 @@ export const useChatLogic = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: company } = await supabase
-            .from('companies')
+            .from('company_profiles')
             .select('*')
             .eq('user_id', user.id)
             .maybeSingle();
           
           if (company) {
             return {
-              text: `بناءً على بيانات ملفك الشخصي، اسم شركتك هو: **${company.name}**
+              text: `بناءً على بيانات ملفك الشخصي، اسم شركتك هو: **${company.company_name}**
 
 🏢 **تفاصيل الشركة:**
-- **الصناعة**: ${company.industry || 'غير محدد'}
-- **الموقع الإلكتروني**: ${company.website || 'غير محدد'}
-- **الوصف**: ${company.description || 'غير محدد'}
-- **السوق المستهدف**: ${company.primary_markets?.join(', ') || 'غير محدد'}
-- **حجم الشركة**: ${company.size || 'غير محدد'}
-- **سنوات العمل**: ${company.founded || 'غير محدد'}
+- **الصناعة**: ${company.industry}
+- **الموقع الإلكتروني**: ${company.website_url || 'غير محدد'}
+- **الوصف**: ${company.company_description || 'غير محدد'}
+- **السوق المستهدف**: ${company.target_markets?.join(', ') || 'غير محدد'}
+- **حجم الشركة**: ${company.company_size} موظف
+- **سنوات العمل**: ${company.years_in_business || 'غير محدد'} سنة
 
 هل تريد تحديث أي من هذه المعلومات أو تحتاج تحليل استراتيجي للشركة؟`,
               actionButton: {
