@@ -73,9 +73,9 @@ export const IntegrationTest = () => {
       const startTime2 = Date.now();
       
       try {
-        // Test if we can access company_profiles with RLS
+        // Test if we can access companies with RLS
         const { data: companyTest } = await supabase
-          .from('company_profiles')
+          .from('companies')
           .select('id')
           .limit(1);
         
