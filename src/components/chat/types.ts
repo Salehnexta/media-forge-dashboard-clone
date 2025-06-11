@@ -8,6 +8,11 @@ export interface ContextualResponse {
     action: () => void;
   };
   shareWithAgents?: AIManager[];
+  stepData?: {
+    step: number;
+    field: string;
+    options: string[];
+  };
 }
 
 export interface SmartSuggestion {

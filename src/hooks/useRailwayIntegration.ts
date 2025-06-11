@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { enhancedRailwayClient } from '@/api/railway/enhancedClient';
@@ -107,7 +106,7 @@ export const useRailwayIntegration = () => {
       if (!user) return;
 
       const { data: company } = await supabase
-        .from('company_profiles')
+        .from('companies')
         .select('id')
         .eq('user_id', user.id)
         .single();
