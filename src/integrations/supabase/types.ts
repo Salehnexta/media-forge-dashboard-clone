@@ -11,2497 +11,1056 @@ export type Database = {
     Tables: {
       a2a_messages: {
         Row: {
-          content: string | null
-          from_agent: string | null
-          id: string
-          timestamp: string | null
-          to_agent: string | null
-        }
-        Insert: {
-          content?: string | null
-          from_agent?: string | null
-          id?: string
-          timestamp?: string | null
-          to_agent?: string | null
-        }
-        Update: {
-          content?: string | null
-          from_agent?: string | null
-          id?: string
-          timestamp?: string | null
-          to_agent?: string | null
-        }
-        Relationships: []
-      }
-      a2a_realtime_updates: {
-        Row: {
+          client_id: string
+          context: Json
+          correlation_id: string
           created_at: string
-          data: Json
+          error: string | null
           id: string
-          type: string
+          parent_message_id: string | null
+          payload: Json
+          processing_time_ms: number | null
+          project_id: string
+          recipient_agent_id: string
+          response: Json | null
+          sender_agent_id: string
+          status: string
+          task_type: string
+          updated_at: string
         }
         Insert: {
+          client_id: string
+          context?: Json
+          correlation_id: string
           created_at?: string
-          data: Json
+          error?: string | null
           id?: string
-          type: string
+          parent_message_id?: string | null
+          payload?: Json
+          processing_time_ms?: number | null
+          project_id: string
+          recipient_agent_id: string
+          response?: Json | null
+          sender_agent_id: string
+          status?: string
+          task_type: string
+          updated_at?: string
         }
         Update: {
+          client_id?: string
+          context?: Json
+          correlation_id?: string
           created_at?: string
+          error?: string | null
+          id?: string
+          parent_message_id?: string | null
+          payload?: Json
+          processing_time_ms?: number | null
+          project_id?: string
+          recipient_agent_id?: string
+          response?: Json | null
+          sender_agent_id?: string
+          status?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "a2a_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "a2a_messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "a2a_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "a2a_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_performance_data: {
+        Row: {
+          client_id: string | null
+          data: Json
+          id: string
+          platform: string
+          project_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          client_id?: string | null
+          data: Json
+          id?: string
+          platform: string
+          project_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          client_id?: string | null
           data?: Json
           id?: string
-          type?: string
+          platform?: string
+          project_id?: string | null
+          timestamp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ad_performance_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_performance_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      agent_conversations: {
+      agent_activity_log: {
         Row: {
-          agent_type: string | null
-          created_at: string | null
+          activity_type: string
+          agent_id: string
+          client_id: string
+          description: string | null
+          emotional_tone: string | null
           id: string
-          metadata: Json | null
-          morvo_response_content: string | null
-          session_id: string | null
-          user_message_content: string | null
+          metrics: Json | null
+          project_id: string
+          timestamp: string
         }
         Insert: {
-          agent_type?: string | null
-          created_at?: string | null
+          activity_type: string
+          agent_id: string
+          client_id: string
+          description?: string | null
+          emotional_tone?: string | null
           id?: string
-          metadata?: Json | null
-          morvo_response_content?: string | null
-          session_id?: string | null
-          user_message_content?: string | null
+          metrics?: Json | null
+          project_id: string
+          timestamp?: string
         }
         Update: {
-          agent_type?: string | null
-          created_at?: string | null
+          activity_type?: string
+          agent_id?: string
+          client_id?: string
+          description?: string | null
+          emotional_tone?: string | null
           id?: string
-          metadata?: Json | null
-          morvo_response_content?: string | null
-          session_id?: string | null
-          user_message_content?: string | null
+          metrics?: Json | null
+          project_id?: string
+          timestamp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_activity_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      agent_definitions: {
-        Row: {
-          capabilities: Json
-          created_at: string
-          id: string
-          name: string
-          parameters: Json | null
-          role: string
-          updated_at: string
-          version: string
-        }
-        Insert: {
-          capabilities: Json
-          created_at?: string
-          id: string
-          name: string
-          parameters?: Json | null
-          role: string
-          updated_at?: string
-          version: string
-        }
-        Update: {
-          capabilities?: Json
-          created_at?: string
-          id?: string
-          name?: string
-          parameters?: Json | null
-          role?: string
-          updated_at?: string
-          version?: string
-        }
-        Relationships: []
-      }
-      agent_memories: {
-        Row: {
-          agent_type: string
-          company_id: string | null
-          content: Json
-          created_at: string
-          expires_at: string | null
-          id: string
-          memory_type: string
-          relevance_score: number
-          user_id: string
-        }
-        Insert: {
-          agent_type: string
-          company_id?: string | null
-          content?: Json
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          memory_type: string
-          relevance_score?: number
-          user_id: string
-        }
-        Update: {
-          agent_type?: string
-          company_id?: string | null
-          content?: Json
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          memory_type?: string
-          relevance_score?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
-      agent_metrics: {
+      agent_performance: {
         Row: {
           agent_id: string
-          error_count: number | null
+          client_id: string
+          created_at: string
+          error_type: string | null
           id: string
-          memory_usage_mb: number | null
-          metrics: Json | null
-          response_time_ms: number | null
-          success_rate: number | null
-          timestamp: string
+          processing_time_ms: number
+          project_id: string
+          success: boolean
+          task_type: string
           tokens_used: number | null
         }
         Insert: {
           agent_id: string
-          error_count?: number | null
+          client_id: string
+          created_at?: string
+          error_type?: string | null
           id?: string
-          memory_usage_mb?: number | null
-          metrics?: Json | null
-          response_time_ms?: number | null
-          success_rate?: number | null
-          timestamp?: string
+          processing_time_ms: number
+          project_id: string
+          success: boolean
+          task_type: string
           tokens_used?: number | null
         }
         Update: {
           agent_id?: string
-          error_count?: number | null
+          client_id?: string
+          created_at?: string
+          error_type?: string | null
           id?: string
-          memory_usage_mb?: number | null
-          metrics?: Json | null
-          response_time_ms?: number | null
-          success_rate?: number | null
-          timestamp?: string
-          tokens_used?: number | null
-        }
-        Relationships: []
-      }
-      agent_results: {
-        Row: {
-          agent_id: string
-          chart_configs: Json | null
-          company_id: string | null
-          cost_units: number | null
-          created_at: string | null
-          execution_time_ms: number | null
-          id: string
-          input_data: Json | null
-          output_data: Json | null
-          status: string | null
-          task_type: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          agent_id: string
-          chart_configs?: Json | null
-          company_id?: string | null
-          cost_units?: number | null
-          created_at?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status?: string | null
-          task_type: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          agent_id?: string
-          chart_configs?: Json | null
-          company_id?: string | null
-          cost_units?: number | null
-          created_at?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status?: string | null
+          processing_time_ms?: number
+          project_id?: string
+          success?: boolean
           task_type?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      agent_workflows: {
-        Row: {
-          active_agents: Json
-          completed_at: string | null
-          complexity_score: number
-          context: Json | null
-          created_at: string
-          error_message: string | null
-          execution_time_ms: number | null
-          id: string
-          status: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          active_agents: Json
-          completed_at?: string | null
-          complexity_score?: number
-          context?: Json | null
-          created_at?: string
-          error_message?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          status: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          active_agents?: Json
-          completed_at?: string | null
-          complexity_score?: number
-          context?: Json | null
-          created_at?: string
-          error_message?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          status?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      analytics_access: {
-        Row: {
-          access_scope: string | null
-          account_id: string | null
-          api_key: string | null
-          company_id: string | null
-          created_at: string | null
-          encrypted: boolean | null
-          id: string
-          platform_name: string
-          updated_at: string | null
-        }
-        Insert: {
-          access_scope?: string | null
-          account_id?: string | null
-          api_key?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          encrypted?: boolean | null
-          id?: string
-          platform_name: string
-          updated_at?: string | null
-        }
-        Update: {
-          access_scope?: string | null
-          account_id?: string | null
-          api_key?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          encrypted?: boolean | null
-          id?: string
-          platform_name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      analytics_events: {
-        Row: {
-          event_type: string
-          id: string
-          properties: Json | null
-          session_id: string | null
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          event_type: string
-          id?: string
-          properties?: Json | null
-          session_id?: string | null
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          event_type?: string
-          id?: string
-          properties?: Json | null
-          session_id?: string | null
-          timestamp?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      auto_discovery_data: {
-        Row: {
-          approval_status: string | null
-          business_description: string | null
-          company_id: string | null
-          content_themes_suggested: string[] | null
-          created_at: string | null
-          discovered_competitors: string[] | null
-          discovered_industry: string | null
-          discovered_keywords: string[] | null
-          id: string
-          marketing_channels_suggested: string[] | null
-          perplexity_analysis: Json | null
-          social_media_found: Json | null
-          target_audience_analysis: Json | null
-          website_url: string | null
-        }
-        Insert: {
-          approval_status?: string | null
-          business_description?: string | null
-          company_id?: string | null
-          content_themes_suggested?: string[] | null
-          created_at?: string | null
-          discovered_competitors?: string[] | null
-          discovered_industry?: string | null
-          discovered_keywords?: string[] | null
-          id?: string
-          marketing_channels_suggested?: string[] | null
-          perplexity_analysis?: Json | null
-          social_media_found?: Json | null
-          target_audience_analysis?: Json | null
-          website_url?: string | null
-        }
-        Update: {
-          approval_status?: string | null
-          business_description?: string | null
-          company_id?: string | null
-          content_themes_suggested?: string[] | null
-          created_at?: string | null
-          discovered_competitors?: string[] | null
-          discovered_industry?: string | null
-          discovered_keywords?: string[] | null
-          id?: string
-          marketing_channels_suggested?: string[] | null
-          perplexity_analysis?: Json | null
-          social_media_found?: Json | null
-          target_audience_analysis?: Json | null
-          website_url?: string | null
+          tokens_used?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "auto_discovery_data_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: "agent_performance_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "companies"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_performance_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      bi_reports: {
+      agents: {
         Row: {
-          cohort_analysis: Json | null
-          created_at: string | null
-          customer_segments: Json | null
-          data_sources: Json | null
-          generated_at: string | null
-          id: string
-          insights: Json | null
-          predictive_models: Json | null
-          recommendations: Json | null
-          report_data: Json
-          report_name: string
-          report_type: string | null
-          roi_calculator: Json | null
-          time_period_end: string | null
-          time_period_start: string | null
-          user_id: string | null
-        }
-        Insert: {
-          cohort_analysis?: Json | null
-          created_at?: string | null
-          customer_segments?: Json | null
-          data_sources?: Json | null
-          generated_at?: string | null
-          id?: string
-          insights?: Json | null
-          predictive_models?: Json | null
-          recommendations?: Json | null
-          report_data: Json
-          report_name: string
-          report_type?: string | null
-          roi_calculator?: Json | null
-          time_period_end?: string | null
-          time_period_start?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          cohort_analysis?: Json | null
-          created_at?: string | null
-          customer_segments?: Json | null
-          data_sources?: Json | null
-          generated_at?: string | null
-          id?: string
-          insights?: Json | null
-          predictive_models?: Json | null
-          recommendations?: Json | null
-          report_data?: Json
-          report_name?: string
-          report_type?: string | null
-          roi_calculator?: Json | null
-          time_period_end?: string | null
-          time_period_start?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      brand_positioning: {
-        Row: {
-          brand_voice: string | null
-          company_id: string | null
-          core_values: string[] | null
-          created_at: string | null
-          id: string
-          mission_statement: string | null
-          unique_selling_points: string[] | null
-          updated_at: string | null
-          vision_statement: string | null
-        }
-        Insert: {
-          brand_voice?: string | null
-          company_id?: string | null
-          core_values?: string[] | null
-          created_at?: string | null
-          id?: string
-          mission_statement?: string | null
-          unique_selling_points?: string[] | null
-          updated_at?: string | null
-          vision_statement?: string | null
-        }
-        Update: {
-          brand_voice?: string | null
-          company_id?: string | null
-          core_values?: string[] | null
-          created_at?: string | null
-          id?: string
-          mission_statement?: string | null
-          unique_selling_points?: string[] | null
-          updated_at?: string | null
-          vision_statement?: string | null
-        }
-        Relationships: []
-      }
-      brand24_data: {
-        Row: {
-          alert_settings: Json | null
-          competitor_mentions: Json | null
-          created_at: string | null
-          crisis_alerts: Json | null
-          id: string
-          influencers: Json | null
-          keywords: Json
-          last_updated: string | null
-          mentions: Json | null
-          project_name: string
-          reach_metrics: Json | null
-          sentiment_analysis: Json | null
-          share_of_voice: Json | null
-          source_distribution: Json | null
-          top_sources: Json | null
-          trending_topics: Json | null
-          user_id: string | null
-        }
-        Insert: {
-          alert_settings?: Json | null
-          competitor_mentions?: Json | null
-          created_at?: string | null
-          crisis_alerts?: Json | null
-          id?: string
-          influencers?: Json | null
-          keywords: Json
-          last_updated?: string | null
-          mentions?: Json | null
-          project_name: string
-          reach_metrics?: Json | null
-          sentiment_analysis?: Json | null
-          share_of_voice?: Json | null
-          source_distribution?: Json | null
-          top_sources?: Json | null
-          trending_topics?: Json | null
-          user_id?: string | null
-        }
-        Update: {
-          alert_settings?: Json | null
-          competitor_mentions?: Json | null
-          created_at?: string | null
-          crisis_alerts?: Json | null
-          id?: string
-          influencers?: Json | null
-          keywords?: Json
-          last_updated?: string | null
-          mentions?: Json | null
-          project_name?: string
-          reach_metrics?: Json | null
-          sentiment_analysis?: Json | null
-          share_of_voice?: Json | null
-          source_distribution?: Json | null
-          top_sources?: Json | null
-          trending_topics?: Json | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      budget_info: {
-        Row: {
-          budget_allocation: Json | null
-          budget_constraints: string | null
-          budget_period: string | null
-          company_id: string | null
+          active: boolean
+          agent_id: string
           created_at: string
-          expected_roi: number | null
-          id: string
-          monthly_marketing_budget: number | null
-          priority_channels: Json | null
-          total_marketing_budget: number | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          budget_allocation?: Json | null
-          budget_constraints?: string | null
-          budget_period?: string | null
-          company_id?: string | null
-          created_at?: string
-          expected_roi?: number | null
-          id?: string
-          monthly_marketing_budget?: number | null
-          priority_channels?: Json | null
-          total_marketing_budget?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          budget_allocation?: Json | null
-          budget_constraints?: string | null
-          budget_period?: string | null
-          company_id?: string | null
-          created_at?: string
-          expected_roi?: number | null
-          id?: string
-          monthly_marketing_budget?: number | null
-          priority_channels?: Json | null
-          total_marketing_budget?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "budget_info_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      business_goals: {
-        Row: {
-          company_id: string | null
-          conversion_targets: Json | null
-          created_at: string | null
-          id: string
-          key_performance_indicators: string[] | null
-          long_term_goals: Json | null
-          revenue_targets: Json | null
-          short_term_objectives: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          conversion_targets?: Json | null
-          created_at?: string | null
-          id?: string
-          key_performance_indicators?: string[] | null
-          long_term_goals?: Json | null
-          revenue_targets?: Json | null
-          short_term_objectives?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          conversion_targets?: Json | null
-          created_at?: string | null
-          id?: string
-          key_performance_indicators?: string[] | null
-          long_term_goals?: Json | null
-          revenue_targets?: Json | null
-          short_term_objectives?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      cache_items: {
-        Row: {
-          created_at: string
-          expires_at: string | null
-          key: string
-          updated_at: string
-          value: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string | null
-          key: string
-          updated_at?: string
-          value: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string | null
-          key?: string
-          updated_at?: string
-          value?: string
-        }
-        Relationships: []
-      }
-      campaign_metrics: {
-        Row: {
-          campaign_id: string | null
-          clicks: number | null
-          conversion_rate: number | null
-          conversions: number | null
-          cost: number | null
-          created_at: string | null
-          ctr: number | null
-          id: string
-          impressions: number | null
-          metric_date: string
-          quality_score: number | null
-          revenue: number | null
-          roas: number | null
-          user_id: string | null
-        }
-        Insert: {
-          campaign_id?: string | null
-          clicks?: number | null
-          conversion_rate?: number | null
-          conversions?: number | null
-          cost?: number | null
-          created_at?: string | null
-          ctr?: number | null
-          id?: string
-          impressions?: number | null
-          metric_date: string
-          quality_score?: number | null
-          revenue?: number | null
-          roas?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          campaign_id?: string | null
-          clicks?: number | null
-          conversion_rate?: number | null
-          conversions?: number | null
-          cost?: number | null
-          created_at?: string | null
-          ctr?: number | null
-          id?: string
-          impressions?: number | null
-          metric_date?: string
-          quality_score?: number | null
-          revenue?: number | null
-          roas?: number | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "campaign_metrics_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "marketing_campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chart_templates: {
-        Row: {
-          agent_type: string
-          chart_config: Json
-          created_at: string
-          id: string
-          is_system_template: boolean | null
-          template_name: string
-          updated_at: string
-        }
-        Insert: {
-          agent_type: string
-          chart_config?: Json
-          created_at?: string
-          id?: string
-          is_system_template?: boolean | null
-          template_name: string
-          updated_at?: string
-        }
-        Update: {
-          agent_type?: string
-          chart_config?: Json
-          created_at?: string
-          id?: string
-          is_system_template?: boolean | null
-          template_name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      companies: {
-        Row: {
-          approval_workflow: string | null
-          auto_discovered_data: Json | null
-          automation_level: string | null
-          brand_personality: string | null
-          campaign_frequency: string | null
-          communication_tone: string | null
-          competitive_advantages: string | null
-          content_languages: string[] | null
-          content_types: string[] | null
-          created_at: string
-          current_tools: string[] | null
-          data_approved: boolean | null
           description: string | null
-          experience_level: string | null
-          founded: string | null
-          id: string
-          income_level: string | null
-          industry: string | null
-          key_kpis: string[] | null
-          location: string | null
-          main_competitors: Json | null
-          monthly_budget_range: string | null
+          goal: string | null
           name: string
-          preferred_channels: string[] | null
-          primary_goals: string[] | null
-          primary_markets: string[] | null
-          size: string | null
-          social_accounts: Json | null
-          target_age_groups: string[] | null
-          target_cities: string[] | null
-          target_gender: string | null
-          team_size: string | null
-          updated_at: string
-          user_id: string
-          website: string | null
-          website_platform: string | null
+          type: string
         }
         Insert: {
-          approval_workflow?: string | null
-          auto_discovered_data?: Json | null
-          automation_level?: string | null
-          brand_personality?: string | null
-          campaign_frequency?: string | null
-          communication_tone?: string | null
-          competitive_advantages?: string | null
-          content_languages?: string[] | null
-          content_types?: string[] | null
+          active?: boolean
+          agent_id: string
           created_at?: string
-          current_tools?: string[] | null
-          data_approved?: boolean | null
           description?: string | null
-          experience_level?: string | null
-          founded?: string | null
-          id?: string
-          income_level?: string | null
-          industry?: string | null
-          key_kpis?: string[] | null
-          location?: string | null
-          main_competitors?: Json | null
-          monthly_budget_range?: string | null
+          goal?: string | null
           name: string
-          preferred_channels?: string[] | null
-          primary_goals?: string[] | null
-          primary_markets?: string[] | null
-          size?: string | null
-          social_accounts?: Json | null
-          target_age_groups?: string[] | null
-          target_cities?: string[] | null
-          target_gender?: string | null
-          team_size?: string | null
-          updated_at?: string
-          user_id: string
-          website?: string | null
-          website_platform?: string | null
+          type: string
         }
         Update: {
-          approval_workflow?: string | null
-          auto_discovered_data?: Json | null
-          automation_level?: string | null
-          brand_personality?: string | null
-          campaign_frequency?: string | null
-          communication_tone?: string | null
-          competitive_advantages?: string | null
-          content_languages?: string[] | null
-          content_types?: string[] | null
+          active?: boolean
+          agent_id?: string
           created_at?: string
-          current_tools?: string[] | null
-          data_approved?: boolean | null
           description?: string | null
-          experience_level?: string | null
-          founded?: string | null
-          id?: string
-          income_level?: string | null
-          industry?: string | null
-          key_kpis?: string[] | null
-          location?: string | null
-          main_competitors?: Json | null
-          monthly_budget_range?: string | null
+          goal?: string | null
           name?: string
-          preferred_channels?: string[] | null
-          primary_goals?: string[] | null
-          primary_markets?: string[] | null
-          size?: string | null
-          social_accounts?: Json | null
-          target_age_groups?: string[] | null
-          target_cities?: string[] | null
-          target_gender?: string | null
-          team_size?: string | null
-          updated_at?: string
-          user_id?: string
-          website?: string | null
-          website_platform?: string | null
+          type?: string
         }
         Relationships: []
       }
-      company_analysis: {
+      ai_insights: {
         Row: {
-          company_id: string
-          competitors: Json | null
+          client_id: string | null
+          content: Json
           created_at: string
           id: string
-          market_insights: Json | null
-          recommendations: Json | null
-          updated_at: string
+          insight_type: string
+          project_id: string | null
+          source_data_ref: string | null
         }
         Insert: {
-          company_id: string
-          competitors?: Json | null
+          client_id?: string | null
+          content: Json
           created_at?: string
           id?: string
-          market_insights?: Json | null
-          recommendations?: Json | null
-          updated_at?: string
+          insight_type: string
+          project_id?: string | null
+          source_data_ref?: string | null
         }
         Update: {
-          company_id?: string
-          competitors?: Json | null
+          client_id?: string | null
+          content?: Json
           created_at?: string
           id?: string
-          market_insights?: Json | null
-          recommendations?: Json | null
-          updated_at?: string
+          insight_type?: string
+          project_id?: string | null
+          source_data_ref?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "company_analysis_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: "ai_insights_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "companies"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_insights_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      company_documents: {
+      analytics_data: {
         Row: {
-          analysis_results: Json | null
-          analysis_status: string | null
-          analyzed_at: string | null
-          company_id: string | null
-          document_name: string
-          document_type: string
-          file_path: string
-          file_size: number | null
-          id: string
-          mime_type: string | null
-          uploaded_at: string
-          user_id: string | null
-        }
-        Insert: {
-          analysis_results?: Json | null
-          analysis_status?: string | null
-          analyzed_at?: string | null
-          company_id?: string | null
-          document_name: string
-          document_type: string
-          file_path: string
-          file_size?: number | null
-          id?: string
-          mime_type?: string | null
-          uploaded_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          analysis_results?: Json | null
-          analysis_status?: string | null
-          analyzed_at?: string | null
-          company_id?: string | null
-          document_name?: string
-          document_type?: string
-          file_path?: string
-          file_size?: number | null
-          id?: string
-          mime_type?: string | null
-          uploaded_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_documents_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      competitors: {
-        Row: {
-          company_id: string | null
-          competitor_name: string
-          created_at: string | null
-          id: string
-          market_share: number | null
-          strengths: string[] | null
-          updated_at: string | null
-          weaknesses: string[] | null
-          website_url: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          competitor_name: string
-          created_at?: string | null
-          id?: string
-          market_share?: number | null
-          strengths?: string[] | null
-          updated_at?: string | null
-          weaknesses?: string[] | null
-          website_url?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          competitor_name?: string
-          created_at?: string | null
-          id?: string
-          market_share?: number | null
-          strengths?: string[] | null
-          updated_at?: string | null
-          weaknesses?: string[] | null
-          website_url?: string | null
-        }
-        Relationships: []
-      }
-      content_calendar: {
-        Row: {
-          campaign_id: string | null
-          content_assets: Json | null
-          content_text: string | null
-          content_type: string | null
-          created_at: string | null
-          distribution_metrics: Json | null
-          hashtags: string[] | null
-          id: string
-          language: string | null
-          platform: string | null
-          published_at: string | null
-          scheduled_at: string | null
-          seo_performance: Json | null
-          status: string | null
-          target_audience: string | null
-          title: string
-          topic_clusters: Json | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          campaign_id?: string | null
-          content_assets?: Json | null
-          content_text?: string | null
-          content_type?: string | null
-          created_at?: string | null
-          distribution_metrics?: Json | null
-          hashtags?: string[] | null
-          id?: string
-          language?: string | null
-          platform?: string | null
-          published_at?: string | null
-          scheduled_at?: string | null
-          seo_performance?: Json | null
-          status?: string | null
-          target_audience?: string | null
-          title: string
-          topic_clusters?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          campaign_id?: string | null
-          content_assets?: Json | null
-          content_text?: string | null
-          content_type?: string | null
-          created_at?: string | null
-          distribution_metrics?: Json | null
-          hashtags?: string[] | null
-          id?: string
-          language?: string | null
-          platform?: string | null
-          published_at?: string | null
-          scheduled_at?: string | null
-          seo_performance?: Json | null
-          status?: string | null
-          target_audience?: string | null
-          title?: string
-          topic_clusters?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_calendar_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "marketing_campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content_performance: {
-        Row: {
-          clicks: number | null
-          comments: number | null
-          content_id: string | null
-          created_at: string | null
-          engagement_rate: number | null
-          id: string
-          likes: number | null
-          metric_date: string
-          reach: number | null
-          shares: number | null
-          user_id: string | null
-          views: number | null
-        }
-        Insert: {
-          clicks?: number | null
-          comments?: number | null
-          content_id?: string | null
-          created_at?: string | null
-          engagement_rate?: number | null
-          id?: string
-          likes?: number | null
-          metric_date: string
-          reach?: number | null
-          shares?: number | null
-          user_id?: string | null
-          views?: number | null
-        }
-        Update: {
-          clicks?: number | null
-          comments?: number | null
-          content_id?: string | null
-          created_at?: string | null
-          engagement_rate?: number | null
-          id?: string
-          likes?: number | null
-          metric_date?: string
-          reach?: number | null
-          shares?: number | null
-          user_id?: string | null
-          views?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_performance_content_id_fkey"
-            columns: ["content_id"]
-            isOneToOne: false
-            referencedRelation: "content_calendar"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cross_agent_context: {
-        Row: {
-          context_data: Json
-          created_at: string
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          context_data?: Json
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          context_data?: Json
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      dashboard_layouts: {
-        Row: {
-          company_id: string | null
-          created_at: string
-          id: string
-          is_default: boolean | null
-          layout_config: Json
-          layout_name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string
-          id?: string
-          is_default?: boolean | null
-          layout_config?: Json
-          layout_name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string
-          id?: string
-          is_default?: boolean | null
-          layout_config?: Json
-          layout_name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      dashboard_metrics: {
-        Row: {
-          id: string
-          metrics: Json
-          updated_at: string
-        }
-        Insert: {
-          id: string
-          metrics: Json
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          metrics?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      external_api_configs: {
-        Row: {
-          access_token_hash: string | null
-          api_endpoints: Json | null
-          api_key_hash: string | null
-          api_secret_hash: string | null
-          created_at: string | null
-          error_log: Json | null
-          health_check: Json | null
-          id: string
-          last_sync: string | null
-          platform: string
-          rate_limits: Json | null
-          refresh_token_hash: string | null
-          status: string | null
-          sync_frequency: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          access_token_hash?: string | null
-          api_endpoints?: Json | null
-          api_key_hash?: string | null
-          api_secret_hash?: string | null
-          created_at?: string | null
-          error_log?: Json | null
-          health_check?: Json | null
-          id?: string
-          last_sync?: string | null
-          platform: string
-          rate_limits?: Json | null
-          refresh_token_hash?: string | null
-          status?: string | null
-          sync_frequency?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          access_token_hash?: string | null
-          api_endpoints?: Json | null
-          api_key_hash?: string | null
-          api_secret_hash?: string | null
-          created_at?: string | null
-          error_log?: Json | null
-          health_check?: Json | null
-          id?: string
-          last_sync?: string | null
-          platform?: string
-          rate_limits?: Json | null
-          refresh_token_hash?: string | null
-          status?: string | null
-          sync_frequency?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      historical_metrics: {
-        Row: {
-          dimensions: Json | null
+          client_id: string | null
+          data: Json
           id: string
           metric_type: string
+          project_id: string | null
           timestamp: string
-          value: number
         }
         Insert: {
-          dimensions?: Json | null
+          client_id?: string | null
+          data: Json
           id?: string
           metric_type: string
+          project_id?: string | null
           timestamp?: string
-          value: number
         }
         Update: {
-          dimensions?: Json | null
+          client_id?: string | null
+          data?: Json
           id?: string
           metric_type?: string
+          project_id?: string | null
           timestamp?: string
-          value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "analytics_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      integrated_analytics: {
+      clients: {
         Row: {
-          ai_insights: Json | null
-          anomaly_detection: Json | null
-          competitive_landscape: Json | null
-          created_at: string | null
+          active: boolean
+          api_key: string
+          created_at: string
           id: string
-          last_updated: string | null
-          opportunity_analysis: Json | null
-          predictions: Json | null
-          processing_status: string | null
-          recommended_actions: Json | null
-          trend_analysis: Json | null
-          unified_metrics: Json | null
+          name: string
+          quota_limit: number
+          quota_used: number
+          updated_at: string
           user_id: string | null
         }
         Insert: {
-          ai_insights?: Json | null
-          anomaly_detection?: Json | null
-          competitive_landscape?: Json | null
-          created_at?: string | null
+          active?: boolean
+          api_key?: string
+          created_at?: string
           id?: string
-          last_updated?: string | null
-          opportunity_analysis?: Json | null
-          predictions?: Json | null
-          processing_status?: string | null
-          recommended_actions?: Json | null
-          trend_analysis?: Json | null
-          unified_metrics?: Json | null
+          name: string
+          quota_limit?: number
+          quota_used?: number
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
-          ai_insights?: Json | null
-          anomaly_detection?: Json | null
-          competitive_landscape?: Json | null
-          created_at?: string | null
+          active?: boolean
+          api_key?: string
+          created_at?: string
           id?: string
-          last_updated?: string | null
-          opportunity_analysis?: Json | null
-          predictions?: Json | null
-          processing_status?: string | null
-          recommended_actions?: Json | null
-          trend_analysis?: Json | null
-          unified_metrics?: Json | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      marketing_campaigns: {
-        Row: {
-          ab_testing_results: Json | null
-          attribution_data: Json | null
-          budget: number | null
-          budget_allocation: Json | null
-          conversion_funnel: Json | null
-          created_at: string | null
-          description: string | null
-          end_date: string | null
-          goals: Json | null
-          id: string
-          kpis: Json | null
-          name: string
-          performance_data: Json | null
-          start_date: string | null
-          status: string | null
-          target_market: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          ab_testing_results?: Json | null
-          attribution_data?: Json | null
-          budget?: number | null
-          budget_allocation?: Json | null
-          conversion_funnel?: Json | null
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          goals?: Json | null
-          id?: string
-          kpis?: Json | null
-          name: string
-          performance_data?: Json | null
-          start_date?: string | null
-          status?: string | null
-          target_market?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          ab_testing_results?: Json | null
-          attribution_data?: Json | null
-          budget?: number | null
-          budget_allocation?: Json | null
-          conversion_funnel?: Json | null
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          goals?: Json | null
-          id?: string
-          kpis?: Json | null
           name?: string
-          performance_data?: Json | null
-          start_date?: string | null
-          status?: string | null
-          target_market?: string | null
-          updated_at?: string | null
+          quota_limit?: number
+          quota_used?: number
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []
       }
-      marketing_context: {
+      content_sources_data: {
         Row: {
-          active_channels: string[] | null
-          annual_budget: number | null
-          available_content_assets: string[] | null
-          company_id: string | null
-          created_at: string | null
+          client_id: string | null
+          data: Json
           id: string
-          marketing_tools: string[] | null
-          successful_campaigns: Json | null
-          updated_at: string | null
+          project_id: string | null
+          source_type: string
+          timestamp: string
         }
         Insert: {
-          active_channels?: string[] | null
-          annual_budget?: number | null
-          available_content_assets?: string[] | null
-          company_id?: string | null
-          created_at?: string | null
+          client_id?: string | null
+          data: Json
           id?: string
-          marketing_tools?: string[] | null
-          successful_campaigns?: Json | null
-          updated_at?: string | null
+          project_id?: string | null
+          source_type: string
+          timestamp?: string
         }
         Update: {
-          active_channels?: string[] | null
-          annual_budget?: number | null
-          available_content_assets?: string[] | null
-          company_id?: string | null
-          created_at?: string | null
+          client_id?: string | null
+          data?: Json
           id?: string
-          marketing_tools?: string[] | null
-          successful_campaigns?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      morvo_conversations: {
-        Row: {
-          content: string
-          context_data: Json | null
-          conversation_id: string
-          created_at: string | null
-          id: string
-          message_type: string
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          context_data?: Json | null
-          conversation_id: string
-          created_at?: string | null
-          id?: string
-          message_type: string
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          context_data?: Json | null
-          conversation_id?: string
-          created_at?: string | null
-          id?: string
-          message_type?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      onboarding_responses: {
-        Row: {
-          id: string
-          question_id: string
-          response: string
-          session_id: string
-          timestamp: string | null
-        }
-        Insert: {
-          id?: string
-          question_id: string
-          response: string
-          session_id: string
-          timestamp?: string | null
-        }
-        Update: {
-          id?: string
-          question_id?: string
-          response?: string
-          session_id?: string
-          timestamp?: string | null
+          project_id?: string | null
+          source_type?: string
+          timestamp?: string
         }
         Relationships: [
           {
-            foreignKeyName: "onboarding_responses_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "content_sources_data_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "onboarding_sessions"
-            referencedColumns: ["session_id"]
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_sources_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
           },
         ]
       }
-      onboarding_sessions: {
+      conversation_messages: {
         Row: {
-          created_at: string | null
-          current_question: string | null
-          discovery_progress: number | null
-          id: string
-          language: string | null
-          session_id: string
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-          utm_medium: string | null
-          utm_source: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_question?: string | null
-          discovery_progress?: number | null
-          id?: string
-          language?: string | null
-          session_id: string
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_question?: string | null
-          discovery_progress?: number | null
-          id?: string
-          language?: string | null
-          session_id?: string
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
-        }
-        Relationships: []
-      }
-      reasoning_chains: {
-        Row: {
-          agent_id: string | null
+          client_id: string
+          content: string
           conversation_id: string | null
+          created_at: string
+          emotion_analysis: Json | null
           id: string
-          reasoning: string | null
-          result: string | null
-          step_order: number | null
+          metadata: Json | null
+          sender_id: string
+          sender_type: string
+          timestamp: string
         }
         Insert: {
-          agent_id?: string | null
+          client_id: string
+          content: string
           conversation_id?: string | null
+          created_at?: string
+          emotion_analysis?: Json | null
           id?: string
-          reasoning?: string | null
-          result?: string | null
-          step_order?: number | null
+          metadata?: Json | null
+          sender_id: string
+          sender_type: string
+          timestamp?: string
         }
         Update: {
-          agent_id?: string | null
+          client_id?: string
+          content?: string
           conversation_id?: string | null
+          created_at?: string
+          emotion_analysis?: Json | null
           id?: string
-          reasoning?: string | null
-          result?: string | null
-          step_order?: number | null
+          metadata?: Json | null
+          sender_id?: string
+          sender_type?: string
+          timestamp?: string
         }
         Relationships: [
           {
-            foreignKeyName: "reasoning_chains_conversation_id_fkey"
-            columns: ["conversation_id"]
+            foreignKeyName: "conversation_messages_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "agent_conversations"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
       }
-      sales_data: {
+      email_performance_data: {
         Row: {
-          annual_revenue: number | null
-          company_id: string | null
-          conversion_rate: number | null
-          created_at: string
-          customer_acquisition_cost: number | null
-          customer_lifetime_value: number | null
+          client_id: string | null
+          data: Json
           id: string
-          monthly_average_sales: number | null
-          sales_channels: Json | null
-          sales_process_description: string | null
-          sales_team_size: number | null
-          top_selling_products: Json | null
-          updated_at: string
-          user_id: string | null
+          metric_type: string
+          project_id: string | null
+          timestamp: string
         }
         Insert: {
-          annual_revenue?: number | null
-          company_id?: string | null
-          conversion_rate?: number | null
-          created_at?: string
-          customer_acquisition_cost?: number | null
-          customer_lifetime_value?: number | null
+          client_id?: string | null
+          data: Json
           id?: string
-          monthly_average_sales?: number | null
-          sales_channels?: Json | null
-          sales_process_description?: string | null
-          sales_team_size?: number | null
-          top_selling_products?: Json | null
-          updated_at?: string
-          user_id?: string | null
+          metric_type: string
+          project_id?: string | null
+          timestamp?: string
         }
         Update: {
-          annual_revenue?: number | null
-          company_id?: string | null
-          conversion_rate?: number | null
-          created_at?: string
-          customer_acquisition_cost?: number | null
-          customer_lifetime_value?: number | null
+          client_id?: string | null
+          data?: Json
           id?: string
-          monthly_average_sales?: number | null
-          sales_channels?: Json | null
-          sales_process_description?: string | null
-          sales_team_size?: number | null
-          top_selling_products?: Json | null
-          updated_at?: string
-          user_id?: string | null
+          metric_type?: string
+          project_id?: string | null
+          timestamp?: string
         }
         Relationships: [
           {
-            foreignKeyName: "sales_data_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: "email_performance_data_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "companies"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_performance_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      semrush_competitors: {
+      embeddings: {
         Row: {
-          adwords_keywords: number | null
-          common_keywords: number | null
-          competitive_level: string | null
-          competitor_domain: string
-          domain: string
+          client_id: string
+          content: string
+          created_at: string
+          embedding: string
           id: string
-          last_analyzed: string | null
-          se_keywords: number | null
-          traffic_similarity: number | null
-          user_id: string | null
+          metadata: Json
+          project_id: string
         }
         Insert: {
-          adwords_keywords?: number | null
-          common_keywords?: number | null
-          competitive_level?: string | null
-          competitor_domain: string
-          domain: string
+          client_id: string
+          content: string
+          created_at?: string
+          embedding: string
           id?: string
-          last_analyzed?: string | null
-          se_keywords?: number | null
-          traffic_similarity?: number | null
-          user_id?: string | null
+          metadata?: Json
+          project_id: string
         }
         Update: {
-          adwords_keywords?: number | null
-          common_keywords?: number | null
-          competitive_level?: string | null
-          competitor_domain?: string
-          domain?: string
+          client_id?: string
+          content?: string
+          created_at?: string
+          embedding?: string
           id?: string
-          last_analyzed?: string | null
-          se_keywords?: number | null
-          traffic_similarity?: number | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      semrush_data: {
-        Row: {
-          api_cost: number | null
-          created_at: string | null
-          data_type: string
-          database_region: string | null
-          domain: string
-          expires_at: string | null
-          fetched_at: string | null
-          id: string
-          is_cached: boolean | null
-          query_params: Json | null
-          response_data: Json
-          user_id: string | null
-        }
-        Insert: {
-          api_cost?: number | null
-          created_at?: string | null
-          data_type: string
-          database_region?: string | null
-          domain: string
-          expires_at?: string | null
-          fetched_at?: string | null
-          id?: string
-          is_cached?: boolean | null
-          query_params?: Json | null
-          response_data: Json
-          user_id?: string | null
-        }
-        Update: {
-          api_cost?: number | null
-          created_at?: string | null
-          data_type?: string
-          database_region?: string | null
-          domain?: string
-          expires_at?: string | null
-          fetched_at?: string | null
-          id?: string
-          is_cached?: boolean | null
-          query_params?: Json | null
-          response_data?: Json
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      semrush_keywords: {
-        Row: {
-          competition: number | null
-          cpc: number | null
-          difficulty_score: number | null
-          domain: string | null
-          id: string
-          keyword: string
-          last_updated: string | null
-          position: number | null
-          search_volume: number | null
-          trends: Json | null
-          url: string | null
-          user_id: string | null
-        }
-        Insert: {
-          competition?: number | null
-          cpc?: number | null
-          difficulty_score?: number | null
-          domain?: string | null
-          id?: string
-          keyword: string
-          last_updated?: string | null
-          position?: number | null
-          search_volume?: number | null
-          trends?: Json | null
-          url?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          competition?: number | null
-          cpc?: number | null
-          difficulty_score?: number | null
-          domain?: string | null
-          id?: string
-          keyword?: string
-          last_updated?: string | null
-          position?: number | null
-          search_volume?: number | null
-          trends?: Json | null
-          url?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      social_accounts: {
-        Row: {
-          access_token: string | null
-          account_handle: string | null
-          account_id: string | null
-          company_id: string | null
-          connected_at: string
-          engagement_metrics: Json | null
-          goals: string[] | null
-          id: string
-          permissions: Json | null
-          platform: string
-          posting_frequency: string | null
-          refresh_token: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token?: string | null
-          account_handle?: string | null
-          account_id?: string | null
-          company_id?: string | null
-          connected_at?: string
-          engagement_metrics?: Json | null
-          goals?: string[] | null
-          id?: string
-          permissions?: Json | null
-          platform: string
-          posting_frequency?: string | null
-          refresh_token?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string | null
-          account_handle?: string | null
-          account_id?: string | null
-          company_id?: string | null
-          connected_at?: string
-          engagement_metrics?: Json | null
-          goals?: string[] | null
-          id?: string
-          permissions?: Json | null
-          platform?: string
-          posting_frequency?: string | null
-          refresh_token?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      social_media_analytics: {
-        Row: {
-          account_handle: string | null
-          audience_insights: Json | null
-          content_performance: Json | null
-          created_at: string | null
-          data_source: string | null
-          engagement_data: Json | null
-          growth_data: Json | null
-          id: string
-          last_updated: string | null
-          metrics: Json
-          platform: string
-          user_id: string | null
-        }
-        Insert: {
-          account_handle?: string | null
-          audience_insights?: Json | null
-          content_performance?: Json | null
-          created_at?: string | null
-          data_source?: string | null
-          engagement_data?: Json | null
-          growth_data?: Json | null
-          id?: string
-          last_updated?: string | null
-          metrics: Json
-          platform: string
-          user_id?: string | null
-        }
-        Update: {
-          account_handle?: string | null
-          audience_insights?: Json | null
-          content_performance?: Json | null
-          created_at?: string | null
-          data_source?: string | null
-          engagement_data?: Json | null
-          growth_data?: Json | null
-          id?: string
-          last_updated?: string | null
-          metrics?: Json
-          platform?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      social_mentions: {
-        Row: {
-          author_followers: number | null
-          author_handle: string | null
-          content: string | null
-          crisis_level: string | null
-          detected_at: string | null
-          engagement_count: number | null
-          id: string
-          is_crisis: boolean | null
-          mention_type: string | null
-          mentioned_at: string | null
-          platform: string
-          post_url: string | null
-          sentiment_label: string | null
-          sentiment_score: number | null
-          social_account_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          author_followers?: number | null
-          author_handle?: string | null
-          content?: string | null
-          crisis_level?: string | null
-          detected_at?: string | null
-          engagement_count?: number | null
-          id?: string
-          is_crisis?: boolean | null
-          mention_type?: string | null
-          mentioned_at?: string | null
-          platform: string
-          post_url?: string | null
-          sentiment_label?: string | null
-          sentiment_score?: number | null
-          social_account_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          author_followers?: number | null
-          author_handle?: string | null
-          content?: string | null
-          crisis_level?: string | null
-          detected_at?: string | null
-          engagement_count?: number | null
-          id?: string
-          is_crisis?: boolean | null
-          mention_type?: string | null
-          mentioned_at?: string | null
-          platform?: string
-          post_url?: string | null
-          sentiment_label?: string | null
-          sentiment_score?: number | null
-          social_account_id?: string | null
-          user_id?: string | null
+          metadata?: Json
+          project_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "social_mentions_social_account_id_fkey"
-            columns: ["social_account_id"]
+            foreignKeyName: "embeddings_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "social_accounts"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embeddings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      social_monitoring: {
+      emotional_journey: {
         Row: {
-          audience_insights: Json | null
-          company_id: string | null
-          created_at: string
-          engagement_metrics: Json | null
-          follower_growth: Json | null
+          adaptation_strategy: string | null
+          client_id: string
+          emotion_confidence: number | null
+          emotional_context: string | null
+          engagement_level: string | null
           id: string
-          monitoring_date: string
-          platform_comparison: Json | null
-          sentiment_analysis: Json | null
-          updated_at: string
-          user_id: string
+          primary_emotion: string | null
+          project_id: string
+          satisfaction_score: number | null
+          stage: string
+          timestamp: string
         }
         Insert: {
-          audience_insights?: Json | null
-          company_id?: string | null
-          created_at?: string
-          engagement_metrics?: Json | null
-          follower_growth?: Json | null
+          adaptation_strategy?: string | null
+          client_id: string
+          emotion_confidence?: number | null
+          emotional_context?: string | null
+          engagement_level?: string | null
           id?: string
-          monitoring_date?: string
-          platform_comparison?: Json | null
-          sentiment_analysis?: Json | null
-          updated_at?: string
-          user_id: string
+          primary_emotion?: string | null
+          project_id: string
+          satisfaction_score?: number | null
+          stage: string
+          timestamp?: string
         }
         Update: {
-          audience_insights?: Json | null
-          company_id?: string | null
-          created_at?: string
-          engagement_metrics?: Json | null
-          follower_growth?: Json | null
+          adaptation_strategy?: string | null
+          client_id?: string
+          emotion_confidence?: number | null
+          emotional_context?: string | null
+          engagement_level?: string | null
           id?: string
-          monitoring_date?: string
-          platform_comparison?: Json | null
-          sentiment_analysis?: Json | null
-          updated_at?: string
-          user_id?: string
+          primary_emotion?: string | null
+          project_id?: string
+          satisfaction_score?: number | null
+          stage?: string
+          timestamp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "emotional_journey_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emotional_journey_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      strategic_analyses: {
+      emotional_milestones: {
         Row: {
-          analysis_date: string
-          company_id: string | null
-          competitor_data: Json | null
-          created_at: string
+          client_id: string
+          description: string | null
+          emotion_after: string | null
+          emotion_before: string | null
           id: string
-          kpi_metrics: Json | null
-          market_trends: Json | null
-          positioning_map: Json | null
-          swot_analysis: Json | null
-          updated_at: string
-          user_id: string
+          milestone_type: string
+          project_id: string
+          stage: string
+          timestamp: string
         }
         Insert: {
-          analysis_date?: string
-          company_id?: string | null
-          competitor_data?: Json | null
-          created_at?: string
+          client_id: string
+          description?: string | null
+          emotion_after?: string | null
+          emotion_before?: string | null
           id?: string
-          kpi_metrics?: Json | null
-          market_trends?: Json | null
-          positioning_map?: Json | null
-          swot_analysis?: Json | null
-          updated_at?: string
-          user_id: string
+          milestone_type: string
+          project_id: string
+          stage: string
+          timestamp?: string
         }
         Update: {
-          analysis_date?: string
-          company_id?: string | null
-          competitor_data?: Json | null
+          client_id?: string
+          description?: string | null
+          emotion_after?: string | null
+          emotion_before?: string | null
+          id?: string
+          milestone_type?: string
+          project_id?: string
+          stage?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emotional_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emotional_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      optimization_recommendations: {
+        Row: {
+          client_id: string | null
+          content: Json
+          created_at: string
+          id: string
+          project_id: string | null
+          recommendation_type: string
+        }
+        Insert: {
+          client_id?: string | null
+          content: Json
           created_at?: string
           id?: string
-          kpi_metrics?: Json | null
-          market_trends?: Json | null
-          positioning_map?: Json | null
-          swot_analysis?: Json | null
-          updated_at?: string
-          user_id?: string
+          project_id?: string | null
+          recommendation_type: string
         }
-        Relationships: []
+        Update: {
+          client_id?: string | null
+          content?: Json
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          recommendation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimization_recommendations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "optimization_recommendations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      predictive_analytics: {
+        Row: {
+          client_id: string | null
+          content: Json
+          created_at: string
+          forecast_type: string
+          id: string
+          project_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          content: Json
+          created_at?: string
+          forecast_type: string
+          id?: string
+          project_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          content?: Json
+          created_at?: string
+          forecast_type?: string
+          id?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictive_analytics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictive_analytics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          active: boolean
+          client_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          client_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_media_data: {
+        Row: {
+          client_id: string | null
+          data: Json
+          id: string
+          platform: string
+          project_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          client_id?: string | null
+          data: Json
+          id?: string
+          platform: string
+          project_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          client_id?: string | null
+          data?: Json
+          id?: string
+          platform?: string
+          project_id?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_media_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_metrics: {
         Row: {
+          cpu_load: number | null
+          created_at: string
           id: string
-          metrics: Json
+          memory_usage: number | null
+        }
+        Insert: {
+          cpu_load?: number | null
+          created_at?: string
+          id?: string
+          memory_usage?: number | null
+        }
+        Update: {
+          cpu_load?: number | null
+          created_at?: string
+          id?: string
+          memory_usage?: number | null
+        }
+        Relationships: []
+      }
+      task_results: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          correlation_id: string
+          created_at: string
+          error: string | null
+          id: string
+          project_id: string
+          request: Json
+          result: Json | null
+          status: string
+          task_type: string
           updated_at: string
         }
         Insert: {
-          id: string
-          metrics: Json
-          updated_at?: string
-        }
-        Update: {
+          client_id: string
+          completed_at?: string | null
+          correlation_id: string
+          created_at?: string
+          error?: string | null
           id?: string
-          metrics?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      system_prompts: {
-        Row: {
-          created_at: string | null
-          id: string
-          industry_tone: string | null
-          is_active: boolean | null
-          name: string
-          prompt_text: string
-          updated_at: string | null
-          version: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          industry_tone?: string | null
-          is_active?: boolean | null
-          name: string
-          prompt_text: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          industry_tone?: string | null
-          is_active?: boolean | null
-          name?: string
-          prompt_text?: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Relationships: []
-      }
-      system_status: {
-        Row: {
-          alert_level: string | null
-          details: Json | null
-          id: string
-          last_check: string
-          status: string
-        }
-        Insert: {
-          alert_level?: string | null
-          details?: Json | null
-          id: string
-          last_check?: string
-          status: string
-        }
-        Update: {
-          alert_level?: string | null
-          details?: Json | null
-          id?: string
-          last_check?: string
+          project_id: string
+          request?: Json
+          result?: Json | null
           status?: string
+          task_type: string
+          updated_at?: string
         }
-        Relationships: []
-      }
-      target_audiences: {
-        Row: {
-          company_id: string | null
-          created_at: string | null
-          decision_makers: string[] | null
-          demographics: Json
-          id: string
-          pain_points: string[] | null
-          sales_cycle_length: string | null
-          segment_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string | null
-          decision_makers?: string[] | null
-          demographics: Json
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          correlation_id?: string
+          created_at?: string
+          error?: string | null
           id?: string
-          pain_points?: string[] | null
-          sales_cycle_length?: string | null
-          segment_type: string
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string | null
-          decision_makers?: string[] | null
-          demographics?: Json
-          id?: string
-          pain_points?: string[] | null
-          sales_cycle_length?: string | null
-          segment_type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      test_connection: {
-        Row: {
-          id: number
-          name: string | null
-        }
-        Insert: {
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          id?: number
-          name?: string | null
-        }
-        Relationships: []
-      }
-      training_data: {
-        Row: {
-          complexity: string | null
-          conversation_id: string
-          outcome_rating: number | null
-        }
-        Insert: {
-          complexity?: string | null
-          conversation_id: string
-          outcome_rating?: number | null
-        }
-        Update: {
-          complexity?: string | null
-          conversation_id?: string
-          outcome_rating?: number | null
+          project_id?: string
+          request?: Json
+          result?: Json | null
+          status?: string
+          task_type?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "training_data_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: true
-            referencedRelation: "agent_conversations"
+            foreignKeyName: "task_results_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_results_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      unified_customer_data: {
+      website_intel_data: {
         Row: {
-          data_payload: Json
-          data_type: string
+          client_id: string | null
+          data: Json
           id: string
-          kpi_metrics: Json | null
-          last_synced: string | null
-          source_platform: string | null
-          user_id: string | null
+          metric_type: string
+          project_id: string | null
+          timestamp: string
         }
         Insert: {
-          data_payload: Json
-          data_type: string
+          client_id?: string | null
+          data: Json
           id?: string
-          kpi_metrics?: Json | null
-          last_synced?: string | null
-          source_platform?: string | null
-          user_id?: string | null
+          metric_type: string
+          project_id?: string | null
+          timestamp?: string
         }
         Update: {
-          data_payload?: Json
-          data_type?: string
+          client_id?: string | null
+          data?: Json
           id?: string
-          kpi_metrics?: Json | null
-          last_synced?: string | null
-          source_platform?: string | null
-          user_id?: string | null
+          metric_type?: string
+          project_id?: string | null
+          timestamp?: string
         }
-        Relationships: []
-      }
-      user_ai_preferences: {
-        Row: {
-          communication_style: string | null
-          created_at: string
-          expertise_level: string | null
-          id: string
-          language_preferences: Json | null
-          output_format: string | null
-          preferred_agents: Json | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          communication_style?: string | null
-          created_at?: string
-          expertise_level?: string | null
-          id?: string
-          language_preferences?: Json | null
-          output_format?: string | null
-          preferred_agents?: Json | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          communication_style?: string | null
-          created_at?: string
-          expertise_level?: string | null
-          id?: string
-          language_preferences?: Json | null
-          output_format?: string | null
-          preferred_agents?: Json | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_feedback: {
-        Row: {
-          category: string | null
-          created_at: string
-          feedback_text: string | null
-          id: string
-          rating: number | null
-          resolution_notes: string | null
-          resolved: boolean
-          user_id: string
-          workflow_id: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          feedback_text?: string | null
-          id?: string
-          rating?: number | null
-          resolution_notes?: string | null
-          resolved?: boolean
-          user_id: string
-          workflow_id?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          feedback_text?: string | null
-          id?: string
-          rating?: number | null
-          resolution_notes?: string | null
-          resolved?: boolean
-          user_id?: string
-          workflow_id?: string | null
-        }
-        Relationships: []
-      }
-      user_onboarding: {
-        Row: {
-          completed: boolean
-          completed_at: string | null
-          current_step: number
-          id: string
-          last_active_at: string
-          progress: Json
-          started_at: string
-          total_steps: number
-          user_id: string
-        }
-        Insert: {
-          completed?: boolean
-          completed_at?: string | null
-          current_step?: number
-          id?: string
-          last_active_at?: string
-          progress?: Json
-          started_at?: string
-          total_steps?: number
-          user_id: string
-        }
-        Update: {
-          completed?: boolean
-          completed_at?: string | null
-          current_step?: number
-          id?: string
-          last_active_at?: string
-          progress?: Json
-          started_at?: string
-          total_steps?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_preferences: {
-        Row: {
-          communication_style: string | null
-          created_at: string | null
-          focus_areas: string[] | null
-          id: string
-          notification_preferences: Json | null
-          reporting_format: string | null
-          update_frequency: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          communication_style?: string | null
-          created_at?: string | null
-          focus_areas?: string[] | null
-          id?: string
-          notification_preferences?: Json | null
-          reporting_format?: string | null
-          update_frequency?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          communication_style?: string | null
-          created_at?: string | null
-          focus_areas?: string[] | null
-          id?: string
-          notification_preferences?: Json | null
-          reporting_format?: string | null
-          update_frequency?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          organization: string | null
-          preferences: Json | null
-          role: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          organization?: string | null
-          preferences?: Json | null
-          role?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          organization?: string | null
-          preferences?: Json | null
-          role?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      user_saved_workflows: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_favorite: boolean
-          last_used_at: string | null
-          name: string
-          updated_at: string
-          user_id: string
-          workflow_template: Json
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_favorite?: boolean
-          last_used_at?: string | null
-          name: string
-          updated_at?: string
-          user_id: string
-          workflow_template: Json
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_favorite?: boolean
-          last_used_at?: string | null
-          name?: string
-          updated_at?: string
-          user_id?: string
-          workflow_template?: Json
-        }
-        Relationships: []
-      }
-      user_tutorials: {
-        Row: {
-          completed: boolean
-          completed_at: string | null
-          feedback: Json | null
-          id: string
-          progress: number
-          started_at: string
-          tutorial_id: string
-          user_id: string
-        }
-        Insert: {
-          completed?: boolean
-          completed_at?: string | null
-          feedback?: Json | null
-          id?: string
-          progress?: number
-          started_at?: string
-          tutorial_id: string
-          user_id: string
-        }
-        Update: {
-          completed?: boolean
-          completed_at?: string | null
-          feedback?: Json | null
-          id?: string
-          progress?: number
-          started_at?: string
-          tutorial_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      visualization_preferences: {
-        Row: {
-          chart_type: string
-          created_at: string
-          id: string
-          preferences: Json
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          chart_type: string
-          created_at?: string
-          id?: string
-          preferences?: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          chart_type?: string
-          created_at?: string
-          id?: string
-          preferences?: Json
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "website_intel_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "website_intel_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      gtrgm_compress: {
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
         Args: { "": unknown }
         Returns: unknown
       }
-      gtrgm_decompress: {
+      halfvec_send: {
         Args: { "": unknown }
-        Returns: unknown
+        Returns: string
       }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      set_limit: {
-        Args: { "": number }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
         Returns: number
       }
-      show_limit: {
-        Args: Record<PropertyKey, never>
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
         Returns: number
       }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: string
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
       user_owns_company: {
         Args:
           | { company_id: string }
           | { p_user_id: string; p_company_id: string }
         Returns: boolean
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
     }
     Enums: {
