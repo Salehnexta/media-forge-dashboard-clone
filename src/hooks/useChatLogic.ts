@@ -57,7 +57,11 @@ export const useChatLogic = () => {
     // Check for company data questions first
     const companyResponse = await generateCompanyDataResponse(userMessage);
     if (companyResponse) {
-      return companyResponse;
+      return {
+        text: companyResponse.text,
+        shareWithAgents: companyResponse.shareWithAgents?.map(a => a as AIManager) || [],
+        actionButton: undefined
+      };
     }
 
     // Agent-specific responses for other questions

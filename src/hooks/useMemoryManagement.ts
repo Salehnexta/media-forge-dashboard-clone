@@ -1,205 +1,184 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface MemoryUsage {
-  agent_type: string;
-  memory_count: number;
-  total_size_mb: number;
+interface MemoryEntry {
+  id: string;
+  agent_id: string;
+  content: any;
+  importance_score: number;
+  timestamp: string;
+  memory_type: string;
+  expires_at?: string;
 }
 
 interface MemoryStats {
-  totalMemories: number;
-  totalSizeMB: number;
-  agentBreakdown: MemoryUsage[];
-  isLoading: boolean;
-  error: string | null;
+  totalEntries: number;
+  byAgent: Record<string, number>;
+  byType: Record<string, number>;
+  avgImportance: number;
 }
 
 export const useMemoryManagement = () => {
-  const [memoryStats, setMemoryStats] = useState<MemoryStats>({
-    totalMemories: 0,
-    totalSizeMB: 0,
-    agentBreakdown: [],
-    isLoading: true,
-    error: null
+  const [memories, setMemories] = useState<MemoryEntry[]>([]);
+  const [stats, setStats] = useState<MemoryStats>({
+    totalEntries: 0,
+    byAgent: {},
+    byType: {},
+    avgImportance: 0
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [cleanupStats, setCleanupStats] = useState({
-    isCleaningUp: false,
-    lastCleanup: null as Date | null,
-    cleanedCount: 0
-  });
-
-  const fetchMemoryUsage = async () => {
+  const loadMemories = useCallback(async (agentId?: string) => {
+    setIsLoading(true);
     try {
-      setMemoryStats(prev => ({ ...prev, isLoading: true, error: null }));
-
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (!user) return;
 
-      // Use a simple query instead of RPC call for now
-      const { data, error } = await supabase
-        .from('agent_memories')
-        .select('agent_type, content')
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
         .eq('user_id', user.id)
-        .or('expires_at.is.null,expires_at.gt.now()');
+        .single();
 
-      if (error) {
-        throw error;
+      if (!client) return;
+
+      let query = supabase
+        .from('agent_memory')
+        .select('*')
+        .eq('client_id', client.id)
+        .order('timestamp', { ascending: false });
+
+      if (agentId) {
+        query = query.eq('agent_id', agentId);
       }
 
-      // Process the data manually
-      const agentBreakdown: MemoryUsage[] = [];
-      const agentCounts: Record<string, { count: number; size: number }> = {};
+      const { data, error } = await query;
+      
+      if (error) throw error;
 
-      (data || []).forEach(memory => {
-        const agentType = memory.agent_type;
-        const contentSize = JSON.stringify(memory.content).length;
-        
-        if (!agentCounts[agentType]) {
-          agentCounts[agentType] = { count: 0, size: 0 };
-        }
-        
-        agentCounts[agentType].count++;
-        agentCounts[agentType].size += contentSize;
-      });
-
-      Object.entries(agentCounts).forEach(([agentType, stats]) => {
-        agentBreakdown.push({
-          agent_type: agentType,
-          memory_count: stats.count,
-          total_size_mb: Math.round((stats.size / 1024 / 1024) * 100) / 100
-        });
-      });
-
-      const totalMemories = agentBreakdown.reduce((sum, agent) => sum + agent.memory_count, 0);
-      const totalSizeMB = agentBreakdown.reduce((sum, agent) => sum + agent.total_size_mb, 0);
-
-      setMemoryStats({
-        totalMemories,
-        totalSizeMB,
-        agentBreakdown,
-        isLoading: false,
-        error: null
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch memory usage';
-      setMemoryStats(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
+      const memoryEntries: MemoryEntry[] = (data || []).map((item: any) => ({
+        id: item.id,
+        agent_id: item.agent_id,
+        content: item.content || {},
+        importance_score: item.importance_score || 0,
+        timestamp: item.timestamp || item.created_at,
+        memory_type: item.memory_type || 'conversation',
+        expires_at: item.expires_at
       }));
-    }
-  };
 
-  const cleanupExpiredMemories = async () => {
-    try {
-      setCleanupStats(prev => ({ ...prev, isCleaningUp: true }));
-
-      // Get count before cleanup
-      const { count: beforeCount } = await supabase
-        .from('agent_memories')
-        .select('*', { count: 'exact', head: true })
-        .not('expires_at', 'is', null)
-        .lt('expires_at', new Date().toISOString());
-
-      // Delete expired memories directly
-      const { error } = await supabase
-        .from('agent_memories')
-        .delete()
-        .not('expires_at', 'is', null)
-        .lt('expires_at', new Date().toISOString());
-
-      if (error) {
-        throw error;
-      }
-
-      // Get count after cleanup
-      const { count: afterCount } = await supabase
-        .from('agent_memories')
-        .select('*', { count: 'exact', head: true })
-        .not('expires_at', 'is', null)
-        .lt('expires_at', new Date().toISOString());
-
-      const cleanedCount = (beforeCount || 0) - (afterCount || 0);
-
-      setCleanupStats({
-        isCleaningUp: false,
-        lastCleanup: new Date(),
-        cleanedCount
-      });
-
-      // Refresh memory usage after cleanup
-      await fetchMemoryUsage();
-
-      return cleanedCount;
+      setMemories(memoryEntries);
+      calculateStats(memoryEntries);
     } catch (error) {
-      setCleanupStats(prev => ({ ...prev, isCleaningUp: false }));
-      throw error;
+      console.error('خطأ في تحميل الذكريات:', error);
+      toast.error('فشل في تحميل الذكريات');
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
+
+  const calculateStats = (memoryEntries: MemoryEntry[]) => {
+    const byAgent: Record<string, number> = {};
+    const byType: Record<string, number> = {};
+    let totalImportance = 0;
+
+    memoryEntries.forEach(memory => {
+      byAgent[memory.agent_id] = (byAgent[memory.agent_id] || 0) + 1;
+      byType[memory.memory_type] = (byType[memory.memory_type] || 0) + 1;
+      totalImportance += memory.importance_score;
+    });
+
+    setStats({
+      totalEntries: memoryEntries.length,
+      byAgent,
+      byType,
+      avgImportance: memoryEntries.length > 0 ? totalImportance / memoryEntries.length : 0
+    });
   };
 
-  const deleteMemoriesByAgent = async (agentType: string) => {
+  const deleteMemory = useCallback(async (memoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('agent_memory')
+        .delete()
+        .eq('id', memoryId);
+
+      if (error) throw error;
+
+      setMemories(prev => prev.filter(m => m.id !== memoryId));
+      toast.success('تم حذف الذاكرة بنجاح');
+    } catch (error) {
+      console.error('خطأ في حذف الذاكرة:', error);
+      toast.error('فشل في حذف الذاكرة');
+    }
+  }, []);
+
+  const clearAllMemories = useCallback(async (agentId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (!user) return;
 
-      const { error } = await supabase
-        .from('agent_memories')
-        .delete()
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
         .eq('user_id', user.id)
-        .eq('agent_type', agentType);
+        .single();
 
-      if (error) {
-        throw error;
+      if (!client) return;
+
+      let query = supabase
+        .from('agent_memory')
+        .delete()
+        .eq('client_id', client.id);
+
+      if (agentId) {
+        query = query.eq('agent_id', agentId);
       }
 
-      await fetchMemoryUsage();
-    } catch (error) {
-      throw error;
-    }
-  };
+      const { error } = await query;
+      if (error) throw error;
 
-  const optimizeMemoryRelevance = async () => {
+      setMemories([]);
+      setStats({ totalEntries: 0, byAgent: {}, byType: {}, avgImportance: 0 });
+      toast.success('تم مسح جميع الذكريات');
+    } catch (error) {
+      console.error('خطأ في مسح الذكريات:', error);
+      toast.error('فشل في مسح الذكريات');
+    }
+  }, []);
+
+  const updateImportanceScore = useCallback(async (memoryId: string, newScore: number) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Simple relevance update based on age (newer = more relevant)
       const { error } = await supabase
-        .from('agent_memories')
-        .update({
-          relevance_score: 0.5 // Default relevance score
-        })
-        .eq('user_id', user.id);
+        .from('agent_memory')
+        .update({ importance_score: newScore })
+        .eq('id', memoryId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      await fetchMemoryUsage();
+      setMemories(prev => 
+        prev.map(m => 
+          m.id === memoryId 
+            ? { ...m, importance_score: newScore }
+            : m
+        )
+      );
+
+      toast.success('تم تحديث درجة الأهمية');
     } catch (error) {
-      throw error;
+      console.error('خطأ في تحديث درجة الأهمية:', error);
+      toast.error('فشل في تحديث درجة الأهمية');
     }
-  };
-
-  useEffect(() => {
-    fetchMemoryUsage();
   }, []);
 
   return {
-    memoryStats,
-    cleanupStats,
-    fetchMemoryUsage,
-    cleanupExpiredMemories,
-    deleteMemoriesByAgent,
-    optimizeMemoryRelevance
+    memories,
+    stats,
+    isLoading,
+    loadMemories,
+    deleteMemory,
+    clearAllMemories,
+    updateImportanceScore
   };
 };

@@ -483,6 +483,44 @@ export type Database = {
           },
         ]
       }
+      chart_data: {
+        Row: {
+          agent_id: string
+          chart_type: string
+          client_id: string
+          created_at: string | null
+          data: Json
+          id: string
+          time_range: string | null
+        }
+        Insert: {
+          agent_id: string
+          chart_type: string
+          client_id: string
+          created_at?: string | null
+          data: Json
+          id?: string
+          time_range?: string | null
+        }
+        Update: {
+          agent_id?: string
+          chart_type?: string
+          client_id?: string
+          created_at?: string | null
+          data?: Json
+          id?: string
+          time_range?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           active: boolean
@@ -685,6 +723,41 @@ export type Database = {
           },
         ]
       }
+      dashboard_contexts: {
+        Row: {
+          active_charts: Json | null
+          client_id: string
+          context_type: string
+          id: string
+          last_updated: string | null
+          metrics_config: Json | null
+        }
+        Insert: {
+          active_charts?: Json | null
+          client_id: string
+          context_type: string
+          id?: string
+          last_updated?: string | null
+          metrics_config?: Json | null
+        }
+        Update: {
+          active_charts?: Json | null
+          client_id?: string
+          context_type?: string
+          id?: string
+          last_updated?: string | null
+          metrics_config?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_contexts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_performance_data: {
         Row: {
           client_id: string | null
@@ -877,6 +950,44 @@ export type Database = {
           },
         ]
       }
+      external_api_data: {
+        Row: {
+          api_source: string
+          client_id: string
+          created_at: string | null
+          data_type: string
+          id: string
+          processed_data: Json | null
+          raw_data: Json
+        }
+        Insert: {
+          api_source: string
+          client_id: string
+          created_at?: string | null
+          data_type: string
+          id?: string
+          processed_data?: Json | null
+          raw_data: Json
+        }
+        Update: {
+          api_source?: string
+          client_id?: string
+          created_at?: string | null
+          data_type?: string
+          id?: string
+          processed_data?: Json | null
+          raw_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_api_data_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           client_id: string
@@ -918,6 +1029,50 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          priority: string | null
+          read: boolean | null
+          title: string
+          type: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          priority?: string | null
+          read?: boolean | null
+          title: string
+          type: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          priority?: string | null
+          read?: boolean | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

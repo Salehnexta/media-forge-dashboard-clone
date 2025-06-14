@@ -3,112 +3,104 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface UploadedFile {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  status: 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error';
-  progress: number;
-  analysisResults?: any;
+interface FileUploadState {
+  isUploading: boolean;
+  uploadProgress: number;
+  error: string | null;
 }
 
-export const useFileUpload = (userId: string, companyId?: string) => {
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+export const useFileUpload = () => {
+  const [state, setState] = useState<FileUploadState>({
+    isUploading: false,
+    uploadProgress: 0,
+    error: null
+  });
 
-  const uploadFile = async (file: File): Promise<string | null> => {
-    const fileId = Math.random().toString(36).substr(2, 9);
-    const fileName = `${userId}/${fileId}-${file.name}`;
-    
-    const newFile: UploadedFile = {
-      id: fileId,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      status: 'uploading',
-      progress: 0
-    };
-
-    setFiles(prev => [...prev, newFile]);
+  const uploadFile = async (file: File, documentType: string = 'general') => {
+    setState(prev => ({ ...prev, isUploading: true, error: null, uploadProgress: 0 }));
 
     try {
-      // Update progress to show upload starting
-      setFiles(prev => 
-        prev.map(f => 
-          f.id === fileId 
-            ? { ...f, progress: 50 }
-            : f
-        )
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('المستخدم غير مصرح له');
+      }
 
-      const { data, error } = await supabase.storage
-        .from('company-documents')
-        .upload(fileName, file);
+      // Get client_id
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) {
+        throw new Error('لم يتم العثور على بيانات العميل');
+      }
+
+      // Store document metadata in content_sources_data
+      const { data, error } = await supabase
+        .from('content_sources_data')
+        .insert({
+          client_id: client.id,
+          source_type: 'document_upload',
+          data: {
+            document_name: file.name,
+            document_type: documentType,
+            file_size: file.size,
+            mime_type: file.type,
+            upload_date: new Date().toISOString(),
+            status: 'uploaded'
+          }
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Update progress to show upload complete
-      setFiles(prev => 
-        prev.map(f => 
-          f.id === fileId 
-            ? { ...f, progress: 100 }
-            : f
-        )
-      );
-
-      const { error: dbError } = await supabase
-        .from('company_documents')
-        .insert({
-          user_id: userId,
-          company_id: companyId,
-          document_name: file.name,
-          document_type: file.type,
-          file_path: data.path,
-          file_size: file.size,
-          mime_type: file.type,
-          analysis_status: 'pending'
-        });
-
-      if (dbError) throw dbError;
-
-      setFiles(prev => 
-        prev.map(f => 
-          f.id === fileId 
-            ? { ...f, status: 'uploaded', progress: 100 }
-            : f
-        )
-      );
-
-      toast.success(`تم رفع ${file.name} بنجاح`);
-      return data.path;
-
+      setState(prev => ({ ...prev, uploadProgress: 100 }));
+      toast.success('تم رفع الملف بنجاح');
+      
+      return { success: true, data };
     } catch (error: any) {
-      console.error('Error uploading file:', error);
-      setFiles(prev => 
-        prev.map(f => 
-          f.id === fileId 
-            ? { ...f, status: 'error', progress: 0 }
-            : f
-        )
-      );
-      toast.error(`فشل في رفع ${file.name}: ${error.message}`);
-      return null;
+      console.error('خطأ في رفع الملف:', error);
+      setState(prev => ({ ...prev, error: error.message }));
+      toast.error(error.message || 'فشل في رفع الملف');
+      return { success: false, error: error.message };
+    } finally {
+      setState(prev => ({ ...prev, isUploading: false }));
     }
   };
 
-  const removeFile = (fileId: string) => {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
-  };
+  const getUploadedFiles = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
 
-  const clearFiles = () => {
-    setFiles([]);
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) return [];
+
+      const { data, error } = await supabase
+        .from('content_sources_data')
+        .select('*')
+        .eq('client_id', client.id)
+        .eq('source_type', 'document_upload')
+        .order('timestamp', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('خطأ في جلب الملفات:', error);
+      return [];
+    }
   };
 
   return {
-    files,
+    ...state,
     uploadFile,
-    removeFile,
-    clearFiles,
-    setFiles
+    getUploadedFiles
   };
 };

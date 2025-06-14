@@ -7,6 +7,7 @@ import { generateCompanyDataResponse } from '@/hooks/chat/companyDataService';
 import { generateAgentResponses } from '@/hooks/chat/responseGenerationService';
 import { ContextualResponse } from '../types';
 import { AIManager, ChatMessage } from '@/types/morvo';
+import { createCampaign } from '@/hooks/chat/campaignCreationService';
 
 export const useChatLogic = () => {
   const chatState = useChatState();
@@ -16,7 +17,26 @@ export const useChatLogic = () => {
     // Check for campaign creation intent
     if (detectCampaignCreationIntent(userMessage)) {
       chatState.setCampaignCreationStep(1);
-      return generateCampaignCreationResponse(0);
+      return {
+        text: generateCampaignCreationResponse(0).text,
+        actionButton: {
+          label: "إنشاء الحملة",
+          action: async () => {
+            const campaignData = {
+              name: "حملة جديدة",
+              description: userMessage,
+              objectives: [],
+              target_audience: "",
+              budget: 0,
+              duration: 30,
+              channels: [],
+              kpis: []
+            };
+            await createCampaign(campaignData);
+          }
+        },
+        shareWithAgents: ['strategic' as AIManager, 'creative' as AIManager]
+      };
     }
 
     // Handle campaign creation steps
@@ -29,16 +49,35 @@ export const useChatLogic = () => {
       chatState.setCampaignCreationStep(nextStep);
       
       if (nextStep <= 5) {
-        return generateCampaignCreationResponse(nextStep - 1, { [currentField]: userMessage });
+        return {
+          text: generateCampaignCreationResponse(nextStep - 1, { [currentField]: userMessage }).text,
+          actionButton: {
+            label: "التالي",
+            action: () => console.log('Next step')
+          },
+          shareWithAgents: ['strategic' as AIManager, 'creative' as AIManager]
+        };
       } else {
-        return generateCampaignCreationResponse(5);
+        return {
+          text: generateCampaignCreationResponse(5).text,
+          actionButton: {
+            label: "إنشاء الحملة",
+            action: async () => {
+              await createCampaign(chatState.campaignData);
+            }
+          },
+          shareWithAgents: ['strategic' as AIManager, 'creative' as AIManager]
+        };
       }
     }
     
     // Check for company data questions
     const companyResponse = await generateCompanyDataResponse(userMessage);
     if (companyResponse) {
-      return companyResponse;
+      return {
+        text: companyResponse.text,
+        shareWithAgents: companyResponse.shareWithAgents?.map(agent => agent as AIManager) || []
+      };
     }
 
     // Agent-specific responses for other questions
