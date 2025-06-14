@@ -1,6 +1,5 @@
 
 import { toast } from 'sonner';
-import { environment } from '@/config/environment';
 
 export interface MorvoMessage {
   id: string;
