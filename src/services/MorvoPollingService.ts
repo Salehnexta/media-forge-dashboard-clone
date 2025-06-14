@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 import { environment } from '@/config/environment';
 
@@ -78,8 +79,8 @@ export class MorvoPollingService {
     this.updateStatus('connecting');
     
     try {
-      // Test connection with health check
-      const response = await fetch(`${environment.morvoApiUrl}/health`);
+      // Test connection with health check using the Railway URL
+      const response = await fetch('https://morvo-production.up.railway.app/health');
       
       if (response.ok) {
         this.updateStatus('connected');
@@ -118,7 +119,7 @@ export class MorvoPollingService {
 
   private async pingServer(): Promise<void> {
     try {
-      const response = await fetch(`${environment.morvoApiUrl}/health`);
+      const response = await fetch('https://morvo-production.up.railway.app/health');
       if (!response.ok) {
         this.updateStatus('error');
         this.config.onDisconnect?.();
@@ -146,7 +147,7 @@ export class MorvoPollingService {
     try {
       console.log('📤 Sending message to Morvo AI:', content);
       
-      const response = await fetch(`${environment.morvoApiUrl}/v1/chat/test`, {
+      const response = await fetch('https://morvo-production.up.railway.app/v1/chat/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

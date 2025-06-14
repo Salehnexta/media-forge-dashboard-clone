@@ -1,16 +1,26 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Send, Bot, User, Wifi, WifiOff } from 'lucide-react';
-import { MorvoPollingService, MorvoMessage, PollingConfig, ConnectionStatus } from '@/services/MorvoPollingService';
+import { chatHttpService } from '@/services/ChatHttpService';
+import MorvoAIService from '@/services/MorvoAIService';
 import { toast } from 'sonner';
 
-interface ChatMessage extends MorvoMessage {
+interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+  agentsInvolved?: string[];
+  processingTime?: number;
+  cost?: number;
   displayTime: string;
 }
+
+type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
 export const EnhancedMorvoChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -19,47 +29,64 @@ export const EnhancedMorvoChat = () => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollingServiceRef = useRef<MorvoPollingService | null>(null);
 
   useEffect(() => {
-    // Initialize polling service
-    const config: PollingConfig = {
-      onMessage: (message: MorvoMessage) => {
-        const chatMessage: ChatMessage = {
-          ...message,
-          displayTime: new Date().toLocaleTimeString('ar-SA', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })
-        };
-        setMessages(prev => [...prev, chatMessage]);
-        setIsTyping(false);
-      },
-      onConnect: () => {
-        console.log('📡 Polling service connected');
-        toast.success('تم الاتصال بمورفو AI');
-      },
-      onDisconnect: () => {
-        console.log('📡 Polling service disconnected');
-        toast.error('انقطع الاتصال مع مورفو AI');
-      },
-      onError: (error) => {
-        console.error('📡 Polling service error:', error);
-        toast.error('خطأ في الاتصال');
-        setIsTyping(false);
-      },
-      onStatusChange: (status) => {
-        setConnectionStatus(status);
+    // Initialize connection to Morvo AI HTTP service
+    const initializeMorvo = async () => {
+      console.log('🚀 Initializing Morvo AI HTTP service...');
+      setConnectionStatus('connecting');
+      
+      try {
+        // Connect to the HTTP service
+        const connected = await chatHttpService.connect('user', undefined, {
+          baseUrl: 'https://morvo-production.up.railway.app'
+        });
+        
+        if (connected) {
+          console.log('✅ Connected to Morvo AI Railway backend');
+          setConnectionStatus('connected');
+          toast.success('متصل بنجاح مع مورفو AI');
+        } else {
+          console.error('❌ Failed to connect to Morvo AI');
+          setConnectionStatus('error');
+          toast.error('فشل في الاتصال مع مورفو AI');
+        }
+      } catch (error) {
+        console.error('Connection initialization failed:', error);
+        setConnectionStatus('error');
+        toast.error('خطأ في تهيئة الاتصال');
       }
     };
 
-    pollingServiceRef.current = new MorvoPollingService('user_123', config);
-    pollingServiceRef.current.connect();
+    initializeMorvo();
 
+    // Listen for Morvo responses
+    const handleMorvoResponse = (event: CustomEvent) => {
+      const response = event.detail;
+      console.log('📥 Received Morvo response:', response);
+      
+      const assistantMessage: ChatMessage = {
+        id: `msg_${Date.now()}_assistant`,
+        content: response.message,
+        sender: 'assistant',
+        timestamp: new Date(),
+        agentsInvolved: response.agentsInvolved || [],
+        processingTime: response.processingTime,
+        cost: response.cost,
+        displayTime: new Date().toLocaleTimeString('ar-SA', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+    };
+
+    window.addEventListener('morvoResponse', handleMorvoResponse as EventListener);
+    
     return () => {
-      if (pollingServiceRef.current) {
-        pollingServiceRef.current.disconnect();
-      }
+      window.removeEventListener('morvoResponse', handleMorvoResponse as EventListener);
     };
   }, []);
 
@@ -68,16 +95,20 @@ export const EnhancedMorvoChat = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !pollingServiceRef.current) return;
+    if (!inputMessage.trim()) return;
+
+    console.log('🔍 Debug: Sending message via HTTP service:', {
+      httpService: chatHttpService.isConnected(),
+      baseUrl: 'https://morvo-production.up.railway.app',
+      message: inputMessage
+    });
 
     // Add user message
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'message',
+      id: `msg_${Date.now()}_user`,
       content: inputMessage,
-      message: inputMessage,
-      timestamp: new Date().toISOString(),
       sender: 'user',
+      timestamp: new Date(),
       displayTime: new Date().toLocaleTimeString('ar-SA', { 
         hour: '2-digit', 
         minute: '2-digit' 
@@ -88,25 +119,31 @@ export const EnhancedMorvoChat = () => {
     setInputMessage('');
     setIsTyping(true);
 
-    // Send message via polling service
-    const success = await pollingServiceRef.current.sendMessage(inputMessage);
-    
-    if (!success) {
+    try {
+      // Send message via HTTP service
+      const success = await chatHttpService.sendMessage(inputMessage);
+      console.log('📥 Message send result:', success);
+      
+      if (!success) {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('❌ Failed to send message:', error);
       setIsTyping(false);
+      
       // Add error message
       const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: 'error',
+        id: `msg_${Date.now()}_error`,
         content: 'عذراً، حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.',
-        message: 'عذراً، حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.',
-        timestamp: new Date().toISOString(),
         sender: 'assistant',
+        timestamp: new Date(),
         displayTime: new Date().toLocaleTimeString('ar-SA', { 
           hour: '2-digit', 
           minute: '2-digit' 
         })
       };
       setMessages(prev => [...prev, errorMessage]);
+      toast.error('فشل في إرسال الرسالة');
     }
   };
 
@@ -114,6 +151,26 @@ export const EnhancedMorvoChat = () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const testMorvoConnection = async () => {
+    try {
+      console.log('🧪 Testing Morvo AI connection...');
+      const health = await chatHttpService.performHealthCheck();
+      console.log('Health check result:', health);
+      
+      if (health.success) {
+        setConnectionStatus('connected');
+        toast.success('✅ Morvo AI is connected and working!');
+      } else {
+        setConnectionStatus('error');
+        toast.error('❌ Morvo AI connection failed');
+      }
+    } catch (error) {
+      console.error('Connection test failed:', error);
+      setConnectionStatus('error');
+      toast.error('Connection test failed');
     }
   };
 
@@ -133,7 +190,7 @@ export const EnhancedMorvoChat = () => {
   const getStatusText = () => {
     switch (connectionStatus) {
       case 'connected':
-        return 'متصل';
+        return 'متصل بـ Railway';
       case 'connecting':
         return 'جاري الاتصال...';
       case 'error':
@@ -149,7 +206,7 @@ export const EnhancedMorvoChat = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="w-6 h-6 text-blue-600" />
-            <span className="font-bold">مورفو AI المحسن</span>
+            <span className="font-bold">مورفو AI - HTTP</span>
           </div>
           <div className="flex items-center gap-2">
             {getStatusIcon()}
@@ -158,6 +215,14 @@ export const EnhancedMorvoChat = () => {
             </Badge>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={testMorvoConnection}
+          className="mt-2"
+        >
+          Test Connection
+        </Button>
       </CardHeader>
 
       <CardContent className="flex-1 p-0 overflow-hidden">
@@ -167,9 +232,12 @@ export const EnhancedMorvoChat = () => {
             {messages.length === 0 && (
               <div className="text-center py-8">
                 <Bot className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-                <h4 className="font-bold text-gray-900 mb-2">مرحباً بك في مورفو AI المحسن</h4>
+                <h4 className="font-bold text-gray-900 mb-2">مرحباً بك في مورفو AI</h4>
                 <p className="text-sm text-gray-600">
-                  كيف يمكنني مساعدتك في التسويق اليوم؟
+                  متصل مباشرة بـ Railway backend
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Base URL: https://morvo-production.up.railway.app
                 </p>
               </div>
             )}
@@ -183,8 +251,6 @@ export const EnhancedMorvoChat = () => {
                   <div className={`p-3 rounded-2xl ${
                     message.sender === 'user'
                       ? 'bg-blue-600 text-white'
-                      : message.type === 'error'
-                      ? 'bg-red-100 text-red-900 border border-red-200'
                       : 'bg-gray-100 text-gray-900'
                   }`}>
                     <div className="flex items-center gap-2 mb-1">
@@ -197,7 +263,16 @@ export const EnhancedMorvoChat = () => {
                         {message.sender === 'user' ? 'أنت' : 'مورفو AI'}
                       </span>
                     </div>
-                    <p className="text-sm">{message.content || message.message}</p>
+                    <p className="text-sm">{message.content}</p>
+                    {message.agentsInvolved && message.agentsInvolved.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {message.agentsInvolved.map((agent, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {agent}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{message.displayTime}</p>
                 </div>
@@ -242,6 +317,11 @@ export const EnhancedMorvoChat = () => {
                 <Send className="w-4 h-4" />
               </Button>
             </div>
+            {connectionStatus !== 'connected' && (
+              <p className="text-xs text-red-600 mt-2 text-center">
+                غير متصل بـ Morvo AI - جاري المحاولة...
+              </p>
+            )}
           </div>
         </div>
       </CardContent>
