@@ -55,7 +55,7 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   
   const [companyData, setCompanyData] = useState<CompanyData>({
     name: '',
@@ -113,58 +113,34 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // حفظ بيانات الشركة
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
+      // حفظ بيانات العميل بدلاً من الشركة
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
         .insert({
-          ...companyData,
+          name: companyData.name,
           user_id: user.id
         })
         .select()
         .single();
 
-      if (companyError) throw companyError;
-      setCompanyId(company.id);
+      if (clientError) throw clientError;
+      setClientId(client.id);
 
-      // حفظ بيانات المبيعات
-      if (salesData.annual_revenue || salesData.monthly_average_sales) {
-        const { error: salesError } = await supabase
-          .from('sales_data')
-          .insert({
-            company_id: company.id,
-            user_id: user.id,
-            annual_revenue: salesData.annual_revenue ? parseFloat(salesData.annual_revenue) : null,
-            monthly_average_sales: salesData.monthly_average_sales ? parseFloat(salesData.monthly_average_sales) : null,
-            top_selling_products: salesData.top_selling_products,
-            sales_channels: salesData.sales_channels,
-            customer_acquisition_cost: salesData.customer_acquisition_cost ? parseFloat(salesData.customer_acquisition_cost) : null,
-            customer_lifetime_value: salesData.customer_lifetime_value ? parseFloat(salesData.customer_lifetime_value) : null,
-            conversion_rate: salesData.conversion_rate ? parseFloat(salesData.conversion_rate) : null,
-            sales_team_size: salesData.sales_team_size ? parseInt(salesData.sales_team_size) : null,
-            sales_process_description: salesData.sales_process_description
-          });
+      // حفظ البيانات الإضافية في content_sources_data
+      const { error: dataError } = await supabase
+        .from('content_sources_data')
+        .insert({
+          client_id: client.id,
+          source_type: 'company_profile',
+          data: {
+            company_data: companyData,
+            sales_data: salesData,
+            budget_data: budgetData,
+            uploaded_files: uploadedFiles
+          }
+        });
 
-        if (salesError) throw salesError;
-      }
-
-      // حفظ بيانات الميزانية
-      if (budgetData.total_marketing_budget || budgetData.monthly_marketing_budget) {
-        const { error: budgetError } = await supabase
-          .from('budget_info')
-          .insert({
-            company_id: company.id,
-            user_id: user.id,
-            total_marketing_budget: budgetData.total_marketing_budget ? parseFloat(budgetData.total_marketing_budget) : null,
-            monthly_marketing_budget: budgetData.monthly_marketing_budget ? parseFloat(budgetData.monthly_marketing_budget) : null,
-            budget_allocation: budgetData.budget_allocation,
-            budget_period: budgetData.budget_period,
-            priority_channels: budgetData.priority_channels,
-            budget_constraints: budgetData.budget_constraints,
-            expected_roi: budgetData.expected_roi ? parseFloat(budgetData.expected_roi) : null
-          });
-
-        if (budgetError) throw budgetError;
-      }
+      if (dataError) throw dataError;
 
       toast.success('تم حفظ بيانات الشركة بنجاح!');
       
@@ -172,16 +148,21 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
       setAnalyzing(true);
       setCurrentStep(6);
       
-      const { data: analysisResult, error: analysisError } = await supabase.functions
-        .invoke('analyze-company', {
-          body: { companyId: company.id, userId: user.id }
-        });
+      try {
+        const { data: analysisResult, error: analysisError } = await supabase.functions
+          .invoke('analyze-company', {
+            body: { clientId: client.id, userId: user.id }
+          });
 
-      if (analysisError) {
-        console.error('Analysis error:', analysisError);
-        toast.error('حدث خطأ في التحليل، ولكن تم حفظ بيانات الشركة');
-      } else {
-        toast.success('تم إكمال التحليل الذكي بنجاح! 🎉');
+        if (analysisError) {
+          console.error('Analysis error:', analysisError);
+          toast.error('حدث خطأ في التحليل، ولكن تم حفظ بيانات الشركة');
+        } else {
+          toast.success('تم إكمال التحليل الذكي بنجاح! 🎉');
+        }
+      } catch (analysisError) {
+        console.error('Analysis function error:', analysisError);
+        toast.success('تم حفظ البيانات بنجاح!');
       }
 
       // إكمال عملية التسجيل
@@ -216,7 +197,7 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
         return (
           <DocumentUploadStep 
             userId={user.id} 
-            companyId={companyId}
+            companyId={clientId}
             onFilesChange={setUploadedFiles}
           />
         );

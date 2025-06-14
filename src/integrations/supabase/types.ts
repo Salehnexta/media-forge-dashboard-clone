@@ -181,6 +181,36 @@ export type Database = {
           },
         ]
       }
+      agent_metrics: {
+        Row: {
+          agent_id: string
+          id: string
+          response_time: number | null
+          success_rate: number | null
+          task_id: string
+          timestamp: string | null
+          tokens_used: number | null
+        }
+        Insert: {
+          agent_id: string
+          id?: string
+          response_time?: number | null
+          success_rate?: number | null
+          task_id: string
+          timestamp?: string | null
+          tokens_used?: number | null
+        }
+        Update: {
+          agent_id?: string
+          id?: string
+          response_time?: number | null
+          success_rate?: number | null
+          task_id?: string
+          timestamp?: string | null
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       agent_performance: {
         Row: {
           agent_id: string

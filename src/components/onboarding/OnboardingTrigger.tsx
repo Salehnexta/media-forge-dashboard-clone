@@ -19,9 +19,9 @@ export const OnboardingTrigger = ({ user, children }: OnboardingTriggerProps) =>
 
   const checkOnboardingStatus = async () => {
     try {
-      // التحقق من وجود شركات للمستخدم
-      const { data: companies, error } = await supabase
-        .from('companies')
+      // التحقق من وجود عملاء للمستخدم بدلاً من الشركات
+      const { data: clients, error } = await supabase
+        .from('clients')
         .select('id')
         .eq('user_id', user.id)
         .limit(1);
@@ -30,8 +30,8 @@ export const OnboardingTrigger = ({ user, children }: OnboardingTriggerProps) =>
         console.error('Error checking onboarding status:', error);
         setNeedsOnboarding(false);
       } else {
-        // إذا لم توجد شركات، المستخدم يحتاج onboarding
-        setNeedsOnboarding(!companies || companies.length === 0);
+        // إذا لم توجد عملاء، المستخدم يحتاج onboarding
+        setNeedsOnboarding(!clients || clients.length === 0);
       }
     } catch (error) {
       console.error('Error in checkOnboardingStatus:', error);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +78,7 @@ export interface OnboardingData {
 export const EnhancedSmartOnboarding = ({ user, onComplete }: EnhancedSmartOnboardingProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
@@ -193,65 +192,45 @@ export const EnhancedSmartOnboarding = ({ user, onComplete }: EnhancedSmartOnboa
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // إنشاء الشركة أولاً
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
+      // إنشاء عميل جديد بدلاً من شركة
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
         .insert({
           name: onboardingData.companyNameAr,
-          industry: onboardingData.industry,
-          website: onboardingData.websiteUrl,
-          size: onboardingData.companySize,
-          location: `${onboardingData.locationCity}, ${onboardingData.locationCountry}`,
-          user_id: user.id,
-          auto_discovered_data: onboardingData.autoDiscoveredData,
-          data_approved: Object.values(onboardingData.dataApprovalStatus).some(Boolean),
-          team_size: onboardingData.teamSize,
-          experience_level: onboardingData.experienceLevel,
-          monthly_budget_range: onboardingData.monthlyBudget,
-          primary_goals: onboardingData.primaryGoals,
-          key_kpis: onboardingData.keyKPIs,
-          campaign_frequency: onboardingData.campaignFrequency,
-          automation_level: onboardingData.automationLevel,
-          approval_workflow: onboardingData.approvalWorkflow,
-          primary_markets: onboardingData.primaryMarkets,
-          target_cities: onboardingData.targetCities,
-          target_age_groups: onboardingData.targetAgeGroups,
-          target_gender: onboardingData.targetGender,
-          income_level: onboardingData.incomeLevel,
-          social_accounts: onboardingData.socialAccounts,
-          main_competitors: onboardingData.competitors,
-          competitive_advantages: onboardingData.competitiveAdvantages,
-          website_platform: onboardingData.websitePlatform,
-          current_tools: onboardingData.currentTools,
-          content_languages: [onboardingData.contentLanguages],
-          content_types: onboardingData.contentTypes,
-          brand_personality: onboardingData.brandPersonality,
-          communication_tone: onboardingData.communicationTone,
-          preferred_channels: onboardingData.preferredChannels
+          user_id: user.id
         })
         .select()
         .single();
 
-      if (companyError) throw companyError;
-      setCompanyId(company.id);
+      if (clientError) throw clientError;
+      setClientId(client.id);
 
-      // حفظ بيانات التحليل التلقائي إذا كانت متوفرة
+      // حفظ بيانات التحليل في content_sources_data
       if (onboardingData.autoDiscoveredData) {
         const { error: discoveryError } = await supabase
-          .from('auto_discovery_data')
+          .from('content_sources_data')
           .insert({
-            company_id: company.id,
-            website_url: onboardingData.websiteUrl,
-            perplexity_analysis: onboardingData.autoDiscoveredData.rawAnalysis,
-            discovered_industry: onboardingData.autoDiscoveredData.industry,
-            discovered_competitors: onboardingData.autoDiscoveredData.competitors?.map((c: any) => c.name) || [],
-            discovered_keywords: onboardingData.autoDiscoveredData.digitalPresence?.seoKeywords || [],
-            social_media_found: onboardingData.autoDiscoveredData.digitalPresence?.socialMedia || {},
-            business_description: onboardingData.autoDiscoveredData.description,
-            target_audience_analysis: { targetAudience: onboardingData.autoDiscoveredData.targetAudience },
-            marketing_channels_suggested: onboardingData.autoDiscoveredData.digitalPresence?.digitalChannels || [],
-            content_themes_suggested: onboardingData.autoDiscoveredData.digitalPresence?.contentStrategy || [],
-            approval_status: 'approved'
+            client_id: client.id,
+            source_type: 'website_analysis',
+            data: {
+              website_url: onboardingData.websiteUrl,
+              analysis_data: onboardingData.autoDiscoveredData,
+              company_info: {
+                name: onboardingData.companyNameAr,
+                industry: onboardingData.industry,
+                size: onboardingData.companySize,
+                location: `${onboardingData.locationCity}, ${onboardingData.locationCountry}`,
+                team_size: onboardingData.teamSize,
+                experience_level: onboardingData.experienceLevel,
+                monthly_budget: onboardingData.monthlyBudget,
+                primary_goals: onboardingData.primaryGoals,
+                key_kpis: onboardingData.keyKPIs,
+                primary_markets: onboardingData.primaryMarkets,
+                social_accounts: onboardingData.socialAccounts,
+                competitors: onboardingData.competitors,
+                preferred_channels: onboardingData.preferredChannels
+              }
+            }
           });
 
         if (discoveryError) {
