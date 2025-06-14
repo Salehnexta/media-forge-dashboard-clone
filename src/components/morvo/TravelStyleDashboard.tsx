@@ -4,17 +4,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Send, Bot, User, BarChart3, FileText, PlusCircle, Wifi, WifiOff, Clock, DollarSign } from 'lucide-react';
+import { Send, PlusCircle } from 'lucide-react';
 import { useMorvoChat } from '@/hooks/useMorvoChat';
-import { ChatMessage } from '@/types/morvoChat';
+import { EnhancedConnectionIndicator } from './EnhancedConnectionIndicator';
+import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
+import { EnhancedMessageBubble } from './EnhancedMessageBubble';
+import { ConversationStats } from './ConversationStats';
 
 export const TravelStyleDashboard: React.FC = () => {
   const {
     messages,
-    agents,
-    selectedAgent,
-    setSelectedAgent,
     isLoading,
     isTyping,
     connectionStatus,
@@ -76,17 +75,10 @@ export const TravelStyleDashboard: React.FC = () => {
             </p>
           </div>
 
-          {/* Connection Status */}
+          {/* Enhanced Connection Status */}
           <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-              {connectionStatus.isConnected ? (
-                <Wifi className="w-4 h-4 text-green-400" />
-              ) : (
-                <WifiOff className="w-4 h-4 text-red-400" />
-              )}
-              <span className="text-white text-sm">
-                {connectionStatus.isConnected ? 'متصل بـ Morvo AI' : 'غير متصل'}
-              </span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20">
+              <EnhancedConnectionIndicator status={connectionStatus} />
             </div>
           </div>
 
@@ -97,186 +89,112 @@ export const TravelStyleDashboard: React.FC = () => {
                 key={index}
                 onClick={action.action}
                 disabled={!connectionStatus.isConnected || isLoading}
-                className="bg-gradient-to-r from-blue-600/80 to-purple-600/80 hover:from-blue-700/90 hover:to-purple-700/90 text-white border-none backdrop-blur-sm px-6 py-3 text-lg font-medium"
+                className="bg-gradient-to-r from-blue-600/80 to-purple-600/80 hover:from-blue-700/90 hover:to-purple-700/90 text-white border-none backdrop-blur-sm px-6 py-3 text-lg font-medium transition-all duration-200 hover:scale-105"
               >
+                <PlusCircle className="w-5 h-5 mr-2" />
                 {action.label}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Chat Section */}
-        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 lg:px-8 pb-6">
-          {/* Messages Area */}
-          <Card className="flex-1 bg-white/10 backdrop-blur-md border-white/20 mb-6">
-            <CardContent className="p-0">
-              <ScrollArea className="h-96 p-6">
-                <div className="space-y-4">
-                  {messages.length === 0 && (
-                    <div className="text-center py-8">
-                      <Bot className="w-16 h-16 mx-auto mb-4 text-blue-300" />
-                      <h4 className="font-bold text-white mb-2">مرحباً! كيف يمكنني مساعدتك؟</h4>
-                      <p className="text-blue-100 max-w-md mx-auto leading-relaxed">
-                        مساعدك الذكي في التسويق مع 9 وكلاء متخصصين جاهزين للمساعدة في استراتيجية التسويق، وسائل التواصل الاجتماعي، تحسين محركات البحث، والمزيد.
-                      </p>
-                    </div>
-                  )}
-
-                  {messages.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      onRetry={retryMessage}
-                    />
-                  ))}
-
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-white/90 rounded-2xl p-4 shadow-lg max-w-[80%]">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bot className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm font-medium text-gray-900">Morvo AI</span>
+        {/* Main Content Area */}
+        <div className="flex-1 flex gap-6 max-w-7xl mx-auto w-full px-6 lg:px-8 pb-6">
+          {/* Chat Section */}
+          <div className="flex-1 flex flex-col">
+            {/* Messages Area */}
+            <Card className="flex-1 bg-white/10 backdrop-blur-md border-white/20 mb-6">
+              <CardContent className="p-0">
+                <ScrollArea className="h-96 p-6">
+                  <div className="space-y-4">
+                    {messages.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                          <span className="text-white text-2xl font-bold">AI</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">يفكر...</span>
-                          <div className="flex gap-1">
-                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" />
-                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                          </div>
+                        <h4 className="font-bold text-white mb-4 text-xl">مرحباً! كيف يمكنني مساعدتك؟</h4>
+                        <p className="text-blue-100 max-w-md mx-auto leading-relaxed mb-6">
+                          مساعدك الذكي في التسويق مع 9 وكلاء متخصصين جاهزين للمساعدة في استراتيجية التسويق، وسائل التواصل الاجتماعي، تحسين محركات البحث، والمزيد.
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setInputMessage('أريد تحليل موقعي')}
+                            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                          >
+                            تحليل الموقع
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setInputMessage('أريد إنشاء حملة')}
+                            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                          >
+                            إنشاء حملة
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setInputMessage('أريد تحليل المنافسين')}
+                            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                          >
+                            تحليل المنافسين
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    )}
 
-          {/* Input Section */}
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardContent className="p-4">
-              <div className="flex gap-3">
-                <Input
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="اسأل أي شيء، كلما شاركت أكثر كلما تمكنا من مساعدتك أكثر..."
-                  onKeyPress={handleKeyPress}
-                  disabled={isLoading || !connectionStatus.isConnected}
-                  className="flex-1 bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-600"
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isLoading || !connectionStatus.isConnected}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              {!connectionStatus.isConnected && (
-                <p className="text-red-300 text-sm mt-2 text-center">
-                  {connectionStatus.error || 'غير متصل بـ Morvo AI'}
-                </p>
-              )}
+                    {messages.map((message) => (
+                      <EnhancedMessageBubble
+                        key={message.id}
+                        message={message}
+                        onRetry={retryMessage}
+                      />
+                    ))}
 
-              {/* Stats */}
-              {conversationStats.totalMessages > 0 && (
-                <div className="flex justify-center gap-4 text-xs text-blue-200 mt-3 pt-3 border-t border-white/20">
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="w-3 h-3" />
-                    ${conversationStats.totalCost.toFixed(4)}
+                    {isTyping && <EnhancedTypingIndicator />}
+                    
+                    <div ref={messagesEndRef} />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {conversationStats.averageProcessingTime.toFixed(1)}s متوسط
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-};
+                </ScrollArea>
+              </CardContent>
+            </Card>
 
-// Message Bubble Component
-const MessageBubble: React.FC<{
-  message: ChatMessage;
-  onRetry: (messageId: string) => void;
-}> = ({ message, onRetry }) => {
-  const isUser = message.sender === 'user';
-  
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
-        {!isUser && (
-          <div className="flex items-center gap-2 mb-2">
-            <Bot className="w-4 h-4 text-blue-300" />
-            <span className="text-sm font-medium text-white">Morvo AI</span>
-            {message.agentsInvolved && message.agentsInvolved.length > 0 && (
-              <div className="flex gap-1">
-                {message.agentsInvolved.map((agent, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs bg-blue-600/80 text-white">
-                    {agent}
-                  </Badge>
-                ))}
-              </div>
-            )}
+            {/* Input Section */}
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <Input
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="اسأل أي شيء، كلما شاركت أكثر كلما تمكنا من مساعدتك أكثر..."
+                    onKeyPress={handleKeyPress}
+                    disabled={isLoading || !connectionStatus.isConnected}
+                    className="flex-1 bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-600 transition-all duration-200 focus:ring-2 focus:ring-blue-400"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isLoading || !connectionStatus.isConnected}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 transition-all duration-200 hover:scale-105"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {!connectionStatus.isConnected && (
+                  <p className="text-red-300 text-sm mt-2 text-center">
+                    {connectionStatus.error || 'غير متصل بـ Morvo AI'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        )}
-        
-        <div className={`p-4 rounded-2xl shadow-lg ${
-          isUser
-            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-            : message.isError 
-            ? 'bg-red-500/90 text-white'
-            : 'bg-white/90 text-gray-900'
-        }`}>
-          {isUser && (
-            <div className="flex items-center gap-2 mb-2">
-              <User className="w-4 h-4" />
-              <span className="text-sm font-medium">أنت</span>
-            </div>
-          )}
-          
-          <p className="text-sm whitespace-pre-line">{message.text}</p>
-          
-          {message.isError && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onRetry(message.id)}
-              className="mt-2 gap-2 text-white border-white/30 hover:bg-white/20"
-            >
-              إعادة المحاولة
-            </Button>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-between mt-1 text-xs text-blue-200">
-          <span>
-            {message.timestamp.toLocaleTimeString('ar-SA', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </span>
-          
-          {message.processingTime && (
-            <div className="flex items-center gap-3">
-              {message.costTracking && (
-                <span className="flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" />
-                  ${message.costTracking.total_cost.toFixed(4)}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {message.processingTime.toFixed(1)}s
-              </span>
+
+          {/* Stats Panel */}
+          {conversationStats.totalMessages > 0 && (
+            <div className="w-80 flex-shrink-0">
+              <ConversationStats stats={conversationStats} />
             </div>
           )}
         </div>
