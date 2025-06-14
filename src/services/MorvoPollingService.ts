@@ -70,7 +70,7 @@ export class MorvoPollingService {
     this.sessionId = `session_${Date.now()}`;
     this.conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     this.clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.pollInterval = config.pollInterval || 2000; // Poll every 2 seconds
+    this.pollInterval = config.pollInterval || 2000;
   }
 
   async connect(): Promise<boolean> {
@@ -78,7 +78,6 @@ export class MorvoPollingService {
     this.updateStatus('connecting');
     
     try {
-      // Test connection with health check using the Railway URL
       const response = await fetch('https://morvo-production.up.railway.app/health');
       
       if (response.ok) {
@@ -104,13 +103,8 @@ export class MorvoPollingService {
       clearInterval(this.pollTimer);
     }
 
-    // For now, we'll simulate polling behavior
-    // In a real implementation, you might poll a messages endpoint
     this.pollTimer = setInterval(() => {
-      // This is where you'd check for new messages
-      // For now, we'll just maintain the connection status
       if (this.status === 'connected') {
-        // Optionally ping the server to maintain connection
         this.pingServer();
       }
     }, this.pollInterval);
@@ -135,7 +129,6 @@ export class MorvoPollingService {
       console.error('❌ Not connected. Status:', this.status);
       toast.error('الاتصال غير متاح. جاري المحاولة...');
       
-      // Try to reconnect
       await this.connect();
       
       if (this.status !== 'connected') {
@@ -164,7 +157,6 @@ export class MorvoPollingService {
 
       const data = await response.json();
       
-      // Convert response to MorvoMessage format
       const assistantMessage: MorvoMessage = {
         id: Date.now().toString(),
         type: 'message',
@@ -176,7 +168,6 @@ export class MorvoPollingService {
         sender: 'assistant'
       };
 
-      // Trigger message callback
       this.config.onMessage?.(assistantMessage);
       
       return true;
