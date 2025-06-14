@@ -20,7 +20,6 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Status from './pages/Status';
 import Updates from './pages/Updates';
-import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 
@@ -33,7 +32,6 @@ function App() {
         <Toaster />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />

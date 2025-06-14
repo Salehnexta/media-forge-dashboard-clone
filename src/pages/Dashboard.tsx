@@ -1,12 +1,8 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { User } from '@supabase/supabase-js';
-import { LogOut, MessageCircle, BarChart3, Users, Target, TrendingUp, Mail, Search, Eye, Zap } from 'lucide-react';
+import { MessageCircle, BarChart3, Users, Target, TrendingUp, Mail, Search, Eye, Zap } from 'lucide-react';
 import { MorvoChat } from '@/components/dashboard/MorvoChat';
 
 interface Agent {
@@ -19,11 +15,7 @@ interface Agent {
 }
 
 const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   const agents: Agent[] = [
     {
@@ -100,65 +92,13 @@ const Dashboard = () => {
     }
   ];
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-      setUser(session.user);
-      setLoading(false);
-    };
-
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate('/auth');
-      } else {
-        setUser(session.user);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "خطأ في تسجيل الخروج",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "تم تسجيل الخروج بنجاح",
-        description: "نراك قريباً!",
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (selectedAgent) {
     return (
       <MorvoChat 
         agent={selectedAgent} 
-        user={user} 
+        user={null} 
         onBack={() => setSelectedAgent(null)}
-        onLogout={handleLogout}
+        onLogout={() => {}}
       />
     );
   }
@@ -179,13 +119,9 @@ const Dashboard = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">منصة Morvo AI</h1>
-                <p className="text-sm text-gray-600">مرحباً، {user?.email}</p>
+                <p className="text-sm text-gray-600">مرحباً بك في منصة Morvo</p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 ml-2" />
-              تسجيل الخروج
-            </Button>
           </div>
         </div>
       </header>
