@@ -5,6 +5,7 @@ import { DiagnosticService } from './chat/DiagnosticService';
 import { FallbackService } from './chat/FallbackService';
 import { ConnectionManager } from './chat/ConnectionManager';
 import { ChatMessage, WebSocketConfig, ConnectionStatus } from './chat/types';
+import { chatHttpService } from './ChatHttpService';
 
 export class ChatWebSocketService {
   private connectionManager: ConnectionManager;
@@ -13,23 +14,15 @@ export class ChatWebSocketService {
   private messageQueue: any[] = [];
   
   constructor() {
-    console.log('🔧 ChatWebSocketService initialized with Railway integration');
+    console.log('🔧 ChatWebSocketService initialized with HTTP integration (WebSocket compatibility layer)');
     this.diagnosticService = new DiagnosticService();
     this.fallbackService = new FallbackService();
     this.connectionManager = new ConnectionManager(this.diagnosticService, this.fallbackService);
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {
-    // Check Railway status first
-    const railwayStatus = await railwayConnectionService.checkRailwayHealth();
-    
-    if (!railwayStatus.httpReachable) {
-      this.diagnosticService.logDiagnostic('railway_unreachable', railwayStatus);
-      this.fallbackService.enableFallbackMode();
-      return false;
-    }
-
-    const connected = await this.connectionManager.connect(userId, token, config);
+    // Use HTTP service instead of WebSocket
+    const connected = await chatHttpService.connect(userId, token, config);
     
     if (connected) {
       this.flushMessageQueue();
@@ -39,8 +32,8 @@ export class ChatWebSocketService {
   }
 
   sendMessage(message: any): boolean {
-    if (this.connectionManager.isConnected()) {
-      return this.connectionManager.sendMessage(message);
+    if (chatHttpService.isConnected()) {
+      return chatHttpService.sendMessage(message);
     } else if (this.fallbackService.isInFallbackMode()) {
       // Handle message in fallback mode
       console.log('📤 Handling message in fallback mode');
@@ -51,11 +44,11 @@ export class ChatWebSocketService {
       }, 1000);
       return true;
     } else {
-      console.warn('⚠️ WebSocket not connected, queuing message');
+      console.warn('⚠️ Service not connected, queuing message');
       this.messageQueue.push(message);
       
       // Try reconnecting
-      if (!this.connectionManager.isConnected()) {
+      if (!chatHttpService.isConnected()) {
         const userId = localStorage.getItem('morvo_user_id') || 'guest';
         const token = localStorage.getItem('morvo_auth_token');
         this.connect(userId, token);
@@ -73,15 +66,15 @@ export class ChatWebSocketService {
   }
 
   disconnect(): void {
-    this.connectionManager.disconnect();
+    chatHttpService.disconnect();
   }
 
   isConnected(): boolean {
-    return this.connectionManager.isConnected();
+    return chatHttpService.isConnected();
   }
 
   getConnectionState(): string {
-    return this.connectionManager.getConnectionState();
+    return chatHttpService.getConnectionState();
   }
 
   getDiagnosticHistory() {
@@ -95,12 +88,17 @@ export class ChatWebSocketService {
       queuedMessages: this.messageQueue.length,
       lastEvents: this.diagnosticService.getDiagnosticHistory().slice(-5),
       navigatorOnline: navigator.onLine,
-      fallbackMode: this.fallbackService.isInFallbackMode()
+      fallbackMode: this.fallbackService.isInFallbackMode(),
+      httpServiceStatus: chatHttpService.getDetailedStatus()
     };
   }
 
   async performConnectionTest(): Promise<ConnectionStatus> {
-    return await this.connectionManager.performConnectionTest();
+    const httpStatus = await chatHttpService.performConnectionTest();
+    return {
+      success: httpStatus.success,
+      details: httpStatus
+    };
   }
 
   isInFallbackMode(): boolean {
@@ -109,15 +107,19 @@ export class ChatWebSocketService {
 
   async performHealthCheck(): Promise<ConnectionStatus> {
     const railwayStatus = await railwayConnectionService.checkRailwayHealth();
+    const httpStatus = await chatHttpService.performHealthCheck();
     
     return {
-      success: railwayStatus.isOnline,
-      details: railwayStatus
+      success: railwayStatus.isOnline && httpStatus.success,
+      details: {
+        railway: railwayStatus,
+        http: httpStatus
+      }
     };
   }
 }
 
-// Export singleton instance
+// Export singleton instance (now using HTTP service internally)
 export const chatWebSocketService = new ChatWebSocketService();
 
 // Re-export types for backward compatibility
