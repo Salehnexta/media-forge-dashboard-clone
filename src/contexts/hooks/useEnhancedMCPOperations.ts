@@ -168,6 +168,7 @@ export const useEnhancedMCPOperations = () => {
           payload,
           context: enhancedContext,
           correlation_id: crypto.randomUUID(),
+          project_id: clientId, // Using client_id as project_id for now
           status: 'sent'
         });
 
