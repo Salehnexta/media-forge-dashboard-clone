@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -198,7 +197,7 @@ export const useMemoryManagement = () => {
     }
   }, []);
 
-  const cleanupExpiredMemories = useCallback(async () => {
+  const cleanupExpiredMemories = useCallback(async (): Promise<number> => {
     setCleanupStats(prev => ({ ...prev, isCleaningUp: true }));
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -213,16 +212,35 @@ export const useMemoryManagement = () => {
       if (!client) return 0;
 
       const now = new Date().toISOString();
-      const { data, error } = await supabase
+      
+      // First, count the records that will be deleted
+      const { count, error: countError } = await supabase
+        .from('agent_memory')
+        .select('*', { count: 'exact', head: true })
+        .eq('client_id', client.id)
+        .not('expires_at', 'is', null)
+        .lt('expires_at', now);
+
+      if (countError) {
+        console.error('Error counting expired memories:', countError);
+        throw countError;
+      }
+
+      // Then delete the expired records
+      const { error: deleteError } = await supabase
         .from('agent_memory')
         .delete()
         .eq('client_id', client.id)
+        .not('expires_at', 'is', null)
         .lt('expires_at', now);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting expired memories:', deleteError);
+        throw deleteError;
+      }
 
-      // Fix: Handle both null and array cases properly
-      const cleanedCount = data && Array.isArray(data) ? data.length : 0;
+      // Use the count from the select query
+      const cleanedCount = count || 0;
       
       setCleanupStats(prev => ({
         ...prev,
@@ -230,9 +248,14 @@ export const useMemoryManagement = () => {
         cleanedCount
       }));
 
+      if (cleanedCount > 0) {
+        toast.success(`تم تنظيف ${cleanedCount} ذاكرة منتهية الصلاحية`);
+      }
+
       return cleanedCount;
     } catch (error) {
       console.error('خطأ في تنظيف الذكريات:', error);
+      toast.error('فشل في تنظيف الذكريات المنتهية الصلاحية');
       return 0;
     } finally {
       setCleanupStats(prev => ({ ...prev, isCleaningUp: false }));
