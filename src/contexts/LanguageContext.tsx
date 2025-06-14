@@ -53,6 +53,13 @@ const translations = {
     'header.title': 'منصة مورفو للذكاء الاصطناعي',
     'header.search': 'البحث...',
     
+    // Dashboard
+    'dashboard.title': 'لوحة التحكم',
+    'dashboard.overview': 'نظرة عامة',
+    'dashboard.analytics': 'التحليلات',
+    'dashboard.campaigns': 'الحملات',
+    'dashboard.reports': 'التقارير',
+    
     // Footer
     'footer.brand_description': 'منصة التسويق الذكي المتكاملة التي تساعدك على تحليل السوق وبناء استراتيجيات تسويقية فعالة باستخدام الذكاء الاصطناعي.',
     'footer.legal': 'الدعم والقانونية',
@@ -104,6 +111,13 @@ const translations = {
     // Header
     'header.title': 'Morvo AI Platform',
     'header.search': 'Search...',
+    
+    // Dashboard
+    'dashboard.title': 'Dashboard',
+    'dashboard.overview': 'Overview',
+    'dashboard.analytics': 'Analytics',
+    'dashboard.campaigns': 'Campaigns',
+    'dashboard.reports': 'Reports',
     
     // Footer
     'footer.brand_description': 'An integrated smart marketing platform that helps you analyze the market and build effective marketing strategies using artificial intelligence.',
