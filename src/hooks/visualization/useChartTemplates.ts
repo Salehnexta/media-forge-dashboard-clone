@@ -1,37 +1,61 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { ChartTemplate } from '@/types/visualization';
 import { toast } from 'sonner';
-import { safeParseJSON } from './visualizationUtils';
+
+// Mock chart templates since the database table doesn't exist
+const mockChartTemplates: ChartTemplate[] = [
+  {
+    id: '1',
+    template_name: 'SEO Performance',
+    agent_type: 'seo_agent',
+    chart_config: {
+      type: 'line',
+      title: 'SEO Performance',
+      theme: 'light',
+      rtl: true
+    },
+    is_system_template: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    template_name: 'Content Analytics',
+    agent_type: 'content_management',
+    chart_config: {
+      type: 'column',
+      title: 'Content Analytics',
+      theme: 'light',
+      rtl: true
+    },
+    is_system_template: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    template_name: 'Social Media Metrics',
+    agent_type: 'social_media',
+    chart_config: {
+      type: 'donut',
+      title: 'Social Media Metrics',
+      theme: 'light',
+      rtl: true
+    },
+    is_system_template: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
 
 export const useChartTemplates = () => {
-  const [chartTemplates, setChartTemplates] = useState<ChartTemplate[]>([]);
+  const [chartTemplates, setChartTemplates] = useState<ChartTemplate[]>(mockChartTemplates);
 
   const loadChartTemplates = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('chart_templates')
-        .select('*')
-        .order('template_name');
-
-      if (error) throw error;
-      
-      // Transform and validate the data
-      const transformedTemplates: ChartTemplate[] = Array.isArray(data) 
-        ? data.filter(item => item && item.id && item.template_name)
-            .map(item => ({
-              ...item,
-              chart_config: safeParseJSON(item.chart_config, {
-                type: 'line',
-                title: item.template_name || 'رسم بياني',
-                theme: 'light',
-                rtl: true
-              })
-            }))
-        : [];
-      
-      setChartTemplates(transformedTemplates);
+      // Since the chart_templates table doesn't exist, we'll use mock data
+      setChartTemplates(mockChartTemplates);
     } catch (error) {
       console.error('Error loading chart templates:', error);
       const errorMessage = error?.message || 'خطأ في تحميل قوالب الرسوم البيانية';
