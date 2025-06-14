@@ -21,6 +21,22 @@ export const useChatLogic = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Add missing methods
+  const getCommandSuggestions = useCallback(() => {
+    return [
+      'أريد عرض بيانات الحملات',
+      'أظهر لي المبيعات',
+      'عرض تحليل شامل',
+      'أريد رسم بياني للأداء',
+      'تحليل العملاء'
+    ];
+  }, []);
+
+  const connectionState = {
+    status: isConnected ? 'connected' : 'disconnected',
+    lastCheck: new Date()
+  };
+
   const handleSendMessage = useCallback(async () => {
     if (!message.trim()) return;
 
@@ -103,7 +119,9 @@ export const useChatLogic = () => {
     handleSendMessage,
     setCurrentAgent,
     setDashboardCommandCallback,
-    messagesEndRef
+    messagesEndRef,
+    getCommandSuggestions,
+    connectionState
   };
 };
 

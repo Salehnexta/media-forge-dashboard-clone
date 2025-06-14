@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChartConfig } from '@/types/visualization';
@@ -43,15 +42,15 @@ export const useDynamicCharts = () => {
 
       setActiveCharts(prev => [...prev, newChart]);
 
-      // حفظ طلب الرسم البياني في جدول موجود
+      // حفظ طلب الرسم البياني في جدول موجود - fix type compatibility
       try {
         await supabase.from('analytics_data').insert({
-          client_id: 'default-client', // يمكن ربطه بالمستخدم لاحقاً
+          client_id: 'default-client',
           metric_type: 'chart_request',
           data: {
             request_text: userMessage,
             chart_type: chartType,
-            chart_config: chartConfig
+            chart_config: chartConfig as any // Cast to any to fix Json compatibility
           }
         });
       } catch (error) {
