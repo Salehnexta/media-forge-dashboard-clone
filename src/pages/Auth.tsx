@@ -22,7 +22,6 @@ const Auth = () => {
     // Check if user is already logged in
     const checkUser = async () => {
       try {
-        console.log('Getting current session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         console.log('Session check result:', { session, error });
         
@@ -62,10 +61,6 @@ const Auth = () => {
       if (isLogin) {
         console.log('Attempting login with email:', email);
         
-        // Test if Supabase client is working
-        const healthCheck = await supabase.from('clients').select('count').limit(1);
-        console.log('Supabase health check:', healthCheck);
-        
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password,
@@ -74,12 +69,7 @@ const Auth = () => {
         console.log('Login attempt result:', { data, error });
         
         if (error) {
-          console.error('Login error details:', {
-            message: error.message,
-            status: error.status,
-            code: error.code,
-            name: error.name
-          });
+          console.error('Login error details:', error);
           throw error;
         }
         
@@ -101,11 +91,7 @@ const Auth = () => {
         console.log('Signup result:', { data, error });
         
         if (error) {
-          console.error('Signup error details:', {
-            message: error.message,
-            status: error.status,
-            code: error.code
-          });
+          console.error('Signup error details:', error);
           throw error;
         }
         
@@ -119,9 +105,8 @@ const Auth = () => {
       
       let errorMessage = 'حدث خطأ غير متوقع';
       
-      // More specific error handling
       if (error.message?.includes('Invalid API key')) {
-        errorMessage = 'خطأ في الإعدادات - مفتاح API غير صحيح';
+        errorMessage = 'خطأ في إعدادات المصادقة. يرجى المحاولة لاحقاً';
       } else if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'بيانات الدخول غير صحيحة';
       } else if (error.message?.includes('Email not confirmed')) {
@@ -147,23 +132,6 @@ const Auth = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Add some test functionality to debug
-  const testConnection = async () => {
-    console.log('Testing Supabase connection...');
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      console.log('Current user:', { data, error });
-      
-      const { data: clients, error: clientsError } = await supabase
-        .from('clients')
-        .select('*')
-        .limit(1);
-      console.log('Database test:', { clients, clientsError });
-    } catch (err) {
-      console.error('Connection test failed:', err);
     }
   };
 
@@ -198,6 +166,7 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="text-right"
+                autoComplete="email"
               />
             </div>
             <div>
@@ -209,6 +178,7 @@ const Auth = () => {
                 required
                 className="text-right"
                 minLength={6}
+                autoComplete={isLogin ? "current-password" : "new-password"}
               />
             </div>
             <Button 
@@ -233,18 +203,6 @@ const Auth = () => {
                 ? 'ليس لديك حساب؟ أنشئ حساباً جديداً' 
                 : 'لديك حساب بالفعل؟ سجل الدخول'
               }
-            </Button>
-          </div>
-          
-          {/* Debug button - remove in production */}
-          <div className="mt-4 text-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={testConnection}
-              className="text-xs"
-            >
-              اختبار الاتصال
             </Button>
           </div>
         </CardContent>
