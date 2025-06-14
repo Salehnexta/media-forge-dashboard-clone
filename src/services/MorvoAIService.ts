@@ -6,11 +6,19 @@ interface MorvoMessage {
 }
 
 interface MorvoResponse {
-  response: string;
-  agents_involved: string[];
+  message: string;
   conversation_id: string;
-  processing_time: number;
-  cost_tracking: {
+  agents_involved: string[];
+  intent_analysis: {
+    intent: string;
+    language: string;
+    confidence: number;
+  };
+  processing_time_ms: number;
+  // Legacy support for existing code
+  response?: string;
+  processing_time?: number;
+  cost_tracking?: {
     total_cost: number;
     tokens_used: number;
   };
@@ -117,7 +125,18 @@ class MorvoAIService {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Transform response to match legacy format for backward compatibility
+    return {
+      ...data,
+      response: data.message || data.response, // Legacy support
+      processing_time: data.processing_time_ms ? data.processing_time_ms / 1000 : undefined, // Convert to seconds
+      cost_tracking: data.cost_tracking || {
+        total_cost: 0,
+        tokens_used: 0
+      }
+    };
   }
 
   getClientId(): string {

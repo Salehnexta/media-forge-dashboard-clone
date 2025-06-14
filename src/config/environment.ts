@@ -81,7 +81,7 @@ export const environment: MorvoEnvironment = {
   supabaseProjectRef: getEnvVar('SUPABASE_PROJECT_REF', 'teniefzxdikestahdnur'),
   supabaseAccessToken: getEnvVar('SUPABASE_ACCESS_TOKEN', ''),
   
-  // Railway Production URLs - Direct Production Connection
+  // Railway Production URLs - Updated to new production endpoint
   morvoApiUrl: getEnvVar('MORVO_API_URL', 'https://morvo-production.up.railway.app'),
   morvoWebSocketUrl: getEnvVar('MORVO_WS_URL', 'wss://morvo-production.up.railway.app/ws'),
   
