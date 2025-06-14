@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Hotel, Plane, MapPin, Send, Plus, Settings, User, Calendar, Search, Star, Clock, Navigation, Filter, Map, List, Brain } from 'lucide-react';
 
@@ -130,9 +129,9 @@ export const TravelStyleDashboard = () => {
 
       case 'campaigns':
         return (
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="bg-white p-6 border-b">
+            <div className="bg-white p-6 border-b flex-shrink-0">
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold text-gray-800">محرك الحملات الذكي</h1>
                 <div className="flex gap-2">
@@ -156,6 +155,7 @@ export const TravelStyleDashboard = () => {
                 <input 
                   type="text" 
                   value="حملات تسويقية للمنتجات التقنية مع استهداف الشباب السعودي"
+                  readOnly
                   className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   dir="rtl"
                 />
@@ -171,11 +171,11 @@ export const TravelStyleDashboard = () => {
               </div>
             </div>
             
-            {/* Content */}
-            <div className="flex-1 flex">
+            {/* Content with proper scrolling */}
+            <div className="flex-1 flex overflow-hidden">
               {/* Campaigns List */}
-              <div className={`${mapView ? 'w-1/2' : 'w-full'} p-6 overflow-y-auto`}>
-                <div className="space-y-6">
+              <div className={`${mapView ? 'w-1/2' : 'w-full'} overflow-y-auto`}>
+                <div className="p-6 space-y-6">
                   {/* Featured Campaign */}
                   <div className="bg-white rounded-xl shadow-lg border overflow-hidden">
                     <div className="relative">
@@ -224,7 +224,9 @@ export const TravelStyleDashboard = () => {
                   {[
                     { name: "حملة العروض الموسمية", price: "32,000 ريال", rating: "8.9", reviews: "325" },
                     { name: "حملة التوعية بالعلامة التجارية", price: "28,500 ريال", rating: "8.7", reviews: "198" },
-                    { name: "حملة المنتجات الجديدة", price: "38,750 ريال", rating: "8.5", reviews: "267" }
+                    { name: "حملة المنتجات الجديدة", price: "38,750 ريال", rating: "8.5", reviews: "267" },
+                    { name: "حملة التسويق الرقمي", price: "42,000 ريال", rating: "9.0", reviews: "189" },
+                    { name: "حملة زيادة المبيعات", price: "35,500 ريال", rating: "8.8", reviews: "256" }
                   ].map((campaign, i) => (
                     <div key={i} className="bg-white rounded-xl shadow-lg border p-6">
                       <div className="flex justify-between items-start">
@@ -297,6 +299,7 @@ export const TravelStyleDashboard = () => {
                 <input 
                   type="text" 
                   value="محتوى إبداعي للسوشال ميديا لمدة أسبوع مع جدولة تلقائية"
+                  readOnly
                   className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"
                   dir="rtl"
                 />
@@ -657,7 +660,7 @@ export const TravelStyleDashboard = () => {
       </div>
       
       {/* Main Dashboard */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Dashboard Content */}
         <div className="flex-1 overflow-hidden">
           {renderDashboardContent()}
