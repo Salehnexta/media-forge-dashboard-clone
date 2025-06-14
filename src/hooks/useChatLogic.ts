@@ -1,74 +1,27 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { AIManager, ChatMessage } from '@/types/morvo';
-import { useMCPContext } from '@/contexts/MCPContext';
-import { analyzeQuestion } from '@/utils/chatLogic';
-import { chatWebSocketService } from '@/services/ChatWebSocketService';
-import { generateCompanyDataResponse } from './chat/companyDataService';
-import { generateAgentResponses } from './chat/responseGenerationService';
+import { useChartCommands } from './useChartCommands';
 
 export const useChatLogic = () => {
-  const [message, setMessage] = useState('');
-  const [messages, setChatHistory] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentAgent, setCurrentAgent] = useState<AIManager>('strategic');
   const [isTyping, setIsTyping] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionState, setConnectionState] = useState('disconnected');
+  const [isConnected] = useState(true);
+  const [message, setMessage] = useState('');
+  const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((command: any) => void) | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { storeMemory, retrieveMemory, shareContext } = useMCPContext();
+
+  const { executeChartCommand, detectChartRequest } = useChartCommands();
 
   useEffect(() => {
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    const checkConnection = () => {
-      const connected = chatWebSocketService.isConnected();
-      const state = chatWebSocketService.getConnectionState();
-      setIsConnected(connected);
-      setConnectionState(state);
-    };
-
-    const interval = setInterval(checkConnection, 1000);
-    checkConnection();
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const getCommandSuggestions = () => {
-    return [
-      '/انتقل-للحملات',
-      '/أظهر-الإحصائيات', 
-      '/تحليل-الأداء',
-      '/إنشاء-رسم-بياني',
-      '/عرض-البيانات'
-    ];
-  };
-
-  const setDashboardCommandCallback = (callback: (command: any) => void) => {
-    console.log('Dashboard command callback set');
-  };
-
-  const generateContextualResponse = async (userMessage: string, agent: AIManager, memories: any[]) => {
-    // Check for company data questions first
-    const companyResponse = await generateCompanyDataResponse(userMessage);
-    if (companyResponse) {
-      return {
-        text: companyResponse.text,
-        shareWithAgents: companyResponse.shareWithAgents?.map(a => a as AIManager) || [],
-        actionButton: undefined
-      };
-    }
-
-    // Agent-specific responses for other questions
-    return generateAgentResponses(agent);
-  };
-
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!message.trim()) return;
 
     const userMessage: ChatMessage = {
@@ -79,80 +32,110 @@ export const useChatLogic = () => {
       manager: currentAgent
     };
 
-    setChatHistory(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     const currentQuestion = message;
     setMessage('');
     setIsTyping(true);
 
-    // Analyze question and determine appropriate agent
-    const appropriateAgent = analyzeQuestion(currentQuestion);
-    setCurrentAgent(appropriateAgent);
-
     try {
-      await storeMemory(appropriateAgent, 'context', {
-        type: 'user_message',
-        message: currentQuestion,
-        timestamp: new Date().toISOString()
-      });
+      // فحص ما إذا كانت الرسالة تحتوي على طلب رسم بياني
+      const chartResult = await executeChartCommand(currentQuestion);
+      
+      let aiResponseText = '';
+      let actionButton = undefined;
 
-      setTimeout(async () => {
-        try {
-          const memories = await retrieveMemory(appropriateAgent, 'context');
-          const contextualResponse = await generateContextualResponse(currentQuestion, appropriateAgent, memories);
+      if (chartResult) {
+        if (chartResult.success) {
+          aiResponseText = `✅ ${chartResult.message}\n\nيمكنك الآن رؤية الرسم البياني في لوحة التحكم أدناه. هل تريد إضافة المزيد من التحليلات؟`;
           
-          const aiResponse: ChatMessage = {
-            id: (Date.now() + 1).toString(),
-            text: contextualResponse.text,
-            sender: 'ai',
-            timestamp: new Date(),
-            manager: appropriateAgent,
-            actionButton: contextualResponse.actionButton
-          };
-
-          setChatHistory(prev => [...prev, aiResponse]);
-          setIsTyping(false);
-
-          await storeMemory(appropriateAgent, 'insight', {
-            type: 'ai_response',
-            message: contextualResponse.text,
-            user_question: currentQuestion,
-            timestamp: new Date().toISOString()
-          });
-
-          if (contextualResponse.shareWithAgents) {
-            for (const agent of contextualResponse.shareWithAgents) {
-              await shareContext(appropriateAgent, agent, {
-                type: 'insight',
-                data: contextualResponse.text,
-                original_question: currentQuestion
-              });
-            }
+          // إشعار لوحة التحكم بوجود رسم بياني جديد
+          if (dashboardCommandCallback) {
+            dashboardCommandCallback({
+              type: 'chart_created',
+              chart: chartResult.chart
+            });
           }
-        } catch (error) {
-          console.error('Error generating response:', error);
-          setIsTyping(false);
+        } else {
+          aiResponseText = `❌ ${chartResult.message}`;
         }
+      } else {
+        // رد عادي إذا لم يكن طلب رسم بياني
+        aiResponseText = generateNormalResponse(currentQuestion, currentAgent);
+      }
+
+      setTimeout(() => {
+        const aiResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          text: aiResponseText,
+          sender: 'ai',
+          timestamp: new Date(),
+          manager: currentAgent,
+          actionButton
+        };
+
+        setMessages(prev => [...prev, aiResponse]);
+        setIsTyping(false);
       }, 1500);
+
     } catch (error) {
-      console.error('Error storing memory:', error);
+      console.error('Error handling message:', error);
       setIsTyping(false);
+      
+      const errorResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: 'عذراً، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.',
+        sender: 'ai',
+        timestamp: new Date(),
+        manager: currentAgent
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
     }
-  };
+  }, [message, currentAgent, executeChartCommand, dashboardCommandCallback]);
 
   return {
+    messages,
+    currentAgent,
+    isTyping,
+    isConnected,
     message,
     setMessage,
-    messages,
-    setChatHistory,
-    currentAgent,
-    setCurrentAgent,
-    isTyping,
-    setIsTyping,
-    isConnected,
-    connectionState,
-    messagesEndRef,
     handleSendMessage,
-    getCommandSuggestions,
-    setDashboardCommandCallback
+    setCurrentAgent,
+    setDashboardCommandCallback,
+    messagesEndRef
   };
+};
+
+// توليد رد عادي للرسائل التي لا تحتوي على طلبات رسوم بيانية
+const generateNormalResponse = (userMessage: string, agent: AIManager): string => {
+  const lowerMessage = userMessage.toLowerCase();
+
+  // ردود متعلقة بالحملات والمبيعات
+  if (lowerMessage.includes('حملة') || lowerMessage.includes('حملات')) {
+    return 'يمكنني مساعدتك في تحليل الحملات التسويقية. قل "أريد عرض بيانات الحملات" لإنشاء رسم بياني تفاعلي.';
+  }
+  
+  if (lowerMessage.includes('مبيعات') || lowerMessage.includes('مبيع')) {
+    return 'يمكنني إنشاء تقارير مفصلة عن المبيعات. جرب أن تقول "أظهر لي أداء المبيعات" لعرض الإحصائيات.';
+  }
+
+  if (lowerMessage.includes('تحليل') || lowerMessage.includes('إحصائيات')) {
+    return 'أستطيع إنشاء تحليلات مرئية لبياناتك. اطلب مني "عرض تحليل شامل للحملات والمبيعات" للحصول على رؤى تفصيلية.';
+  }
+
+  // ردود عامة حسب نوع المدير
+  switch (agent) {
+    case 'strategic':
+      return 'أنا هنا لمساعدتك في التخطيط الاستراتيجي. يمكنني تحليل بياناتك وإنشاء رؤى تساعد في اتخاذ القرارات.';
+    
+    case 'creative':
+      return 'دعني أساعدك في الجانب الإبداعي! يمكنني تحليل أداء المحتوى وتقديم اقتراحات إبداعية.';
+    
+    case 'analyst':
+      return 'سأقوم بتحليل البيانات بعمق. أخبرني ما نوع التحليل الذي تحتاجه وسأنشئ لك التقارير المناسبة.';
+    
+    default:
+      return 'كيف يمكنني مساعدتك اليوم؟ يمكنني إنشاء رسوم بيانية وتحليلات لبياناتك.';
+  }
 };

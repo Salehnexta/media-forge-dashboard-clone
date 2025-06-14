@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TravelStyleDashboard } from '@/components/morvo/TravelStyleDashboard';
 import { UserDropdownMenu } from '@/components/dashboard/UserDropdownMenu';
+import { EnhancedTravelStyleDashboard } from '@/components/morvo/EnhancedTravelStyleDashboard';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -73,8 +74,8 @@ const Dashboard = () => {
         <UserDropdownMenu user={user} onSignOut={handleSignOut} />
       </div>
 
-      {/* Travel-Style Dashboard */}
-      <TravelStyleDashboard />
+      {/* Enhanced Travel-Style Dashboard with Dynamic Charts */}
+      <EnhancedTravelStyleDashboard />
     </div>
   );
 };
