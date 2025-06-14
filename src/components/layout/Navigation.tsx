@@ -1,8 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,7 +16,24 @@ import {
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -138,12 +157,30 @@ export const Navigation = () => {
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/auth">تسجيل الدخول</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/auth">ابدأ مجاناً</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">لوحة التحكم</Link>
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                  }}
+                  variant="outline"
+                >
+                  تسجيل الخروج
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/auth">تسجيل الدخول</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth">ابدأ مجاناً</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -213,16 +250,38 @@ export const Navigation = () => {
               {/* Auth Buttons */}
               <div className="pt-4 border-t border-gray-200">
                 <div className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-center" asChild>
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
-                      تسجيل الدخول
-                    </Link>
-                  </Button>
-                  <Button className="w-full justify-center" asChild>
-                    <Link to="/auth" onClick={() => setIsOpen(false)}>
-                      ابدأ مجاناً
-                    </Link>
-                  </Button>
+                  {user ? (
+                    <>
+                      <Button variant="ghost" className="w-full justify-center" asChild>
+                        <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                          لوحة التحكم
+                        </Link>
+                      </Button>
+                      <Button 
+                        className="w-full justify-center" 
+                        variant="outline"
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          setIsOpen(false);
+                        }}
+                      >
+                        تسجيل الخروج
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="ghost" className="w-full justify-center" asChild>
+                        <Link to="/auth" onClick={() => setIsOpen(false)}>
+                          تسجيل الدخول
+                        </Link>
+                      </Button>
+                      <Button className="w-full justify-center" asChild>
+                        <Link to="/auth" onClick={() => setIsOpen(false)}>
+                          ابدأ مجاناً
+                        </Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
