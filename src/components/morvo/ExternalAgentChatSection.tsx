@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { InputSanitizer } from "@/components/security/InputSanitizer";
 import { chatRateLimiter } from "@/components/security/RateLimiter";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import { ExternalAgentConfig } from "@/components/chat/ExternalAgentConfig";
+import { ExternalAgentConfigPanel } from "@/components/chat/ExternalAgentConfig";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -154,7 +154,7 @@ const ExternalAgentChatSectionInner = ({
                 <DialogHeader>
                   <DialogTitle>Agent Configuration</DialogTitle>
                 </DialogHeader>
-                <ExternalAgentConfig />
+                <ExternalAgentConfigPanel />
               </DialogContent>
             </Dialog>
             <Button

@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Settings, TestTube, CheckCircle, XCircle } from 'lucide-react';
-import { externalAgentService, ExternalAgentConfig } from '@/services/ExternalAgentService';
+import { externalAgentService, ExternalAgentConfig as AgentConfigType } from '@/services/ExternalAgentService';
 import { toast } from 'sonner';
 
-export const ExternalAgentConfig: React.FC = () => {
-  const [agents, setAgents] = useState<ExternalAgentConfig[]>([]);
+export const ExternalAgentConfigPanel: React.FC = () => {
+  const [agents, setAgents] = useState<AgentConfigType[]>([]);
   const [testingAgent, setTestingAgent] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<Record<string, boolean>>({});
 
@@ -22,7 +22,7 @@ export const ExternalAgentConfig: React.FC = () => {
     setAgents(externalAgentService.getAllAgents());
   };
 
-  const handleUpdateAgent = async (agentId: string, field: keyof ExternalAgentConfig, value: string) => {
+  const handleUpdateAgent = async (agentId: string, field: keyof AgentConfigType, value: string) => {
     try {
       await externalAgentService.updateAgentConfig(agentId, { [field]: value });
       loadAgents();
@@ -32,7 +32,7 @@ export const ExternalAgentConfig: React.FC = () => {
     }
   };
 
-  const testAgentConnection = async (agent: ExternalAgentConfig) => {
+  const testAgentConnection = async (agent: AgentConfigType) => {
     if (!agent.baseUrl) {
       toast.error('Please set the base URL first');
       return;

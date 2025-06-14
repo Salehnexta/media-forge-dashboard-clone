@@ -114,8 +114,8 @@ class ExternalAgentService {
     if (existingAgent) {
       this.agents.set(agentId, { ...existingAgent, ...config });
       
-      // Save to Supabase for persistence
-      await this.saveAgentConfig(agentId, this.agents.get(agentId)!);
+      // Save to local storage for persistence (instead of Supabase for now)
+      await this.saveAgentConfigToStorage(agentId, this.agents.get(agentId)!);
     }
   }
 
@@ -176,14 +176,12 @@ class ExternalAgentService {
     }
   }
 
-  private async saveAgentConfig(agentId: string, config: ExternalAgentConfig) {
+  private async saveAgentConfigToStorage(agentId: string, config: ExternalAgentConfig) {
     try {
-      await supabase.from('external_api_configs').upsert({
-        api_name: `agent_${agentId}`,
-        config_data: config,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        is_active: true
-      });
+      // Store in localStorage for now - you can implement Supabase storage later
+      const configs = JSON.parse(localStorage.getItem('externalAgentConfigs') || '{}');
+      configs[agentId] = config;
+      localStorage.setItem('externalAgentConfigs', JSON.stringify(configs));
     } catch (error) {
       console.error('Failed to save agent config:', error);
     }
