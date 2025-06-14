@@ -12,7 +12,7 @@ export const useChatLogic = () => {
   const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((command: any) => void) | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { executeChartCommand, detectChartRequest } = useChartCommands();
+  const { executeChartCommand } = useChartCommands();
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -38,7 +38,7 @@ export const useChatLogic = () => {
     setIsTyping(true);
 
     try {
-      // فحص ما إذا كانت الرسالة تحتوي على طلب رسم بياني
+      // فحص ما إذا كانت الرسالة تحتوي على طلب رسم بياني أو تحليل
       const chartResult = await executeChartCommand(currentQuestion);
       
       let aiResponseText = '';
@@ -46,7 +46,7 @@ export const useChatLogic = () => {
 
       if (chartResult) {
         if (chartResult.success) {
-          aiResponseText = `✅ ${chartResult.message}\n\nيمكنك الآن رؤية الرسم البياني في لوحة التحكم أدناه. هل تريد إضافة المزيد من التحليلات؟`;
+          aiResponseText = `✅ ${chartResult.message}\n\nيمكنك الآن رؤية التحليل في لوحة التحكم أدناه. هل تريد إضافة المزيد من التحليلات أو الرسوم البيانية؟`;
           
           // إشعار لوحة التحكم بوجود رسم بياني جديد
           if (dashboardCommandCallback) {
@@ -121,21 +121,21 @@ const generateNormalResponse = (userMessage: string, agent: AIManager): string =
   }
 
   if (lowerMessage.includes('تحليل') || lowerMessage.includes('إحصائيات')) {
-    return 'أستطيع إنشاء تحليلات مرئية لبياناتك. اطلب مني "عرض تحليل شامل للحملات والمبيعات" للحصول على رؤى تفصيلية.';
+    return 'أستطيع إنشاء تحليلات مرئية لأي نوع من البيانات. اطلب مني "عرض تحليل شامل" أو حدد نوع البيانات التي تريد تحليلها.';
   }
 
   // ردود عامة حسب نوع المدير
   switch (agent) {
     case 'strategic':
-      return 'أنا هنا لمساعدتك في التخطيط الاستراتيجي. يمكنني تحليل بياناتك وإنشاء رؤى تساعد في اتخاذ القرارات.';
+      return 'أنا هنا لمساعدتك في التخطيط الاستراتيجي وتحليل البيانات. يمكنني إنشاء رؤى تساعد في اتخاذ القرارات الاستراتيجية.';
     
     case 'creative':
-      return 'دعني أساعدك في الجانب الإبداعي! يمكنني تحليل أداء المحتوى وتقديم اقتراحات إبداعية.';
+      return 'دعني أساعدك في الجانب الإبداعي! يمكنني تحليل أداء المحتوى وتقديم اقتراحات إبداعية مع الرسوم البيانية التوضيحية.';
     
     case 'analyst':
-      return 'سأقوم بتحليل البيانات بعمق. أخبرني ما نوع التحليل الذي تحتاجه وسأنشئ لك التقارير المناسبة.';
+      return 'سأقوم بتحليل أي نوع من البيانات بعمق. أخبرني ما نوع التحليل الذي تحتاجه وسأنشئ لك التقارير والرسوم البيانية المناسبة.';
     
     default:
-      return 'كيف يمكنني مساعدتك اليوم؟ يمكنني إنشاء رسوم بيانية وتحليلات لبياناتك.';
+      return 'كيف يمكنني مساعدتك اليوم؟ يمكنني إنشاء رسوم بيانية وتحليلات لأي نوع من البيانات تحتاجه.';
   }
 };
