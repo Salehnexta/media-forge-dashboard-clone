@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,42 +179,6 @@ const Dashboard = () => {
 
       {/* Travel-Style Dashboard */}
       <TravelStyleDashboard />
-
-      {/* Bottom Small Buttons */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <div className="flex gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-gray-200">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
-          >
-            <MessageSquare className="w-3 h-3 mr-1" />
-            المحادثة
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
-          >
-            <Brain className="w-3 h-3 mr-1" />
-            الذكي
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
-          >
-            التحليلات
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
-          >
-            الحملات
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };
