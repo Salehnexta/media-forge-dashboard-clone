@@ -18,7 +18,7 @@ interface PageLayoutProps {
 
 export const PageLayout = ({ children, title, description, breadcrumbs, actionButton }: PageLayoutProps) => {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <Navigation />
       <PageHeader 
         title={title}
