@@ -43,6 +43,8 @@ export interface SmartAlert {
   timestamp: string;
 }
 
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+
 export interface PollingConfig {
   onMessage?: (message: MorvoMessage) => void;
   onConnect?: () => void;
@@ -52,8 +54,6 @@ export interface PollingConfig {
   onSmartAlert?: (alert: SmartAlert) => void;
   pollInterval?: number;
 }
-
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
 export class MorvoPollingService {
   private userId: string;
