@@ -6,7 +6,7 @@ import { AgentMemory, MemoryType, StoreMemoryOptions } from '../types/mcpTypes';
 import type { AgentId } from '@/config/environment';
 
 export const useMCPOperations = () => {
-  // Enhanced memory storage with agent-specific features using content_sources_data table
+  // Enhanced memory storage with agent-specific features using agent_memory table
   const storeMemory = async (
     agentType: string, 
     memoryType: MemoryType, 
@@ -16,6 +16,18 @@ export const useMCPOperations = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('المستخدم غير مصرح له');
+
+      // Get client_id from clients table
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) {
+        console.error('No client found for user');
+        return;
+      }
 
       const expiresAt = options?.expiresIn 
         ? new Date(Date.now() + options.expiresIn).toISOString()
@@ -33,13 +45,20 @@ export const useMCPOperations = () => {
         expires_at: expiresAt
       };
 
-      // Store in content_sources_data table as agent memory
+      // Store in agent_memory table
       const { error } = await supabase
-        .from('content_sources_data')
+        .from('agent_memory')
         .insert({
-          client_id: user.id,
-          source_type: 'agent_memory',
-          data: enhancedContent
+          client_id: client.id,
+          agent_id: agentType,
+          memory_type: memoryType,
+          content: enhancedContent,
+          importance_score: 1.0,
+          expires_at: expiresAt,
+          metadata: {
+            tags: options?.tags || [],
+            related_memories: options?.relatedMemories || []
+          }
         });
 
       if (error) throw error;
@@ -50,51 +69,48 @@ export const useMCPOperations = () => {
     }
   };
 
-  // Enhanced memory retrieval with agent filtering using content_sources_data
+  // Enhanced memory retrieval with agent filtering using agent_memory table
   const retrieveMemory = async (agentType: string, memoryType?: MemoryType, agentId?: AgentId): Promise<AgentMemory[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Get client_id from clients table
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) return [];
+
       let query = supabase
-        .from('content_sources_data')
+        .from('agent_memory')
         .select('*')
-        .eq('client_id', user.id)
-        .eq('source_type', 'agent_memory')
+        .eq('client_id', client.id)
+        .eq('agent_id', agentType)
         .order('timestamp', { ascending: false });
+
+      if (memoryType) {
+        query = query.eq('memory_type', memoryType);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
       
-      let memories: AgentMemory[] = (data || []).map((row: any) => {
-        const content = row.data as any;
-        return {
-          id: row.id,
-          agent_type: content.agent_type || agentType,
-          agent_id: content.agent_id,
-          memory_type: (content.memory_type || 'context') as MemoryType,
-          content: content,
-          created_at: row.timestamp,
-          expires_at: content.expires_at || undefined,
-          relevance_score: Number(content.relevance_score || 1.0),
-          tags: content.tags || [],
-          related_memories: content.related_memories || []
-        };
-      });
+      const memories: AgentMemory[] = (data || []).map((row: any) => ({
+        id: row.id,
+        agent_type: row.agent_id,
+        agent_id: row.agent_id as AgentId,
+        memory_type: row.memory_type as MemoryType,
+        content: row.content || {},
+        created_at: row.created_at,
+        expires_at: row.expires_at || undefined,
+        relevance_score: Number(row.importance_score || 1.0),
+        tags: row.metadata?.tags || [],
+        related_memories: row.metadata?.related_memories || []
+      }));
 
-      // Filter by agent type
-      memories = memories.filter(memory => memory.agent_type === agentType);
-
-      // Filter by memory type if specified
-      if (memoryType) {
-        memories = memories.filter(memory => memory.memory_type === memoryType);
-      }
-
-      // Filter by agent ID if specified
-      if (agentId) {
-        memories = memories.filter(memory => memory.agent_id === agentId);
-      }
-      
       return memories;
     } catch (error) {
       console.error('خطأ في استرجاع الذاكرة:', error);
@@ -107,13 +123,24 @@ export const useMCPOperations = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      let query = supabase
-        .from('content_sources_data')
-        .delete()
-        .eq('client_id', user.id)
-        .eq('source_type', 'agent_memory');
+      // Get client_id from clients table
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      // For now, we'll clear all agent memories since we can't easily filter by agent_type in the data field
+      if (!client) return;
+
+      let query = supabase
+        .from('agent_memory')
+        .delete()
+        .eq('client_id', client.id);
+
+      if (agentType) {
+        query = query.eq('agent_id', agentType);
+      }
+
       const { error } = await query;
       if (error) throw error;
 
@@ -126,26 +153,12 @@ export const useMCPOperations = () => {
 
   const updateRelevanceScore = async (memoryId: string, score: number) => {
     try {
-      // Since we're using content_sources_data, we need to update the data field
-      const { data: existing } = await supabase
-        .from('content_sources_data')
-        .select('data')
-        .eq('id', memoryId)
-        .single();
+      const { error } = await supabase
+        .from('agent_memory')
+        .update({ importance_score: score })
+        .eq('id', memoryId);
 
-      if (existing) {
-        const updatedData = {
-          ...existing.data,
-          relevance_score: score
-        };
-
-        const { error } = await supabase
-          .from('content_sources_data')
-          .update({ data: updatedData })
-          .eq('id', memoryId);
-
-        if (error) throw error;
-      }
+      if (error) throw error;
     } catch (error) {
       console.error('خطأ في تحديث درجة الصلة:', error);
     }
@@ -156,29 +169,22 @@ export const useMCPOperations = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Remove expired memories by checking the expires_at field in the data
-      const { data: memories } = await supabase
-        .from('content_sources_data')
-        .select('*')
-        .eq('client_id', user.id)
-        .eq('source_type', 'agent_memory');
+      // Get client_id from clients table
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (memories) {
-        const now = new Date().toISOString();
-        const expiredIds = memories
-          .filter(memory => {
-            const data = memory.data as any;
-            return data.expires_at && data.expires_at < now;
-          })
-          .map(memory => memory.id);
+      if (!client) return;
 
-        if (expiredIds.length > 0) {
-          await supabase
-            .from('content_sources_data')
-            .delete()
-            .in('id', expiredIds);
-        }
-      }
+      // Remove expired memories
+      const now = new Date().toISOString();
+      await supabase
+        .from('agent_memory')
+        .delete()
+        .eq('client_id', client.id)
+        .lt('expires_at', now);
 
       toast.success('تم تحسين تخزين الذاكرة');
     } catch (error) {

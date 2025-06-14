@@ -1,65 +1,66 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContextualResponse } from '@/components/chat/types';
 
-export const generateCompanyDataResponse = async (userMessage: string): Promise<ContextualResponse | null> => {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  if (lowerMessage.includes('شركة') || lowerMessage.includes('اسم') || lowerMessage.includes('ملف') || lowerMessage.includes('بيانات') || lowerMessage.includes('معلومات')) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: company } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (company) {
-          return {
-            text: `بناءً على بيانات ملفك الشخصي، اسم شركتك هو: **${company.name}**
+export const generateCompanyDataResponse = async (userMessage: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
 
-🏢 **تفاصيل الشركة:**
-- **الصناعة**: ${company.industry}
-- **الموقع الإلكتروني**: ${company.website || 'غير محدد'}
-- **الوصف**: ${company.description || 'غير محدد'}
-- **الأسواق المستهدفة**: ${company.primary_markets?.join(', ') || 'غير محدد'}
-- **حجم الشركة**: ${company.size || 'غير محدد'}
-- **سنة التأسيس**: ${company.founded || 'غير محدد'}
+    // Try to get company data from the companies table
+    const { data: company, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
-هل تريد تحديث أي من هذه المعلومات أو تحتاج تحليل استراتيجي للشركة؟`,
-            actionButton: {
-              label: 'تحديث بيانات الشركة',
-              action: () => window.location.href = '/onboarding'
-            }
-          };
-        } else {
-          return {
-            text: `لم أجد بيانات شركتك في النظام بعد. يمكنني مساعدتك في إعداد ملف شركتك الآن.
+    if (error || !company) {
+      // Fallback to content_sources_data for company information
+      const { data: contentData } = await supabase
+        .from('content_sources_data')
+        .select('*')
+        .eq('client_id', user.id)
+        .eq('source_type', 'company_profile')
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .single();
 
-📝 **سأحتاج المعلومات التالية:**
-- اسم الشركة
-- نوع الصناعة
-- الموقع الإلكتروني
-- وصف مختصر عن الشركة
-- السوق المستهدف
-- حجم الشركة
+      if (contentData?.data) {
+        const companyInfo = contentData.data as any;
+        return {
+          text: `بناءً على بيانات شركتك:
+          
+الاسم: ${companyInfo.name || 'غير محدد'}
+القطاع: ${companyInfo.industry || 'غير محدد'}  
+الموقع الإلكتروني: ${companyInfo.website || 'غير محدد'}
+الوصف: ${companyInfo.description || 'غير محدد'}
+الأسواق الرئيسية: ${companyInfo.primary_markets?.join(', ') || 'غير محدد'}
+حجم الشركة: ${companyInfo.size || 'غير محدد'}
+سنة التأسيس: ${companyInfo.founded || 'غير محدد'}
 
-هل تريد البدء في إعداد ملف شركتك؟`,
-            actionButton: {
-              label: 'إعداد ملف الشركة',
-              action: () => window.location.href = '/onboarding'
-            }
-          };
-        }
+كيف يمكنني مساعدتك في تحليل أو تطوير استراتيجيتك التسويقية؟`,
+          shareWithAgents: ['M1_STRATEGIC', 'M5_ANALYTICS']
+        };
       }
-    } catch (error) {
-      console.error('Error fetching company data:', error);
+    } else {
       return {
-        text: `عذراً، حدث خطأ في استرجاع بيانات شركتك. يرجى المحاولة مرة أخرى أو التأكد من تسجيل الدخول بشكل صحيح.`
+        text: `بناءً على بيانات شركتك:
+        
+الاسم: ${company.name}
+القطاع: ${company.industry || 'غير محدد'}  
+الموقع الإلكتروني: ${company.website || 'غير محدد'}
+الوصف: ${company.description || 'غير محدد'}
+الأسواق الرئيسية: ${company.primary_markets?.join(', ') || 'غير محدد'}
+حجم الشركة: ${company.size || 'غير محدد'}
+سنة التأسيس: ${company.founded || 'غير محدد'}
+
+كيف يمكنني مساعدتك في تحليل أو تطوير استراتيجيتك التسويقية؟`,
+        shareWithAgents: ['M1_STRATEGIC', 'M5_ANALYTICS']
       };
     }
+
+    return null;
+  } catch (error) {
+    console.error('خطأ في جلب بيانات الشركة:', error);
+    return null;
   }
-  
-  return null;
 };

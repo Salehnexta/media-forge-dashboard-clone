@@ -13,12 +13,54 @@ interface CampaignData {
   kpis: string[];
 }
 
+// Export the missing functions
+export const detectCampaignCreationIntent = (message: string): boolean => {
+  const campaignKeywords = [
+    'حملة', 'campaign', 'إعلان', 'advertisement', 'تسويق', 'marketing',
+    'إنشاء حملة', 'create campaign', 'حملة تسويقية', 'marketing campaign'
+  ];
+  
+  return campaignKeywords.some(keyword => 
+    message.toLowerCase().includes(keyword.toLowerCase())
+  );
+};
+
+export const generateCampaignCreationResponse = (step: number, data?: any) => {
+  const steps = [
+    "ما هو الهدف الرئيسي من الحملة التسويقية؟",
+    "ما هي الميزانية المخصصة للحملة؟",
+    "ما هي المنصات التي تريد استخدامها؟",
+    "ما هي المدة الزمنية للحملة؟",
+    "من هو الجمهور المستهدف؟"
+  ];
+
+  if (step < steps.length) {
+    return {
+      text: steps[step],
+      actionButton: step === 4 ? {
+        label: "إنشاء الحملة",
+        action: "createCampaign"
+      } : undefined,
+      shareWithAgents: ['M1_STRATEGIC', 'M3_CAMPAIGN']
+    };
+  }
+
+  return {
+    text: "تم جمع جميع المعلومات المطلوبة. سأقوم بإنشاء الحملة الآن.",
+    actionButton: {
+      label: "إنشاء الحملة",
+      action: "createCampaign"
+    },
+    shareWithAgents: ['M1_STRATEGIC', 'M3_CAMPAIGN']
+  };
+};
+
 export const createCampaign = async (campaignData: CampaignData) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('المستخدم غير مصرح له');
 
-    // Store campaign data in content_sources_data table instead of non-existent marketing_campaigns table
+    // Store campaign data in content_sources_data table
     const { data, error } = await supabase
       .from('content_sources_data')
       .insert({
@@ -76,8 +118,9 @@ export const updateCampaign = async (campaignId: string, updates: Partial<Campai
 
     if (!existing) throw new Error('الحملة غير موجودة');
 
+    const existingData = existing.data as any;
     const updatedData = {
-      ...existing.data,
+      ...existingData,
       ...updates,
       updated_at: new Date().toISOString()
     };

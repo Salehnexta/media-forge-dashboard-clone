@@ -192,8 +192,10 @@ export type Database = {
           expires_at: string | null
           id: string
           importance_score: number | null
+          interaction_type: string
           memory_type: string
           metadata: Json | null
+          timestamp: string
           updated_at: string
         }
         Insert: {
@@ -206,8 +208,10 @@ export type Database = {
           expires_at?: string | null
           id?: string
           importance_score?: number | null
+          interaction_type?: string
           memory_type?: string
           metadata?: Json | null
+          timestamp?: string
           updated_at?: string
         }
         Update: {
@@ -220,8 +224,10 @@ export type Database = {
           expires_at?: string | null
           id?: string
           importance_score?: number | null
+          interaction_type?: string
           memory_type?: string
           metadata?: Json | null
+          timestamp?: string
           updated_at?: string
         }
         Relationships: [
@@ -317,6 +323,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agent_results: {
+        Row: {
+          agent_id: string
+          chart_configs: Json | null
+          company_id: string | null
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          status: string | null
+          task_type: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          chart_configs?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          task_type: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          chart_configs?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          task_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       agents: {
         Row: {
@@ -471,6 +519,48 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          founded: number | null
+          id: string
+          industry: string | null
+          name: string
+          primary_markets: string[] | null
+          size: string | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          founded?: number | null
+          id?: string
+          industry?: string | null
+          name: string
+          primary_markets?: string[] | null
+          size?: string | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          founded?: number | null
+          id?: string
+          industry?: string | null
+          name?: string
+          primary_markets?: string[] | null
+          size?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       content_sources_data: {
         Row: {
           client_id: string | null
@@ -553,6 +643,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "conversation_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          id: string
+          status: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -748,6 +873,51 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          client_id: string
+          content: string
+          conversation_id: string | null
+          id: string
+          metadata: Json | null
+          role: string
+          timestamp: string | null
+        }
+        Insert: {
+          client_id: string
+          content: string
+          conversation_id?: string | null
+          id?: string
+          metadata?: Json | null
+          role: string
+          timestamp?: string | null
+        }
+        Update: {
+          client_id?: string
+          content?: string
+          conversation_id?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -993,6 +1163,50 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          agent_id: string
+          client_id: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          payload: Json | null
+          result: Json | null
+          status: string | null
+          task_type: string
+        }
+        Insert: {
+          agent_id: string
+          client_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          status?: string | null
+          task_type: string
+        }
+        Update: {
+          agent_id?: string
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          status?: string | null
+          task_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
