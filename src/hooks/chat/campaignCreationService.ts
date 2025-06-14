@@ -1,122 +1,117 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContextualResponse } from '@/components/chat/types';
+import { toast } from 'sonner';
 
-export const detectCampaignCreationIntent = (userMessage: string): boolean => {
-  const campaignKeywords = [
-    'أنشئ حملة',
-    'إنشاء حملة', 
-    'حملة تسويقية',
-    'حملة إعلانية',
-    'حملة جديدة',
-    'أريد حملة',
-    'أبدأ حملة'
-  ];
-  
-  return campaignKeywords.some(keyword => 
-    userMessage.toLowerCase().includes(keyword.toLowerCase())
-  );
-};
+interface CampaignData {
+  name: string;
+  description: string;
+  objectives: string[];
+  target_audience: string;
+  budget: number;
+  duration: number;
+  channels: string[];
+  kpis: string[];
+}
 
-export const generateCampaignCreationResponse = (step: number, campaignData?: any): ContextualResponse => {
-  const steps = [
-    {
-      question: "ممتاز! دعني أساعدك في إنشاء حملة تسويقية فعالة. 🎯\n\nما هو الهدف الرئيسي من هذه الحملة؟",
-      options: ['زيادة الوعي بالعلامة التجارية', 'زيادة المبيعات', 'جذب عملاء جدد', 'تفاعل أكثر على وسائل التواصل'],
-      field: 'objective'
-    },
-    {
-      question: "رائع! الآن، ما هي ميزانيتك المخصصة لهذه الحملة؟ 💰",
-      options: ['أقل من 1000 ريال', '1000 - 5000 ريال', '5000 - 15000 ريال', 'أكثر من 15000 ريال'],
-      field: 'budget'
-    },
-    {
-      question: "ممتاز! أي منصات تريد التركيز عليها في هذه الحملة؟ 📱",
-      options: ['فيسبوك وإنستغرام', 'جوجل وبحث', 'لينكد إن', 'تيك توك', 'جميع المنصات'],
-      field: 'platforms'
-    },
-    {
-      question: "مثالي! كم مدة الحملة التي تفضلها؟ ⏰",
-      options: ['أسبوع واحد', 'أسبوعين', 'شهر كامل', '3 شهور'],
-      field: 'duration'
-    },
-    {
-      question: "ممتاز! من هو جمهورك المستهدف؟ 👥",
-      options: ['الشباب (18-30)', 'البالغون (30-45)', 'كبار السن (45+)', 'جميع الأعمار'],
-      field: 'audience'
-    }
-  ];
-
-  if (step < steps.length) {
-    const currentStep = steps[step];
-    return {
-      text: currentStep.question,
-      actionButton: {
-        label: 'اختر من الخيارات',
-        action: () => console.log('Show options')
-      },
-      stepData: {
-        step,
-        field: currentStep.field,
-        options: currentStep.options
-      }
-    };
-  } else {
-    // Generate final campaign preview
-    return {
-      text: `🎉 تم إنشاء حملتك التسويقية بنجاح!
-
-📊 **ملخص الحملة:**
-- **الهدف**: ${campaignData.objective || 'غير محدد'}
-- **الميزانية**: ${campaignData.budget || 'غير محددة'}
-- **المنصات**: ${campaignData.platforms || 'غير محددة'}
-- **المدة**: ${campaignData.duration || 'غير محددة'}
-- **الجمهور**: ${campaignData.audience || 'غير محدد'}
-
-🚀 **التوقعات:**
-- معدل وصول متوقع: 15,000 - 25,000 شخص
-- تفاعل متوقع: 500 - 800 تفاعل
-- عائد استثمار متوقع: 150% - 200%
-
-هل تريد حفظ هذه الحملة وبدء تنفيذها؟`,
-      actionButton: {
-        label: 'حفظ وتنفيذ الحملة',
-        action: () => saveCampaign(campaignData)
-      }
-    };
-  }
-};
-
-export const saveCampaign = async (campaignData: any) => {
+export const createCampaign = async (campaignData: CampaignData) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { error } = await supabase
-        .from('marketing_campaigns')
-        .insert({
-          name: `حملة ${campaignData.objective || 'تسويقية'} - ${new Date().toLocaleDateString('ar-SA')}`,
-          description: `حملة ${campaignData.objective} للجمهور ${campaignData.audience} لمدة ${campaignData.duration}`,
-          budget: parseBudget(campaignData.budget),
-          target_market: campaignData.audience,
-          status: 'draft',
-          user_id: user.id,
-          goals: { objective: campaignData.objective },
-          performance_data: { platforms: campaignData.platforms, duration: campaignData.duration }
-        });
+    if (!user) throw new Error('المستخدم غير مصرح له');
 
-      if (!error) {
-        console.log('Campaign saved successfully');
-      }
-    }
-  } catch (error) {
-    console.error('Error saving campaign:', error);
+    // Store campaign data in content_sources_data table instead of non-existent marketing_campaigns table
+    const { data, error } = await supabase
+      .from('content_sources_data')
+      .insert({
+        client_id: user.id,
+        source_type: 'marketing_campaign',
+        data: {
+          ...campaignData,
+          status: 'draft',
+          created_by: user.id,
+          created_at: new Date().toISOString()
+        }
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    toast.success('تم إنشاء الحملة بنجاح!');
+    return { success: true, campaign: data };
+  } catch (error: any) {
+    console.error('خطأ في إنشاء الحملة:', error);
+    toast.error(error.message || 'فشل في إنشاء الحملة');
+    return { success: false, error: error.message };
   }
 };
 
-const parseBudget = (budgetText: string): number => {
-  if (budgetText?.includes('1000')) return 500;
-  if (budgetText?.includes('5000')) return 3000;
-  if (budgetText?.includes('15000')) return 10000;
-  if (budgetText?.includes('أكثر')) return 20000;
-  return 1000;
+export const getCampaigns = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('content_sources_data')
+      .select('*')
+      .eq('client_id', user.id)
+      .eq('source_type', 'marketing_campaign')
+      .order('timestamp', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('خطأ في جلب الحملات:', error);
+    return [];
+  }
+};
+
+export const updateCampaign = async (campaignId: string, updates: Partial<CampaignData>) => {
+  try {
+    // Get existing campaign data
+    const { data: existing } = await supabase
+      .from('content_sources_data')
+      .select('data')
+      .eq('id', campaignId)
+      .single();
+
+    if (!existing) throw new Error('الحملة غير موجودة');
+
+    const updatedData = {
+      ...existing.data,
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('content_sources_data')
+      .update({ data: updatedData })
+      .eq('id', campaignId);
+
+    if (error) throw error;
+
+    toast.success('تم تحديث الحملة بنجاح!');
+    return { success: true };
+  } catch (error: any) {
+    console.error('خطأ في تحديث الحملة:', error);
+    toast.error(error.message || 'فشل في تحديث الحملة');
+    return { success: false, error: error.message };
+  }
+};
+
+export const deleteCampaign = async (campaignId: string) => {
+  try {
+    const { error } = await supabase
+      .from('content_sources_data')
+      .delete()
+      .eq('id', campaignId);
+
+    if (error) throw error;
+
+    toast.success('تم حذف الحملة بنجاح!');
+    return { success: true };
+  } catch (error: any) {
+    console.error('خطأ في حذف الحملة:', error);
+    toast.error(error.message || 'فشل في حذف الحملة');
+    return { success: false, error: error.message };
+  }
 };

@@ -181,6 +181,59 @@ export type Database = {
           },
         ]
       }
+      agent_memory: {
+        Row: {
+          agent_id: string
+          client_id: string
+          content: Json
+          conversation_id: string | null
+          created_at: string
+          embedding: string | null
+          expires_at: string | null
+          id: string
+          importance_score: number | null
+          memory_type: string
+          metadata: Json | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          client_id: string
+          content?: Json
+          conversation_id?: string | null
+          created_at?: string
+          embedding?: string | null
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          memory_type?: string
+          metadata?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          client_id?: string
+          content?: Json
+          conversation_id?: string | null
+          created_at?: string
+          embedding?: string | null
+          expires_at?: string | null
+          id?: string
+          importance_score?: number | null
+          memory_type?: string
+          metadata?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_memory_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_metrics: {
         Row: {
           agent_id: string

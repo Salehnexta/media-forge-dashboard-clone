@@ -2,8 +2,8 @@
 import { Database } from '@/integrations/supabase/types';
 import { AgentId, AgentType } from '@/config/environment';
 
-export type AgentMemoryRow = Database['public']['Tables']['agent_memories']['Row'];
-export type CrossAgentContextRow = Database['public']['Tables']['cross_agent_context']['Row'];
+// Using content_sources_data instead of non-existent tables
+export type ContentSourcesRow = Database['public']['Tables']['content_sources_data']['Row'];
 
 // Enhanced memory types for specialized agents
 export type MemoryType = 
