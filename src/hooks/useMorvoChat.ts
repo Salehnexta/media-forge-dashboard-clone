@@ -46,14 +46,14 @@ export const useMorvoChat = () => {
       setConnectionStatus({
         isConnected: isHealthy,
         lastChecked: new Date(),
-        error: isHealthy ? undefined : 'فشل في فحص الصحة'
+        error: isHealthy ? undefined : 'Health check failed'
       });
       return isHealthy;
     } catch (error) {
       setConnectionStatus({
         isConnected: false,
         lastChecked: new Date(),
-        error: error instanceof Error ? error.message : 'فشل في الاتصال'
+        error: error instanceof Error ? error.message : 'Connection failed'
       });
       return false;
     }
@@ -66,7 +66,7 @@ export const useMorvoChat = () => {
       setAgents(agentsList);
     } catch (error) {
       console.error('Failed to load agents:', error);
-      toast.error('فشل في تحميل قائمة الوكلاء');
+      toast.error('Failed to load agents list');
     }
   }, []);
 
@@ -113,7 +113,7 @@ export const useMorvoChat = () => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      toast.success('تم إرسال الرسالة بنجاح');
+      toast.success('Message sent successfully');
       
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -128,7 +128,7 @@ export const useMorvoChat = () => {
       };
 
       setMessages(prev => [...prev, errorMessage]);
-      toast.error('فشل في إرسال الرسالة');
+      toast.error('Failed to send message');
       
     } finally {
       setIsLoading(false);
@@ -156,7 +156,7 @@ export const useMorvoChat = () => {
   const clearChat = useCallback(() => {
     setMessages([]);
     localStorage.removeItem(`morvo_conversation_${conversationId}`);
-    toast.success('تم مسح المحادثة');
+    toast.success('Chat cleared');
   }, [conversationId]);
 
   // Calculate conversation stats
@@ -183,22 +183,19 @@ export const useMorvoChat = () => {
   };
 };
 
-// Helper function to get user-friendly error messages in Arabic
+// Helper function to get user-friendly error messages
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
-    if (error.message.includes('fetch') || error.message.includes('network')) {
-      return 'غير قادر على الاتصال بـ Morvo AI. يرجى التحقق من اتصالك.';
+    if (error.message.includes('fetch')) {
+      return 'Unable to connect to Morvo AI. Please check your connection.';
     }
-    if (error.message.includes('timeout') || error.name === 'AbortError') {
-      return 'انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.';
+    if (error.message.includes('timeout')) {
+      return 'Request timed out. Please try again.';
     }
     if (error.message.includes('HTTP 500')) {
-      return 'Morvo AI غير متاح مؤقتاً. يرجى المحاولة مرة أخرى.';
+      return 'Morvo AI is temporarily unavailable. Please try again.';
     }
-    if (error.message.includes('HTTP 404')) {
-      return 'الخدمة غير موجودة. يرجى التحقق من الإعدادات.';
-    }
-    return `خطأ: ${error.message}`;
+    return error.message;
   }
-  return 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+  return 'An unexpected error occurred. Please try again.';
 };
