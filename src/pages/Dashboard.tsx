@@ -156,25 +156,22 @@ const Dashboard = () => {
   // Show travel-style dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Control Buttons */}
-      <div className="absolute top-4 left-4 z-50 flex gap-2">
+      {/* Top Right Controls */}
+      <div className="absolute top-4 right-4 z-50 flex gap-2">
         <Button
           onClick={() => setShowOriginal(true)}
           variant="outline"
           size="sm"
-          className="gap-2 bg-white shadow-lg"
+          className="gap-2 bg-white shadow-lg hover:bg-gray-50 text-gray-700 border-gray-300"
         >
+          <Layout className="w-4 h-4" />
           عرض اللوحة الأصلية
         </Button>
-      </div>
-      
-      {/* Sign Out Button */}
-      <div className="absolute top-4 right-4 z-50">
         <Button
           onClick={handleSignOut}
           variant="outline"
           size="sm"
-          className="gap-2 bg-white shadow-lg text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="gap-2 bg-white shadow-lg text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
         >
           <LogOut className="w-4 h-4" />
           تسجيل الخروج
@@ -183,6 +180,42 @@ const Dashboard = () => {
 
       {/* Travel-Style Dashboard */}
       <TravelStyleDashboard />
+
+      {/* Bottom Small Buttons */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="flex gap-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-gray-200">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
+          >
+            <MessageSquare className="w-3 h-3 mr-1" />
+            المحادثة
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
+          >
+            <Brain className="w-3 h-3 mr-1" />
+            الذكي
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
+          >
+            التحليلات
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 px-3 text-xs rounded-full hover:bg-gray-100"
+          >
+            الحملات
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
