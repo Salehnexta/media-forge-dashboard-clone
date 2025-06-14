@@ -22,6 +22,7 @@ const Auth = () => {
     // Check if user is already logged in
     const checkUser = async () => {
       try {
+        console.log('Getting current session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         console.log('Session check result:', { session, error });
         
@@ -59,10 +60,15 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        console.log('Attempting login with Supabase...');
+        console.log('Attempting login with email:', email);
+        
+        // Test if Supabase client is working
+        const healthCheck = await supabase.from('clients').select('count').limit(1);
+        console.log('Supabase health check:', healthCheck);
+        
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: email.trim(),
+          password: password,
         });
         
         console.log('Login attempt result:', { data, error });
@@ -71,7 +77,8 @@ const Auth = () => {
           console.error('Login error details:', {
             message: error.message,
             status: error.status,
-            code: error.code
+            code: error.code,
+            name: error.name
           });
           throw error;
         }
@@ -82,10 +89,10 @@ const Auth = () => {
           description: "مرحباً بك في منصة Morvo",
         });
       } else {
-        console.log('Attempting signup...');
+        console.log('Attempting signup with email:', email);
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: email.trim(),
+          password: password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`
           }
@@ -93,7 +100,14 @@ const Auth = () => {
         
         console.log('Signup result:', { data, error });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Signup error details:', {
+            message: error.message,
+            status: error.status,
+            code: error.code
+          });
+          throw error;
+        }
         
         toast({
           title: "تم إنشاء الحساب بنجاح",
@@ -105,10 +119,23 @@ const Auth = () => {
       
       let errorMessage = 'حدث خطأ غير متوقع';
       
-      if (error.message === 'Invalid API key') {
-        errorMessage = 'خطأ في الإعدادات - يرجى التحقق من إعدادات Supabase';
-      } else if (error.message === 'Invalid login credentials') {
+      // More specific error handling
+      if (error.message?.includes('Invalid API key')) {
+        errorMessage = 'خطأ في الإعدادات - مفتاح API غير صحيح';
+      } else if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'بيانات الدخول غير صحيحة';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'يرجى تفعيل حسابك من البريد الإلكتروني أولاً';
+      } else if (error.message?.includes('User not found')) {
+        errorMessage = 'لا يوجد حساب مسجل بهذا البريد الإلكتروني';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'محاولات كثيرة، يرجى المحاولة لاحقاً';
+      } else if (error.message?.includes('Password should be at least 6 characters')) {
+        errorMessage = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      } else if (error.message?.includes('Unable to validate email address')) {
+        errorMessage = 'عنوان البريد الإلكتروني غير صحيح';
+      } else if (error.message?.includes('Network request failed')) {
+        errorMessage = 'خطأ في الاتصال بالشبكة';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -120,6 +147,23 @@ const Auth = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add some test functionality to debug
+  const testConnection = async () => {
+    console.log('Testing Supabase connection...');
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      console.log('Current user:', { data, error });
+      
+      const { data: clients, error: clientsError } = await supabase
+        .from('clients')
+        .select('*')
+        .limit(1);
+      console.log('Database test:', { clients, clientsError });
+    } catch (err) {
+      console.error('Connection test failed:', err);
     }
   };
 
@@ -164,6 +208,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="text-right"
+                minLength={6}
               />
             </div>
             <Button 
@@ -188,6 +233,18 @@ const Auth = () => {
                 ? 'ليس لديك حساب؟ أنشئ حساباً جديداً' 
                 : 'لديك حساب بالفعل؟ سجل الدخول'
               }
+            </Button>
+          </div>
+          
+          {/* Debug button - remove in production */}
+          <div className="mt-4 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testConnection}
+              className="text-xs"
+            >
+              اختبار الاتصال
             </Button>
           </div>
         </CardContent>
