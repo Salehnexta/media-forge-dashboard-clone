@@ -5,24 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Send, Bot, User, BarChart3, FileText, PlusCircle, Wifi, WifiOff, Clock, DollarSign } from 'lucide-react';
+import { Send, Bot, User, Wifi, WifiOff, Clock, DollarSign } from 'lucide-react';
 import { useMorvoChat } from '@/hooks/useMorvoChat';
 import { ChatMessage } from '@/types/morvoChat';
 
 export const TravelStyleDashboard: React.FC = () => {
   const {
     messages,
-    agents,
-    selectedAgent,
-    setSelectedAgent,
     isLoading,
     isTyping,
     connectionStatus,
     conversationStats,
     sendMessage,
     retryMessage,
-    clearChat,
-    checkConnection
+    clearChat
   } = useMorvoChat();
 
   const [inputMessage, setInputMessage] = useState('');
