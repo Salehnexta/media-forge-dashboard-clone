@@ -18,6 +18,18 @@ interface MemoryStats {
   byAgent: Record<string, number>;
   byType: Record<string, number>;
   avgImportance: number;
+  totalSizeMB: number;
+  agentBreakdown: Array<{
+    agent_type: string;
+    memory_count: number;
+    total_size_mb: number;
+  }>;
+}
+
+interface CleanupStats {
+  isCleaningUp: boolean;
+  lastCleanup?: Date;
+  cleanedCount: number;
 }
 
 export const useMemoryManagement = () => {
@@ -26,9 +38,15 @@ export const useMemoryManagement = () => {
     totalEntries: 0,
     byAgent: {},
     byType: {},
-    avgImportance: 0
+    avgImportance: 0,
+    totalSizeMB: 0,
+    agentBreakdown: []
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [cleanupStats, setCleanupStats] = useState<CleanupStats>({
+    isCleaningUp: false,
+    cleanedCount: 0
+  });
 
   const loadMemories = useCallback(async (agentId?: string) => {
     setIsLoading(true);
@@ -89,11 +107,19 @@ export const useMemoryManagement = () => {
       totalImportance += memory.importance_score;
     });
 
+    const agentBreakdown = Object.entries(byAgent).map(([agent_type, memory_count]) => ({
+      agent_type,
+      memory_count,
+      total_size_mb: memory_count * 0.1 // Estimate
+    }));
+
     setStats({
       totalEntries: memoryEntries.length,
       byAgent,
       byType,
-      avgImportance: memoryEntries.length > 0 ? totalImportance / memoryEntries.length : 0
+      avgImportance: memoryEntries.length > 0 ? totalImportance / memoryEntries.length : 0,
+      totalSizeMB: memoryEntries.length * 0.1, // Estimate
+      agentBreakdown
     });
   };
 
@@ -140,7 +166,7 @@ export const useMemoryManagement = () => {
       if (error) throw error;
 
       setMemories([]);
-      setStats({ totalEntries: 0, byAgent: {}, byType: {}, avgImportance: 0 });
+      setStats({ totalEntries: 0, byAgent: {}, byType: {}, avgImportance: 0, totalSizeMB: 0, agentBreakdown: [] });
       toast.success('تم مسح جميع الذكريات');
     } catch (error) {
       console.error('خطأ في مسح الذكريات:', error);
@@ -172,13 +198,90 @@ export const useMemoryManagement = () => {
     }
   }, []);
 
+  const cleanupExpiredMemories = useCallback(async () => {
+    setCleanupStats(prev => ({ ...prev, isCleaningUp: true }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) return 0;
+
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('agent_memory')
+        .delete()
+        .eq('client_id', client.id)
+        .lt('expires_at', now);
+
+      if (error) throw error;
+
+      const cleanedCount = data?.length || 0;
+      setCleanupStats(prev => ({
+        ...prev,
+        lastCleanup: new Date(),
+        cleanedCount
+      }));
+
+      return cleanedCount;
+    } catch (error) {
+      console.error('خطأ في تنظيف الذكريات:', error);
+      return 0;
+    } finally {
+      setCleanupStats(prev => ({ ...prev, isCleaningUp: false }));
+    }
+  }, []);
+
+  const deleteMemoriesByAgent = useCallback(async (agentType: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!client) return;
+
+      const { error } = await supabase
+        .from('agent_memory')
+        .delete()
+        .eq('client_id', client.id)
+        .eq('agent_id', agentType);
+
+      if (error) throw error;
+
+      setMemories(prev => prev.filter(m => m.agent_id !== agentType));
+      toast.success(`تم حذف ذكريات ${agentType}`);
+    } catch (error) {
+      console.error('خطأ في حذف ذكريات الوكيل:', error);
+      toast.error('فشل في حذف ذكريات الوكيل');
+    }
+  }, []);
+
+  const fetchMemoryUsage = useCallback(async () => {
+    await loadMemories();
+  }, [loadMemories]);
+
   return {
     memories,
     stats,
     isLoading,
+    memoryStats: stats, // Alias for backward compatibility
+    cleanupStats,
     loadMemories,
     deleteMemory,
     clearAllMemories,
-    updateImportanceScore
+    updateImportanceScore,
+    cleanupExpiredMemories,
+    deleteMemoriesByAgent,
+    fetchMemoryUsage
   };
 };

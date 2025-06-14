@@ -158,6 +158,9 @@ export const MORVO_AGENTS = {
   }
 };
 
+// Export aiManagers for backward compatibility
+export const aiManagers = Object.values(MORVO_AGENTS);
+
 // Dashboard contexts for each agent
 export const DASHBOARD_CONTEXTS = {
   seo: {
@@ -225,6 +228,26 @@ export const SAMPLE_METRICS = {
     cpa: '€12.40',
     roas: '4.2x',
     ctr: '2.8%'
+  }
+};
+
+// Mock chart data for development
+export const mockChartData = {
+  strategic: {
+    roi: [
+      { month: 'يناير', actual: 85, expected: 80 },
+      { month: 'فبراير', actual: 92, expected: 85 },
+      { month: 'مارس', actual: 88, expected: 90 },
+      { month: 'أبريل', actual: 95, expected: 92 },
+      { month: 'مايو', actual: 98, expected: 95 },
+      { month: 'يونيو', actual: 102, expected: 98 }
+    ],
+    budget: [
+      { name: 'الإعلانات المدفوعة', value: 35, color: '#3b82f6' },
+      { name: 'وسائل التواصل', value: 25, color: '#10b981' },
+      { name: 'تحسين المحتوى', value: 20, color: '#f59e0b' },
+      { name: 'التحليلات', value: 20, color: '#ef4444' }
+    ]
   }
 };
 

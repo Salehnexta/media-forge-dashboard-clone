@@ -9,7 +9,7 @@ import { useMemoryManagement } from '@/hooks/useMemoryManagement';
 import { useToast } from '@/hooks/use-toast';
 
 export const MemoryDashboard = () => {
-  const { memoryStats, cleanupStats, cleanupExpiredMemories, deleteMemoriesByAgent, fetchMemoryUsage } = useMemoryManagement();
+  const { stats, cleanupStats, cleanupExpiredMemories, deleteMemoriesByAgent, fetchMemoryUsage } = useMemoryManagement();
   const { toast } = useToast();
 
   const handleCleanup = async () => {
@@ -44,7 +44,7 @@ export const MemoryDashboard = () => {
     }
   };
 
-  if (memoryStats.isLoading) {
+  if (stats.totalEntries === 0) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -66,7 +66,7 @@ export const MemoryDashboard = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{memoryStats.totalMemories}</div>
+            <div className="text-2xl font-bold">{stats.totalEntries}</div>
           </CardContent>
         </Card>
 
@@ -76,7 +76,7 @@ export const MemoryDashboard = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{memoryStats.totalSizeMB.toFixed(2)} MB</div>
+            <div className="text-2xl font-bold">{stats.totalSizeMB.toFixed(2)} MB</div>
           </CardContent>
         </Card>
 
@@ -142,7 +142,7 @@ export const MemoryDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {memoryStats.agentBreakdown.map((agent) => (
+            {stats.agentBreakdown.map((agent) => (
               <div key={agent.agent_type} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -165,7 +165,7 @@ export const MemoryDashboard = () => {
                   </div>
                 </div>
                 <Progress 
-                  value={(agent.total_size_mb / memoryStats.totalSizeMB) * 100} 
+                  value={(agent.total_size_mb / stats.totalSizeMB) * 100} 
                   className="h-2"
                 />
               </div>
