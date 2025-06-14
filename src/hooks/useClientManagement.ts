@@ -6,12 +6,9 @@ import { toast } from 'sonner';
 interface ClientData {
   id: string;
   user_id: string;
-  user_email: string;
-  business_type?: string;
-  industry?: string;
-  subscription_tier: string;
-  api_key: string;
+  name: string;
   active: boolean;
+  api_key: string;
   quota_limit: number;
   quota_used: number;
   created_at: string;
@@ -52,10 +49,7 @@ export const useClientManagement = () => {
         .from('clients')
         .insert({
           user_id: user.id,
-          user_email: userEmail || user.email || '',
-          business_type: 'marketing',
-          industry: 'تقنية',
-          subscription_tier: 'free'
+          name: userEmail || user.email || 'عميل جديد'
         })
         .select()
         .single();

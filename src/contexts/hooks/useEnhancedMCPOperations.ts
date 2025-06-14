@@ -107,7 +107,7 @@ export const useEnhancedMCPOperations = () => {
     }
   };
 
-  // Store emotional context
+  // Store emotional context using content_sources_data instead of missing table
   const storeEmotionalContext = async (
     emotion: string,
     confidence: number,
@@ -119,13 +119,17 @@ export const useEnhancedMCPOperations = () => {
       if (!clientId) return;
 
       const { error } = await supabase
-        .from('emotional_contexts')
+        .from('content_sources_data')
         .insert({
           client_id: clientId,
-          conversation_id: conversationId,
-          primary_emotion: emotion,
-          confidence,
-          context_data: contextData
+          source_type: 'emotional_context',
+          data: {
+            primary_emotion: emotion,
+            confidence,
+            context_data: contextData,
+            conversation_id: conversationId,
+            timestamp: new Date().toISOString()
+          }
         });
 
       if (error) throw error;
@@ -135,7 +139,7 @@ export const useEnhancedMCPOperations = () => {
     }
   };
 
-  // Enhanced A2A message storage with emotional context
+  // Enhanced A2A message storage using existing schema
   const storeA2AMessage = async (
     senderAgentId: string,
     recipientAgentId: string,
@@ -148,6 +152,12 @@ export const useEnhancedMCPOperations = () => {
       const clientId = await getOrCreateClient();
       if (!clientId) return;
 
+      // Store emotional context in the context field instead of missing column
+      const enhancedContext = {
+        ...context,
+        emotional_context: emotionalContext
+      };
+
       const { error } = await supabase
         .from('a2a_messages')
         .insert({
@@ -156,8 +166,7 @@ export const useEnhancedMCPOperations = () => {
           recipient_agent_id: recipientAgentId,
           task_type: taskType,
           payload,
-          context: context || {},
-          emotional_context: emotionalContext,
+          context: enhancedContext,
           correlation_id: crypto.randomUUID(),
           status: 'sent'
         });
@@ -169,7 +178,7 @@ export const useEnhancedMCPOperations = () => {
     }
   };
 
-  // Store agent performance with emotional metrics
+  // Store agent performance using existing schema
   const storeAgentPerformance = async (
     agentId: string,
     taskType: string,
@@ -191,7 +200,7 @@ export const useEnhancedMCPOperations = () => {
           success,
           processing_time_ms: processingTimeMs,
           tokens_used: tokensUsed,
-          emotional_impact_score: emotionalImpactScore
+          project_id: clientId // Using client_id as project_id for now
         });
 
       if (error) throw error;

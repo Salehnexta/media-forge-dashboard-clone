@@ -63,8 +63,7 @@ export const useEnhancedRailwayDataService = () => {
         'analysis_execution',
         true,
         estimatedTime,
-        result?.tokens_used,
-        emotionalContext?.impact_score
+        result?.tokens_used
       );
 
       // Save to content_sources_data for compatibility
