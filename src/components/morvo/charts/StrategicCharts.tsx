@@ -15,13 +15,13 @@ export const StrategicCharts = () => {
   useEffect(() => {
     loadStrategicData();
     
-    // Set up real-time subscription
+    // Set up real-time subscription for analytics data
     const channel = supabase
       .channel('strategic_charts_updates')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'strategic_analyses'
+        table: 'analytics_data'
       }, () => {
         loadStrategicData();
       })
@@ -35,11 +35,12 @@ export const StrategicCharts = () => {
   const loadStrategicData = async () => {
     try {
       const { data, error } = await supabase
-        .from('strategic_analyses')
+        .from('analytics_data')
         .select('*')
-        .order('created_at', { ascending: false })
+        .eq('metric_type', 'strategic')
+        .order('timestamp', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -122,7 +123,7 @@ export const StrategicCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={strategicData?.swot_analysis || mockSwotData}
+            data={strategicData?.data?.swot_analysis || mockSwotData}
             className="w-full"
           />
         </TabsContent>
@@ -138,7 +139,7 @@ export const StrategicCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={strategicData?.competitor_data || mockCompetitorData}
+            data={strategicData?.data?.competitor_data || mockCompetitorData}
             className="w-full"
           />
         </TabsContent>
@@ -154,7 +155,7 @@ export const StrategicCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={strategicData?.market_trends || mockTrendData}
+            data={strategicData?.data?.market_trends || mockTrendData}
             className="w-full"
           />
         </TabsContent>
@@ -167,7 +168,7 @@ export const StrategicCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={strategicData?.kpi_metrics || [
+            data={strategicData?.data?.kpi_metrics || [
               { name: 'الإيرادات', current: 85, target: 100, previousPeriod: 78 },
               { name: 'نمو العملاء', current: 92, target: 100, previousPeriod: 85 },
               { name: 'الحصة السوقية', current: 78, target: 100, previousPeriod: 72 }

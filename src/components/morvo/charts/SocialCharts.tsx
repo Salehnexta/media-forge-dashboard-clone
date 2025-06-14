@@ -15,13 +15,13 @@ export const SocialCharts = () => {
   useEffect(() => {
     loadSocialData();
     
-    // Set up real-time subscription
+    // Set up real-time subscription for social media data
     const channel = supabase
       .channel('social_charts_updates')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'social_monitoring'
+        table: 'social_media_data'
       }, () => {
         loadSocialData();
       })
@@ -35,11 +35,10 @@ export const SocialCharts = () => {
   const loadSocialData = async () => {
     try {
       const { data, error } = await supabase
-        .from('social_monitoring')
+        .from('social_media_data')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('timestamp', { ascending: false })
+        .limit(10);
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -118,7 +117,7 @@ export const SocialCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={socialData?.sentiment_analysis || mockSentimentData}
+            data={socialData?.[0]?.data?.sentiment_analysis || mockSentimentData}
             className="w-full"
           />
         </TabsContent>
@@ -131,7 +130,7 @@ export const SocialCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={socialData?.engagement_metrics || mockEngagementData}
+            data={socialData?.[0]?.data?.engagement_metrics || mockEngagementData}
             className="w-full"
           />
         </TabsContent>
@@ -144,7 +143,7 @@ export const SocialCharts = () => {
               theme: 'light',
               rtl: true
             }}
-            data={socialData?.follower_growth || mockFollowerGrowth}
+            data={socialData?.[0]?.data?.follower_growth || mockFollowerGrowth}
             className="w-full"
           />
         </TabsContent>
