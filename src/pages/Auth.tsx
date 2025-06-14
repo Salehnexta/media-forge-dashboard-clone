@@ -175,7 +175,7 @@ const Auth = () => {
           {/* Debug info - remove this in production */}
           <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
             <p>Debug: Check browser console for detailed logs</p>
-            <p>Supabase URL: {supabase.supabaseUrl}</p>
+            <p>Supabase URL: https://teniefzxdikestahdnur.supabase.co</p>
           </div>
         </CardContent>
       </Card>
