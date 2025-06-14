@@ -74,11 +74,11 @@ export const agentTypeMap: Record<AgentType, AgentId> = {
 export const environment = {
   morvoApiUrl: 'https://morvo-production.up.railway.app',
   morvoWebSocketUrl: 'wss://morvo-production.up.railway.app/ws',
-  apiKey: process.env.VITE_MORVO_API_KEY || '',
+  apiKey: import.meta.env.VITE_MORVO_API_KEY || '',
   apiKeyHeader: 'X-API-Key',
   defaultLanguage: 'ar',
-  isDevelopment: process.env.NODE_ENV === 'development',
-  isProduction: process.env.NODE_ENV === 'production',
+  isDevelopment: import.meta.env.DEV,
+  isProduction: import.meta.env.PROD,
   agents: agents
 };
 
