@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Send, Bot, User, Mic, MicOff, Settings, MessageCircle, Brain, TrendingU
 import { ChatWidgetProps } from './types';
 import { useMCPContext } from '@/contexts/MCPContext';
 import { environment, AgentId, AgentType, agentIdMap } from '@/config/environment';
-import morvoAPI from '@/api/morvoClient';
+import MorvoAIService from '@/services/MorvoAIService';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -55,112 +54,41 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [conversationId] = useState(() => `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const recognitionRef = useRef<any>(null);
   
   const { storeMemory, retrieveMemory, shareInsightBetweenAgents } = useMCPContext();
 
-  // Initialize WebSocket connection
+  // Check connection status
   useEffect(() => {
-    connectToMorvo();
+    const checkConnection = async () => {
+      const healthy = await MorvoAIService.healthCheck();
+      setIsConnected(healthy);
+    };
+    
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Initialize speech recognition
+  useEffect(() => {
     initializeSpeechRecognition();
     
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [currentAgent]);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory]);
-
-  const connectToMorvo = useCallback(() => {
-    try {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-
-      wsRef.current = morvoAPI.connectWebSocket(
-        handleWebSocketMessage,
-        handleWebSocketError,
-        handleWebSocketClose,
-        currentAgent
-      );
-
-      // Test connection
-      setTimeout(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          setIsConnected(true);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error('Failed to connect to Morvo:', error);
-      setIsConnected(false);
-    }
-  }, [currentAgent]);
-
-  const handleWebSocketMessage = useCallback((data: any) => {
-    console.log('Received message from Morvo:', data);
-    
-    if (data.type === 'agent_response') {
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        text: data.message,
-        sender: 'ai',
-        timestamp: new Date(),
-        agentId: data.agent_id || currentAgent,
-        agentName: environment.agents[data.agent_id || currentAgent].name,
-        intent: data.intent,
-        confidence: data.confidence,
-        actions: data.suggested_actions?.map((action: any) => ({
-          label: action.label,
-          action: () => handleSuggestedAction(action),
-          type: action.type || 'secondary'
-        }))
-      };
-
-      setChatHistory(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-
-      // Store AI response in memory
-      storeMemory(
-        agentIdMap[currentAgent],
-        'insight',
-        {
-          response: data.message,
-          intent: data.intent,
-          confidence: data.confidence,
-          timestamp: new Date().toISOString()
-        },
-        { agentId: currentAgent }
-      );
-    } else if (data.type === 'typing_indicator') {
-      setIsTyping(data.typing);
-    } else if (data.type === 'agent_suggestion') {
-      // Suggest switching to different agent
-      toast.info(`${environment.agents[data.suggested_agent].name} قد يكون أفضل لهذا السؤال`);
-    }
-  }, [currentAgent, storeMemory]);
-
-  const handleWebSocketError = useCallback((error: Event) => {
-    console.error('WebSocket error:', error);
-    setIsConnected(false);
-    toast.error('فقد الاتصال مع مورفو AI');
-  }, []);
-
-  const handleWebSocketClose = useCallback(() => {
-    setIsConnected(false);
-    // Auto-reconnect after 3 seconds
-    setTimeout(connectToMorvo, 3000);
-  }, [connectToMorvo]);
 
   const initializeSpeechRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -288,39 +216,50 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
     }
 
     try {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        // Send via WebSocket for real-time response
-        morvoAPI.sendWebSocketMessage(wsRef.current, currentMessage, 'user_123', currentAgent);
-      } else {
-        // Fallback to HTTP API
-        const response = await morvoAPI.sendMessage(currentMessage, 'user_123', currentAgent);
-        
-        const aiMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          text: response.message || 'عذراً، لم أتمكن من فهم طلبك. يرجى المحاولة مرة أخرى.',
-          sender: 'ai',
-          timestamp: new Date(),
-          agentId: currentAgent,
-          agentName: environment.agents[currentAgent].name
-        };
+      const response = await MorvoAIService.sendMessage(currentMessage, conversationId, currentAgent);
+      
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: response.response || response.message || 'عذراً، لم أتمكن من فهم طلبك. يرجى المحاولة مرة أخرى.',
+        sender: 'ai',
+        timestamp: new Date(),
+        agentId: currentAgent,
+        agentName: environment.agents[currentAgent].name,
+        intent: response.intent_analysis?.intent,
+        confidence: response.intent_analysis?.confidence
+      };
 
-        setChatHistory(prev => [...prev, aiMessage]);
-        setIsTyping(false);
-      }
+      setChatHistory(prev => [...prev, aiMessage]);
+      setIsTyping(false);
+
+      // Store AI response in memory
+      await storeMemory(
+        agentIdMap[currentAgent],
+        'insight',
+        {
+          response: aiMessage.text,
+          intent: response.intent_analysis?.intent,
+          confidence: response.intent_analysis?.confidence,
+          timestamp: new Date().toISOString()
+        },
+        { agentId: currentAgent }
+      );
+
     } catch (error) {
       console.error('Error sending message:', error);
       setIsTyping(false);
       toast.error('خطأ في إرسال الرسالة');
-    }
-  };
+      
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
+        sender: 'ai',
+        timestamp: new Date(),
+        agentId: currentAgent,
+        agentName: environment.agents[currentAgent].name
+      };
 
-  const handleSuggestedAction = (action: any) => {
-    console.log('Executing suggested action:', action);
-    // Implement action handling based on action type
-    if (action.type === 'switch_agent') {
-      setCurrentAgent(action.agent_id);
-    } else if (action.type === 'dashboard_update') {
-      // Trigger dashboard update
+      setChatHistory(prev => [...prev, errorMessage]);
     }
   };
 
@@ -457,7 +396,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
           )}
 
           {chatHistory.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-start' : 'justify-end'}`}>
               <div className={`max-w-[80%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
                 {msg.sender === 'ai' && (
                   <div className="flex items-center gap-2 mb-1">
@@ -503,7 +442,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
           ))}
 
           {isTyping && (
-            <div className="flex justify-start">
+            <div className="flex justify-end">
               <div className="bg-gray-100 rounded-2xl p-3">
                 <div className="flex items-center gap-2">
                   <AgentIcon className={`w-4 h-4 text-white p-1 rounded ${agentColors[currentAgent]}`} />
@@ -544,7 +483,7 @@ export const UniversalChatWidget = ({ className }: ChatWidgetProps) => {
               </Button>
               <Button
                 onClick={handleSendMessage}
-                disabled={!message.trim() || isTyping}
+                disabled={!message.trim() || isTyping || !isConnected}
                 size="sm"
                 className={`${agentColors[currentAgent]} hover:opacity-90`}
               >
