@@ -15,7 +15,7 @@ import {
   LogOut, 
   Moon, 
   Sun, 
-  Language 
+  Languages 
 } from 'lucide-react';
 
 interface UserDropdownMenuProps {
@@ -80,7 +80,7 @@ export const UserDropdownMenu = ({ user, onSignOut }: UserDropdownMenuProps) => 
         </DropdownMenuItem>
         
         <DropdownMenuItem className="cursor-pointer" onClick={toggleLanguage}>
-          <Language className="w-4 h-4 ml-2" />
+          <Languages className="w-4 h-4 ml-2" />
           <span>اللغة ({language === 'ar' ? 'العربية' : 'English'})</span>
         </DropdownMenuItem>
         
