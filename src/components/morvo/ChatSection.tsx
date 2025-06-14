@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Send, Bot, User, Plus, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AIManager } from "@/types/morvo";
-import { useChatLogic } from "@/hooks/useChatLogic";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { InputSanitizer } from "@/components/security/InputSanitizer";
-import { chatRateLimiter } from "@/components/security/RateLimiter";
-import { useComponentPerformance } from "@/hooks/useEnhancedPerformance";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import { toast } from "sonner";
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Send, Bot, User, Wifi, WifiOff, RotateCcw, Trash2, Clock, DollarSign, Zap } from 'lucide-react';
+import { useMorvoChat } from '@/hooks/useMorvoChat';
+import { ChatMessage } from '@/types/morvoChat';
+import { AIManager } from '@/types/morvo';
 
 interface ChatSectionProps {
   selectedManager: AIManager;
@@ -17,131 +17,54 @@ interface ChatSectionProps {
   onDashboardCommand?: (command: any) => void;
 }
 
-const ChatSectionInner = ({
+export const ChatSection = ({
   selectedManager,
   onManagerSelect,
   onDashboardCommand
 }: ChatSectionProps) => {
-  useComponentPerformance('ChatSection');
-  
   const {
     messages,
-    currentAgent,
+    agents,
+    selectedAgent,
+    setSelectedAgent,
+    isLoading,
     isTyping,
-    isConnected,
-    message,
-    setMessage,
-    handleSendMessage: originalHandleSendMessage,
-    setCurrentAgent,
-    setDashboardCommandCallback,
-    messagesEndRef
-  } = useChatLogic();
+    connectionStatus,
+    conversationStats,
+    sendMessage,
+    retryMessage,
+    clearChat,
+    checkConnection
+  } = useMorvoChat();
 
-  const isMobile = useIsMobile();
-
-  // Memoized dashboard command callback to prevent infinite loops
-  const memoizedOnDashboardCommand = useCallback((command: any) => {
-    console.log('Dashboard command received:', command);
-    onDashboardCommand?.(command);
-  }, [onDashboardCommand]);
-
-  // Set up dashboard command callback only once
-  useEffect(() => {
-    if (memoizedOnDashboardCommand) {
-      setDashboardCommandCallback(() => memoizedOnDashboardCommand);
-    }
-  }, [memoizedOnDashboardCommand, setDashboardCommandCallback]);
-
-  // Sync current agent with selected manager - with proper dependency
-  const handleAgentSync = useCallback(() => {
-    if (currentAgent !== selectedManager) {
-      setCurrentAgent(selectedManager);
-    }
-  }, [selectedManager, currentAgent, setCurrentAgent]);
+  const [inputMessage, setInputMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    handleAgentSync();
-  }, [handleAgentSync]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
-  // Memoized secure message handling
-  const handleSendMessage = useCallback(() => {
-    // Rate limiting check
-    if (!chatRateLimiter.isAllowed()) {
-      toast.error('تم إرسال رسائل كثيرة. يرجى الانتظار قليلاً.');
-      return;
+  const handleSendMessage = () => {
+    if (inputMessage.trim() && !isLoading) {
+      sendMessage(inputMessage);
+      setInputMessage('');
     }
+  };
 
-    // Input validation
-    if (!message.trim()) {
-      toast.error('يرجى كتابة رسالة أولاً');
-      return;
-    }
-
-    if (message.length > 1000) {
-      toast.error('الرسالة طويلة جداً');
-      return;
-    }
-
-    // Sanitize message before sending
-    const sanitizedMessage = InputSanitizer.sanitizeText(message);
-    
-    // Update message state with sanitized content
-    setMessage(sanitizedMessage);
-    
-    // Send the message
-    originalHandleSendMessage();
-  }, [message, originalHandleSendMessage, setMessage]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  }, [handleSendMessage]);
+  };
 
-  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Basic input validation
-    if (value.length <= 1000) {
-      setMessage(value);
-    }
-  }, [setMessage]);
+  const formatCost = (cost: number) => {
+    return `$${cost.toFixed(4)}`;
+  };
 
-  const clearChat = useCallback(() => {
-    // Clear chat functionality can be implemented here
-    console.log('Clear chat requested');
-  }, []);
-
-  // Memoized time formatter
-  const formatTime = useMemo(() => (date: Date) => {
-    return date.toLocaleTimeString('ar-SA', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  }, []);
-
-  // Memoized message content renderer
-  const renderMessageContent = useCallback((text: string) => {
-    const sanitizedText = InputSanitizer.sanitizeHTML(text, {
-      allowedTags: ['p', 'br', 'strong', 'em'],
-      allowedAttributes: []
-    });
-    
-    return (
-      <div 
-        dangerouslySetInnerHTML={{ 
-          __html: sanitizedText 
-        }} 
-      />
-    );
-  }, []);
-
-  // Memoized rate limit display
-  const rateLimitInfo = useMemo(() => ({
-    remaining: chatRateLimiter.getRemainingRequests(),
-    messageLength: message.length
-  }), [message.length]);
+  const formatTime = (time: number) => {
+    return `${time.toFixed(1)}s`;
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-white to-gray-50">
@@ -150,167 +73,238 @@ const ChatSectionInner = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-sm">M</span>
+              <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="font-semibold text-gray-900 text-sm lg:text-base">مورفو AI</span>
-              <div className="flex items-center gap-1 mt-1">
-                <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''}`}></div>
-                <span className="text-xs text-gray-500">{isConnected ? 'متصل' : 'غير متصل'}</span>
-              </div>
+              <h3 className="font-bold text-lg text-gray-900">Morvo AI</h3>
+              <p className="text-sm text-gray-600">مساعد التسويق الذكي</p>
             </div>
           </div>
-          <Button
-            onClick={clearChat}
-            variant="outline"
-            size="sm"
-            className="gap-2 hover:bg-gray-50 transition-colors border-gray-200"
-          >
-            <Plus className="w-4 h-4" />
-            {!isMobile && "محادثة جديدة"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Chat messages area - optimized for performance */}
-      <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
-        <div className="space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center py-8 lg:py-12">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                <span className="text-white font-bold text-xl lg:text-2xl">M</span>
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2">مرحباً بك في مورفو AI</h3>
-              <p className="text-gray-600 text-sm lg:text-base mb-6 px-4">
-                أنا مورفو، مساعدك الذكي في التسويق. كيف يمكنني مساعدتك اليوم؟
-              </p>
-            </div>
-          )}
-
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkConnection}
+              className="gap-2"
             >
-              <div className={`max-w-[85%] lg:max-w-[80%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
-                {msg.sender === 'ai' && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                      <span className="text-white text-xs font-bold">M</span>
-                    </div>
-                    <span className="text-xs text-gray-500">مورفو AI</span>
-                  </div>
-                )}
-                
-                <div className={`p-3 lg:p-4 rounded-2xl shadow-lg transition-all duration-200 hover:shadow-xl ${
-                  msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                    : 'bg-white border border-gray-200'
-                }`}>
-                  <div className="flex items-start gap-2">
-                    {msg.sender === 'user' && (
-                      <User className="w-4 h-4 mt-1 flex-shrink-0" />
-                    )}
-                    {msg.sender === 'ai' && (
-                      <Bot className="w-4 h-4 mt-1 flex-shrink-0 text-blue-600" />
-                    )}
-                    <div className="flex-1">
-                      <div className="text-sm lg:text-base whitespace-pre-line leading-relaxed">
-                        {renderMessageContent(msg.text)}
-                      </div>
-                      {msg.actionButton && (
-                        <Button
-                          onClick={msg.actionButton.action}
-                          className="mt-3 text-xs"
-                          size="sm"
-                          variant={msg.sender === 'user' ? 'secondary' : 'default'}
-                        >
-                          {msg.actionButton.label}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <p className={`text-xs mt-2 ${
-                    msg.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                  }`}>
-                    {formatTime(msg.timestamp)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {isTyping && (
-            <div className="flex justify-start animate-fade-in">
-              <div className="bg-white border border-gray-200 rounded-2xl p-3 lg:p-4 shadow-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                    <span className="text-white text-xs font-bold">M</span>
-                  </div>
-                  <span className="text-xs text-gray-500">مورفو AI</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">يكتب...</span>
-                  <div className="flex gap-1 mr-2">
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+              {connectionStatus.isConnected ? (
+                <Wifi className="w-4 h-4 text-green-600" />
+              ) : (
+                <WifiOff className="w-4 h-4 text-red-600" />
+              )}
+              {connectionStatus.isConnected ? 'متصل' : 'غير متصل'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearChat}
+              className="gap-2"
+              disabled={messages.length === 0}
+            >
+              <Trash2 className="w-4 h-4" />
+              مسح
+            </Button>
+          </div>
         </div>
+
+        {/* Agent Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">اختر الوكيل:</label>
+          <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white border shadow-lg z-50">
+              {agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{agent.name}</span>
+                    <span className="text-xs text-gray-500">{agent.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Stats */}
+        {conversationStats.totalMessages > 0 && (
+          <div className="flex gap-4 text-xs text-gray-600 pt-2 border-t">
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-3 h-3" />
+              {formatCost(conversationStats.totalCost)}
+            </div>
+            <div className="flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              {conversationStats.totalTokens} رمز
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatTime(conversationStats.averageProcessingTime)} متوسط
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Message input - optimized */}
-      <div className="p-4 lg:p-6 border-t border-gray-200 bg-white/90 backdrop-blur-sm">
-        <div className="flex gap-2 lg:gap-3 mb-3">
-          <Input
-            value={message}
-            onChange={handleMessageChange}
-            placeholder="اكتب رسالتك هنا..."
-            className="flex-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm lg:text-base"
-            onKeyPress={handleKeyPress}
-            disabled={isTyping}
-            maxLength={1000}
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!message.trim() || isTyping}
-            size="sm"
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 rounded-xl px-4 lg:px-6 shadow-lg hover:shadow-xl"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-white text-xs font-bold">M</span>
+      {/* Messages */}
+      <div className="flex-1 p-0">
+        <ScrollArea className="h-full p-4">
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center py-12">
+                <Bot className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+                <h4 className="font-bold text-gray-900 mb-2">مرحباً بك في Morvo AI</h4>
+                <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                  مساعدك الذكي في التسويق مع 9 وكلاء متخصصين جاهزين للمساعدة في 
+                  استراتيجية وسائل التواصل الاجتماعي، تحسين محركات البحث، مراقبة العلامة التجارية، التحليلات والذكاء التجاري، 
+                  الإعلانات المدفوعة، التسويق عبر البريد الإلكتروني، إدارة المحتوى، وتحليل المنافسين.
+                </p>
+              </div>
+            )}
+
+            {messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                onRetry={retryMessage}
+              />
+            ))}
+
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-white rounded-2xl p-4 shadow-sm border max-w-[80%]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Bot className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900">Morvo AI</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">يفكر...</span>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" />
+                      <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
           </div>
-          <p className="text-xs text-gray-500">
-            مورفو AI جاهز للمساعدة
-          </p>
-          <div className={`w-2 h-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full ${isConnected ? 'animate-pulse' : ''} ml-auto`}></div>
-        </div>
-        
-        {/* Rate limit indicator */}
-        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-          <span>{rateLimitInfo.messageLength}/1000</span>
-          <span>
-            الرسائل المتبقية: {rateLimitInfo.remaining}
-          </span>
+        </ScrollArea>
+
+        {/* Input */}
+        <div className="p-4 border-t bg-white/50 backdrop-blur-sm">
+          <div className="flex gap-2">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="اسأل Morvo AI أي شيء عن التسويق..."
+              onKeyPress={handleKeyPress}
+              disabled={isLoading || !connectionStatus.isConnected}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading || !connectionStatus.isConnected}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {!connectionStatus.isConnected && (
+            <p className="text-xs text-red-600 mt-2 text-center">
+              {connectionStatus.error || 'غير متصل بـ Morvo AI'}
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export const ChatSection = (props: ChatSectionProps) => (
-  <ErrorBoundary>
-    <ChatSectionInner {...props} />
-  </ErrorBoundary>
-);
+// Message Bubble Component
+const MessageBubble: React.FC<{
+  message: ChatMessage;
+  onRetry: (messageId: string) => void;
+}> = ({ message, onRetry }) => {
+  const isUser = message.sender === 'user';
+  
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
+        {!isUser && (
+          <div className="flex items-center gap-2 mb-2">
+            <Bot className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-gray-900">Morvo AI</span>
+            {message.agentsInvolved && message.agentsInvolved.length > 0 && (
+              <div className="flex gap-1">
+                {message.agentsInvolved.map((agent, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {agent}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div className={`p-4 rounded-2xl shadow-sm border ${
+          isUser
+            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+            : message.isError 
+            ? 'bg-red-50 border-red-200 text-red-900'
+            : 'bg-white text-gray-900'
+        }`}>
+          {isUser && (
+            <div className="flex items-center gap-2 mb-2">
+              <User className="w-4 h-4" />
+              <span className="text-sm font-medium">أنت</span>
+            </div>
+          )}
+          
+          <p className="text-sm whitespace-pre-line">{message.text}</p>
+          
+          {message.isError && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRetry(message.id)}
+              className="mt-2 gap-2 text-red-700 border-red-300 hover:bg-red-50"
+            >
+              <RotateCcw className="w-3 h-3" />
+              إعادة المحاولة
+            </Button>
+          )}
+        </div>
+        
+        <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
+          <span>
+            {message.timestamp.toLocaleTimeString('ar-SA', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </span>
+          
+          {message.processingTime && (
+            <div className="flex items-center gap-3">
+              {message.costTracking && (
+                <span className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" />
+                  ${message.costTracking.total_cost.toFixed(4)}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {message.processingTime.toFixed(1)}s
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
