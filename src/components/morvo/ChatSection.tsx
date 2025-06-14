@@ -44,9 +44,9 @@ export const ChatSection = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim() && !isLoading) {
-      sendMessage(inputMessage);
+      await sendMessage(inputMessage);
       setInputMessage('');
     }
   };
