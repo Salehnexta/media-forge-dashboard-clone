@@ -12,7 +12,7 @@ export const useChatLogic = () => {
   const [dashboardCommandCallback, setDashboardCommandCallback] = useState<((command: any) => void) | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { executeChartCommand } = useChartCommands();
+  const { executeChartCommand, detectChartRequest } = useChartCommands();
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -55,13 +55,17 @@ export const useChatLogic = () => {
 
     try {
       // فحص ما إذا كانت الرسالة تحتوي على طلب رسم بياني أو تحليل
-      const chartResult = await executeChartCommand(currentQuestion);
+      const isChartRequest = detectChartRequest(currentQuestion);
+      console.log('Is chart request detected:', isChartRequest, 'for message:', currentQuestion);
       
       let aiResponseText = '';
       let actionButton = undefined;
 
-      if (chartResult) {
-        if (chartResult.success) {
+      if (isChartRequest) {
+        console.log('Executing chart command for:', currentQuestion);
+        const chartResult = await executeChartCommand(currentQuestion);
+        
+        if (chartResult && chartResult.success) {
           aiResponseText = `✅ ${chartResult.message}\n\nيمكنك الآن رؤية التحليل في لوحة التحكم أدناه. هل تريد إضافة المزيد من التحليلات أو الرسوم البيانية؟`;
           
           // إشعار لوحة التحكم بوجود رسم بياني جديد
@@ -72,7 +76,7 @@ export const useChatLogic = () => {
             });
           }
         } else {
-          aiResponseText = `❌ ${chartResult.message}`;
+          aiResponseText = chartResult ? `❌ ${chartResult.message}` : 'عذراً، لم أتمكن من إنشاء التحليل المطلوب. يرجى المحاولة مرة أخرى.';
         }
       } else {
         // رد عادي إذا لم يكن طلب رسم بياني
@@ -107,7 +111,7 @@ export const useChatLogic = () => {
       
       setMessages(prev => [...prev, errorResponse]);
     }
-  }, [message, currentAgent, executeChartCommand, dashboardCommandCallback]);
+  }, [message, currentAgent, executeChartCommand, detectChartRequest, dashboardCommandCallback]);
 
   return {
     messages,
