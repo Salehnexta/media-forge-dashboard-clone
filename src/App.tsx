@@ -6,7 +6,6 @@ import { Toaster } from 'sonner';
 import SimpleChat from './pages/SimpleChat';
 import Dashboard from './pages/Dashboard';
 import RailwayDashboardPage from './pages/RailwayDashboard';
-import MorvDashboard from './pages/MorvDashboard';
 import Auth from './pages/Auth';
 import Pricing from './pages/Pricing';
 import Home from './pages/Home';
@@ -41,7 +40,6 @@ function App() {
             <Route path="/chat" element={<SimpleChat />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/railway" element={<RailwayDashboardPage />} />
-            <Route path="/morv" element={<MorvDashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/features" element={<Features />} />
