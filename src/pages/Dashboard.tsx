@@ -1,12 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TravelStyleDashboard } from '@/components/morvo/TravelStyleDashboard';
-import { Button } from "@/components/ui/button";
-import { 
-  LogOut
-} from 'lucide-react';
+import { UserDropdownMenu } from '@/components/dashboard/UserDropdownMenu';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -72,17 +68,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Right Sign Out Button */}
+      {/* Top Right User Menu */}
       <div className="absolute top-4 right-4 z-50">
-        <Button
-          onClick={handleSignOut}
-          variant="outline"
-          size="sm"
-          className="gap-2 bg-white shadow-lg text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-        >
-          <LogOut className="w-4 h-4" />
-          تسجيل الخروج
-        </Button>
+        <UserDropdownMenu user={user} onSignOut={handleSignOut} />
       </div>
 
       {/* Travel-Style Dashboard */}
