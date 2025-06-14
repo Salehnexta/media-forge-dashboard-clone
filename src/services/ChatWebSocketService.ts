@@ -5,7 +5,7 @@ import { DiagnosticService } from './chat/DiagnosticService';
 import { FallbackService } from './chat/FallbackService';
 import { ConnectionManager } from './chat/ConnectionManager';
 import { ChatMessage, WebSocketConfig, ConnectionStatus } from './chat/types';
-import { chatHttpService } from './ChatHttpService';
+import { chatHttpService, HttpConfig } from './ChatHttpService';
 
 export class ChatWebSocketService {
   private connectionManager: ConnectionManager;
@@ -21,8 +21,11 @@ export class ChatWebSocketService {
   }
 
   async connect(userId: string, token?: string, config: WebSocketConfig = {}): Promise<boolean> {
+    // Convert WebSocketConfig to HttpConfig
+    const httpConfig: HttpConfig = {};
+    
     // Use HTTP service instead of WebSocket
-    const connected = await chatHttpService.connect(userId, token, config);
+    const connected = await chatHttpService.connect(userId, token, httpConfig);
     
     if (connected) {
       this.flushMessageQueue();
@@ -31,9 +34,9 @@ export class ChatWebSocketService {
     return connected;
   }
 
-  sendMessage(message: any): boolean {
+  async sendMessage(message: any): Promise<boolean> {
     if (chatHttpService.isConnected()) {
-      return chatHttpService.sendMessage(message);
+      return await chatHttpService.sendMessage(message);
     } else if (this.fallbackService.isInFallbackMode()) {
       // Handle message in fallback mode
       console.log('📤 Handling message in fallback mode');
@@ -51,17 +54,17 @@ export class ChatWebSocketService {
       if (!chatHttpService.isConnected()) {
         const userId = localStorage.getItem('morvo_user_id') || 'guest';
         const token = localStorage.getItem('morvo_auth_token');
-        this.connect(userId, token);
+        await this.connect(userId, token);
       }
       
       return false;
     }
   }
 
-  private flushMessageQueue(): void {
+  private async flushMessageQueue(): Promise<void> {
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift();
-      this.sendMessage(message);
+      await this.sendMessage(message);
     }
   }
 

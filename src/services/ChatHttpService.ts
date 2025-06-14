@@ -267,6 +267,3 @@ export class ChatHttpService {
 
 // Export singleton instance
 export const chatHttpService = new ChatHttpService();
-
-// Export types
-export type { ConnectionStatus, HttpConfig };
