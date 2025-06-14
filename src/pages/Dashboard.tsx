@@ -3,11 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TravelStyleDashboard } from '@/components/morvo/TravelStyleDashboard';
+import { SplitScreenLayout } from '@/components/layout/SplitScreenLayout';
 import { Button } from "@/components/ui/button";
 import { 
   Brain,
   LogOut,
-  ArrowLeft
+  ArrowLeft,
+  MessageSquare,
+  Layout
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -15,6 +18,7 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [showSplitScreen, setShowSplitScreen] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,6 +98,15 @@ const Dashboard = () => {
 
               <div className="flex items-center gap-3">
                 <Button
+                  onClick={() => setShowSplitScreen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  الواجهة التفاعلية
+                </Button>
+                <Button
                   onClick={() => setShowOriginal(false)}
                   variant="outline"
                   size="sm"
@@ -151,11 +164,64 @@ const Dashboard = () => {
     );
   }
 
-  // Show new travel-style dashboard
+  if (showSplitScreen) {
+    // Show new split-screen layout
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Control Buttons */}
+        <div className="absolute top-4 left-4 z-50 flex gap-2">
+          <Button
+            onClick={() => setShowSplitScreen(false)}
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-white shadow-lg"
+          >
+            <Layout className="w-4 h-4" />
+            التصميم المدمج
+          </Button>
+          <Button
+            onClick={() => setShowOriginal(true)}
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-white shadow-lg"
+          >
+            اللوحة الأصلية
+          </Button>
+        </div>
+        
+        {/* Sign Out Button */}
+        <div className="absolute top-4 right-4 z-50">
+          <Button
+            onClick={handleSignOut}
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-white shadow-lg text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4" />
+            تسجيل الخروج
+          </Button>
+        </div>
+
+        {/* Split Screen Layout */}
+        <SplitScreenLayout />
+      </div>
+    );
+  }
+
+  // Show travel-style dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Switch Button */}
-      <div className="absolute top-4 left-4 z-50">
+      {/* Control Buttons */}
+      <div className="absolute top-4 left-4 z-50 flex gap-2">
+        <Button
+          onClick={() => setShowSplitScreen(true)}
+          variant="outline"
+          size="sm"
+          className="gap-2 bg-white shadow-lg"
+        >
+          <MessageSquare className="w-4 h-4" />
+          الواجهة التفاعلية
+        </Button>
         <Button
           onClick={() => setShowOriginal(true)}
           variant="outline"
@@ -179,7 +245,7 @@ const Dashboard = () => {
         </Button>
       </div>
 
-      {/* New Travel-Style Dashboard */}
+      {/* Travel-Style Dashboard */}
       <TravelStyleDashboard />
     </div>
   );
