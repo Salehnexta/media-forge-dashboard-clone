@@ -3,9 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { environment, agentTypeMap, agentIdMap } from '@/config/environment';
 import { AgentMemory, MemoryType, StoreMemoryOptions } from '../types/mcpTypes';
+import { useClientManagement } from '@/hooks/useClientManagement';
 import type { AgentId } from '@/config/environment';
 
 export const useMCPOperations = () => {
+  const { getOrCreateClient } = useClientManagement();
+
   // Enhanced memory storage with agent-specific features using agent_memory table
   const storeMemory = async (
     agentType: string, 
@@ -14,19 +17,9 @@ export const useMCPOperations = () => {
     options?: StoreMemoryOptions
   ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('المستخدم غير مصرح له');
-
-      // Get client_id from clients table
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!client) {
-        console.error('No client found for user');
-        return;
+      const clientId = await getOrCreateClient();
+      if (!clientId) {
+        throw new Error('فشل في الحصول على معرف العميل');
       }
 
       const expiresAt = options?.expiresIn 
@@ -45,11 +38,11 @@ export const useMCPOperations = () => {
         expires_at: expiresAt
       };
 
-      // Store in agent_memory table
+      // Store in agent_memory table with proper UUID client_id
       const { error } = await supabase
         .from('agent_memory')
         .insert({
-          client_id: client.id,
+          client_id: clientId, // Now using proper UUID
           agent_id: agentType,
           memory_type: memoryType,
           content: enhancedContent,
@@ -72,22 +65,13 @@ export const useMCPOperations = () => {
   // Enhanced memory retrieval with agent filtering using agent_memory table
   const retrieveMemory = async (agentType: string, memoryType?: MemoryType, agentId?: AgentId): Promise<AgentMemory[]> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      // Get client_id from clients table
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!client) return [];
+      const clientId = await getOrCreateClient();
+      if (!clientId) return [];
 
       let query = supabase
         .from('agent_memory')
         .select('*')
-        .eq('client_id', client.id)
+        .eq('client_id', clientId) // Now using proper UUID
         .eq('agent_id', agentType)
         .order('timestamp', { ascending: false });
 
@@ -120,22 +104,13 @@ export const useMCPOperations = () => {
 
   const clearMemory = async (agentType?: string, agentId?: AgentId) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get client_id from clients table
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!client) return;
+      const clientId = await getOrCreateClient();
+      if (!clientId) return;
 
       let query = supabase
         .from('agent_memory')
         .delete()
-        .eq('client_id', client.id);
+        .eq('client_id', clientId); // Now using proper UUID
 
       if (agentType) {
         query = query.eq('agent_id', agentType);
@@ -166,24 +141,15 @@ export const useMCPOperations = () => {
 
   const optimizeMemoryStorage = async (agentId?: AgentId) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get client_id from clients table
-      const { data: client } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!client) return;
+      const clientId = await getOrCreateClient();
+      if (!clientId) return;
 
       // Remove expired memories
       const now = new Date().toISOString();
       await supabase
         .from('agent_memory')
         .delete()
-        .eq('client_id', client.id)
+        .eq('client_id', clientId) // Now using proper UUID
         .lt('expires_at', now);
 
       toast.success('تم تحسين تخزين الذاكرة');
