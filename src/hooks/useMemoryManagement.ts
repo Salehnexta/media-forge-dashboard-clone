@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -220,8 +221,8 @@ export const useMemoryManagement = () => {
 
       if (error) throw error;
 
-      // Fix: Handle null data case
-      const cleanedCount = Array.isArray(data) ? data.length : 0;
+      // Handle null data case properly
+      const cleanedCount = data ? (Array.isArray(data) ? data.length : 0) : 0;
       setCleanupStats(prev => ({
         ...prev,
         lastCleanup: new Date(),

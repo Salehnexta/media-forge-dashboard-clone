@@ -44,47 +44,75 @@ export class SupabaseOnlyService {
 
       // Try to get agent status from our local database first
       const { data: agentMemories } = await supabase
-        .from('agent_memories')
-        .select('agent_type')
-        .eq('user_id', user.id);
+        .from('agent_memory')
+        .select('agent_id')
+        .eq('client_id', user.id);
 
-      const activeAgents = agentMemories?.map(memory => memory.agent_type) || [];
+      const activeAgents = agentMemories?.map(memory => memory.agent_id) || [];
 
       return [
         {
-          agent_id: 'm1',
-          name: 'المدير الاستراتيجي',
-          status: activeAgents.includes('strategic') ? 'online' : 'offline',
+          agent_id: 'client_experience',
+          name: 'وكيل تجربة العميل',
+          status: 'online',
           last_seen: new Date().toISOString(),
-          specialization: 'التخطيط الاستراتيجي وتحليل السوق'
+          specialization: 'إدارة تجربة العميل والتنسيق بين الوكلاء'
         },
         {
-          agent_id: 'm2',
-          name: 'مدير المحتوى',
-          status: activeAgents.includes('creative') ? 'online' : 'offline',
+          agent_id: 'seo_agent',
+          name: 'وكيل تحسين محركات البحث',
+          status: activeAgents.includes('seo_agent') ? 'online' : 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'تحسين محركات البحث وتحليل الكلمات المفتاحية'
+        },
+        {
+          agent_id: 'content_management',
+          name: 'وكيل إدارة المحتوى',
+          status: activeAgents.includes('content_management') ? 'online' : 'offline',
           last_seen: new Date().toISOString(),
           specialization: 'إنشاء وإدارة المحتوى الرقمي'
         },
         {
-          agent_id: 'm3',
-          name: 'مدير الحملات',
-          status: activeAgents.includes('executor') ? 'online' : 'offline',
+          agent_id: 'social_media',
+          name: 'وكيل وسائل التواصل الاجتماعي',
+          status: activeAgents.includes('social_media') ? 'online' : 'offline',
           last_seen: new Date().toISOString(),
-          specialization: 'تنفيذ وإدارة الحملات التسويقية'
+          specialization: 'إدارة وسائل التواصل الاجتماعي'
         },
         {
-          agent_id: 'm4',
-          name: 'مراقب الشبكات',
-          status: activeAgents.includes('monitor') ? 'online' : 'offline',
+          agent_id: 'paid_ads',
+          name: 'وكيل الإعلانات المدفوعة',
+          status: activeAgents.includes('paid_ads') ? 'online' : 'offline',
           last_seen: new Date().toISOString(),
-          specialization: 'مراقبة وتحليل وسائل التواصل الاجتماعي'
+          specialization: 'إدارة الحملات الإعلانية المدفوعة'
         },
         {
-          agent_id: 'm5',
-          name: 'محلل البيانات',
-          status: activeAgents.includes('analyst') ? 'online' : 'offline',
+          agent_id: 'email_marketing',
+          name: 'وكيل التسويق عبر البريد الإلكتروني',
+          status: activeAgents.includes('email_marketing') ? 'online' : 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'حملات البريد الإلكتروني والأتمتة'
+        },
+        {
+          agent_id: 'analytics',
+          name: 'وكيل التحليلات',
+          status: activeAgents.includes('analytics') ? 'online' : 'offline',
           last_seen: new Date().toISOString(),
           specialization: 'تحليل البيانات والتقارير التفصيلية'
+        },
+        {
+          agent_id: 'brand_monitoring',
+          name: 'وكيل مراقبة العلامة التجارية',
+          status: activeAgents.includes('brand_monitoring') ? 'online' : 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'مراقبة السمعة والعلامة التجارية'
+        },
+        {
+          agent_id: 'competitor_analysis',
+          name: 'وكيل تحليل المنافسين',
+          status: activeAgents.includes('competitor_analysis') ? 'online' : 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'تحليل السوق والمنافسة'
         }
       ];
     } catch (error) {
@@ -92,39 +120,67 @@ export class SupabaseOnlyService {
       // Return default offline status for all agents
       return [
         {
-          agent_id: 'm1',
-          name: 'المدير الاستراتيجي',
+          agent_id: 'client_experience',
+          name: 'وكيل تجربة العميل',
           status: 'offline',
           last_seen: new Date().toISOString(),
-          specialization: 'التخطيط الاستراتيجي وتحليل السوق'
+          specialization: 'إدارة تجربة العميل والتنسيق بين الوكلاء'
         },
         {
-          agent_id: 'm2',
-          name: 'مدير المحتوى',
+          agent_id: 'seo_agent',
+          name: 'وكيل تحسين محركات البحث',
+          status: 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'تحسين محركات البحث وتحليل الكلمات المفتاحية'
+        },
+        {
+          agent_id: 'content_management',
+          name: 'وكيل إدارة المحتوى',
           status: 'offline',
           last_seen: new Date().toISOString(),
           specialization: 'إنشاء وإدارة المحتوى الرقمي'
         },
         {
-          agent_id: 'm3',
-          name: 'مدير الحملات',
+          agent_id: 'social_media',
+          name: 'وكيل وسائل التواصل الاجتماعي',
           status: 'offline',
           last_seen: new Date().toISOString(),
-          specialization: 'تنفيذ وإدارة الحملات التسويقية'
+          specialization: 'إدارة وسائل التواصل الاجتماعي'
         },
         {
-          agent_id: 'm4',
-          name: 'مراقب الشبكات',
+          agent_id: 'paid_ads',
+          name: 'وكيل الإعلانات المدفوعة',
           status: 'offline',
           last_seen: new Date().toISOString(),
-          specialization: 'مراقبة وتحليل وسائل التواصل الاجتماعي'
+          specialization: 'إدارة الحملات الإعلانية المدفوعة'
         },
         {
-          agent_id: 'm5',
-          name: 'محلل البيانات',
+          agent_id: 'email_marketing',
+          name: 'وكيل التسويق عبر البريد الإلكتروني',
+          status: 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'حملات البريد الإلكتروني والأتمتة'
+        },
+        {
+          agent_id: 'analytics',
+          name: 'وكيل التحليلات',
           status: 'offline',
           last_seen: new Date().toISOString(),
           specialization: 'تحليل البيانات والتقارير التفصيلية'
+        },
+        {
+          agent_id: 'brand_monitoring',
+          name: 'وكيل مراقبة العلامة التجارية',
+          status: 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'مراقبة السمعة والعلامة التجارية'
+        },
+        {
+          agent_id: 'competitor_analysis',
+          name: 'وكيل تحليل المنافسين',
+          status: 'offline',
+          last_seen: new Date().toISOString(),
+          specialization: 'تحليل السوق والمنافسة'
         }
       ];
     }
@@ -137,15 +193,13 @@ export class SupabaseOnlyService {
         throw new Error('User not authenticated');
       }
 
-      // Store the conversation in Supabase
+      // Store the conversation in Supabase using existing conversations table
       const { error } = await supabase
-        .from('morvo_conversations')
+        .from('conversations')
         .insert({
-          user_id: user.id,
-          conversation_id: `local-${Date.now()}`,
-          message_type: 'user',
-          content: message,
-          context_data: { agent_id: agentId || 'm1' }
+          client_id: user.id,
+          title: message.substring(0, 50),
+          status: 'active'
         });
 
       if (error) {
@@ -161,26 +215,15 @@ export class SupabaseOnlyService {
 
       const response = responses[Math.floor(Math.random() * responses.length)];
 
-      // Store the response
-      await supabase
-        .from('morvo_conversations')
-        .insert({
-          user_id: user.id,
-          conversation_id: `local-${Date.now()}`,
-          message_type: 'assistant',
-          content: response,
-          context_data: { agent_id: agentId || 'm1' }
-        });
-
       return {
         response,
-        agent_id: agentId || 'm1'
+        agent_id: agentId || 'client_experience'
       };
     } catch (error) {
       console.error('Error in chat service:', error);
       return {
         response: 'عذراً، حدث خطأ في النظام. يرجى المحاولة مرة أخرى.',
-        agent_id: agentId || 'm1'
+        agent_id: agentId || 'client_experience'
       };
     }
   }

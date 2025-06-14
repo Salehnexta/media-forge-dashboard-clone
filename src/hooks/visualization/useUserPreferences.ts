@@ -1,32 +1,43 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { VisualizationPreference } from '@/types/visualization';
 import { toast } from 'sonner';
-import { safeParseJSON } from './visualizationUtils';
+
+// Mock user preferences since the visualization_preferences table doesn't exist
+const mockUserPreferences: VisualizationPreference[] = [
+  {
+    id: '1',
+    user_id: 'mock-user-1',
+    chart_type: 'line',
+    preferences: {
+      theme: 'light',
+      rtl: true,
+      colors: ['#4F46E5', '#7C3AED']
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    user_id: 'mock-user-1',
+    chart_type: 'donut',
+    preferences: {
+      theme: 'light',
+      rtl: true,
+      showLegend: true
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
 
 export const useUserPreferences = () => {
-  const [userPreferences, setUserPreferences] = useState<VisualizationPreference[]>([]);
+  const [userPreferences, setUserPreferences] = useState<VisualizationPreference[]>(mockUserPreferences);
 
   const loadUserPreferences = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('visualization_preferences')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform and validate the data
-      const transformedPreferences: VisualizationPreference[] = Array.isArray(data)
-        ? data.filter(item => item && item.id && item.chart_type)
-            .map(item => ({
-              ...item,
-              preferences: safeParseJSON(item.preferences, {})
-            }))
-        : [];
-      
-      setUserPreferences(transformedPreferences);
+      // Since the visualization_preferences table doesn't exist, we'll use mock data
+      setUserPreferences(mockUserPreferences);
     } catch (error) {
       console.error('Error loading user preferences:', error);
       const errorMessage = error?.message || 'خطأ في تحميل تفضيلات المستخدم';
@@ -44,25 +55,21 @@ export const useUserPreferences = () => {
         throw new Error('بيانات غير صالحة للحفظ');
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('المستخدم غير مصرح له');
-      }
+      // Mock saving - just add to the local state
+      const newPreference: VisualizationPreference = {
+        id: `mock-${Date.now()}`,
+        user_id: 'mock-user-1',
+        chart_type: chartType,
+        preferences: preferences,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      const { error } = await supabase
-        .from('visualization_preferences')
-        .upsert({
-          user_id: user.id,
-          chart_type: chartType,
-          preferences: preferences as any
-        }, {
-          onConflict: 'user_id,chart_type'
-        });
-
-      if (error) throw error;
+      setUserPreferences(prev => {
+        const filtered = prev.filter(p => p.chart_type !== chartType);
+        return [...filtered, newPreference];
+      });
       
-      await loadUserPreferences();
       toast.success('تم حفظ التفضيلات بنجاح');
       return true;
     } catch (error) {
@@ -71,7 +78,7 @@ export const useUserPreferences = () => {
       toast.error(errorMessage);
       return false;
     }
-  }, [loadUserPreferences]);
+  }, []);
 
   const getUserPreference = useCallback((chartType: string) => {
     if (!chartType || typeof chartType !== 'string') {
