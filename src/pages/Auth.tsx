@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,119 +15,72 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, signUp, user } = useAuth();
 
-  useEffect(() => {
-    console.log('Auth component mounted, checking session...');
-    
-    // Check if user is already logged in
-    const checkUser = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('Session check result:', { session, error });
-        
-        if (error) {
-          console.error('Session check error:', error);
-          return;
-        }
-        
-        if (session) {
-          console.log('User already logged in, redirecting to dashboard');
-          navigate('/dashboard');
-        }
-      } catch (err) {
-        console.error('Error checking session:', err);
-      }
-    };
-    
-    checkUser();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', { event, session });
-      if (session) {
-        navigate('/dashboard');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  // Redirect if already logged in
+  if (user) {
+    navigate('/dashboard');
+    return null;
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Starting auth process:', { isLogin, email });
     setLoading(true);
 
     try {
+      let result;
+      
       if (isLogin) {
         console.log('Attempting login with email:', email);
-        
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password,
-        });
-        
-        console.log('Login attempt result:', { data, error });
-        
-        if (error) {
-          console.error('Login error details:', error);
-          throw error;
-        }
-        
-        console.log('Login successful:', data);
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في منصة Morvo",
-        });
+        result = await signIn(email, password);
       } else {
         console.log('Attempting signup with email:', email);
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password: password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
-          }
-        });
+        result = await signUp(email, password);
+      }
+
+      if (result.error) {
+        let errorMessage = 'حدث خطأ غير متوقع';
         
-        console.log('Signup result:', { data, error });
-        
-        if (error) {
-          console.error('Signup error details:', error);
-          throw error;
+        if (result.error.message?.includes('Invalid login credentials')) {
+          errorMessage = 'بيانات الدخول غير صحيحة';
+        } else if (result.error.message?.includes('Email not confirmed')) {
+          errorMessage = 'يرجى تفعيل حسابك من البريد الإلكتروني أولاً';
+        } else if (result.error.message?.includes('User not found')) {
+          errorMessage = 'لا يوجد حساب مسجل بهذا البريد الإلكتروني';
+        } else if (result.error.message?.includes('Password should be at least 6 characters')) {
+          errorMessage = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        } else if (result.error.message?.includes('Unable to validate email address')) {
+          errorMessage = 'عنوان البريد الإلكتروني غير صحيح';
+        } else if (result.error.message?.includes('Network request failed')) {
+          errorMessage = 'خطأ في الاتصال بالشبكة';
+        } else if (result.error.message?.includes('Invalid API key')) {
+          errorMessage = 'خطأ في إعدادات المصادقة. يرجى المحاولة لاحقاً';
         }
         
         toast({
-          title: "تم إنشاء الحساب بنجاح",
-          description: "يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب",
+          title: "خطأ في المصادقة",
+          description: errorMessage,
+          variant: "destructive",
         });
+      } else {
+        if (isLogin) {
+          toast({
+            title: "تم تسجيل الدخول بنجاح",
+            description: "مرحباً بك في منصة Morvo",
+          });
+          navigate('/dashboard');
+        } else {
+          toast({
+            title: "تم إنشاء الحساب بنجاح",
+            description: "يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب",
+          });
+        }
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      
-      let errorMessage = 'حدث خطأ غير متوقع';
-      
-      if (error.message?.includes('Invalid API key')) {
-        errorMessage = 'خطأ في إعدادات المصادقة. يرجى المحاولة لاحقاً';
-      } else if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'بيانات الدخول غير صحيحة';
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'يرجى تفعيل حسابك من البريد الإلكتروني أولاً';
-      } else if (error.message?.includes('User not found')) {
-        errorMessage = 'لا يوجد حساب مسجل بهذا البريد الإلكتروني';
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'محاولات كثيرة، يرجى المحاولة لاحقاً';
-      } else if (error.message?.includes('Password should be at least 6 characters')) {
-        errorMessage = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-      } else if (error.message?.includes('Unable to validate email address')) {
-        errorMessage = 'عنوان البريد الإلكتروني غير صحيح';
-      } else if (error.message?.includes('Network request failed')) {
-        errorMessage = 'خطأ في الاتصال بالشبكة';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
       toast({
         title: "خطأ في المصادقة",
-        description: errorMessage,
+        description: "حدث خطأ غير متوقع",
         variant: "destructive",
       });
     } finally {
