@@ -1,21 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TravelStyleDashboard } from '@/components/morvo/TravelStyleDashboard';
 import { Button } from "@/components/ui/button";
 import { 
-  Brain,
-  LogOut,
-  ArrowLeft,
-  MessageSquare,
-  Layout
+  LogOut
 } from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showOriginal, setShowOriginal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,98 +70,10 @@ const Dashboard = () => {
     return null;
   }
 
-  if (showOriginal) {
-    // Show original dashboard
-    return (
-      <div className="min-h-screen bg-gray-50" dir="rtl">
-        <div className="h-full flex flex-col">
-          {/* Top Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Logo and Brand */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">منصة مورفو</h1>
-                  <p className="text-sm text-gray-600">مرحباً، {user?.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => setShowOriginal(false)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  العودة للتصميم الجديد
-                </Button>
-                <Button
-                  onClick={handleSignOut}
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Original Dashboard Content */}
-          <div className="flex-1 overflow-auto p-6">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                لوحة تحكم مورفو AI الأصلية
-              </h2>
-              <p className="text-gray-600 text-lg">
-                النظام الأصلي مع جميع المكونات السابقة
-              </p>
-            </div>
-
-            <div className="rounded-xl p-6 border bg-blue-50 border-blue-200">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-600">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-2">
-                    ✅ اللوحة الأصلية متاحة!
-                  </h4>
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    يمكنك التبديل بين التصميم الجديد والتصميم الأصلي في أي وقت. التصميم الجديد مستوحى من منصات السفر مع إضافة عناصر التسويق الذكي.
-                  </p>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>• المستخدم: {user?.email}</div>
-                    <div>• قاعدة البيانات: Supabase (متصل)</div>
-                    <div>• النظام: جاهز للاستخدام</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show travel-style dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Right Controls */}
-      <div className="absolute top-4 right-4 z-50 flex gap-2">
-        <Button
-          onClick={() => setShowOriginal(true)}
-          variant="outline"
-          size="sm"
-          className="gap-2 bg-white shadow-lg hover:bg-gray-50 text-gray-700 border-gray-300"
-        >
-          <Layout className="w-4 h-4" />
-          عرض اللوحة الأصلية
-        </Button>
+      {/* Top Right Sign Out Button */}
+      <div className="absolute top-4 right-4 z-50">
         <Button
           onClick={handleSignOut}
           variant="outline"
