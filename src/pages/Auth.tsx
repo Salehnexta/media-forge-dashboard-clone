@@ -59,16 +59,24 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        console.log('Attempting login...');
+        console.log('Attempting login with Supabase...');
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
-        console.log('Login result:', { data, error });
+        console.log('Login attempt result:', { data, error });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Login error details:', {
+            message: error.message,
+            status: error.status,
+            code: error.code
+          });
+          throw error;
+        }
         
+        console.log('Login successful:', data);
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة Morvo",
@@ -94,9 +102,20 @@ const Auth = () => {
       }
     } catch (error: any) {
       console.error('Auth error:', error);
+      
+      let errorMessage = 'حدث خطأ غير متوقع';
+      
+      if (error.message === 'Invalid API key') {
+        errorMessage = 'خطأ في الإعدادات - يرجى التحقق من إعدادات Supabase';
+      } else if (error.message === 'Invalid login credentials') {
+        errorMessage = 'بيانات الدخول غير صحيحة';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "خطأ في المصادقة",
-        description: error.message || 'حدث خطأ غير متوقع',
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
