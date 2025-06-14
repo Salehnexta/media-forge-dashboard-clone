@@ -42,17 +42,36 @@ export const RailwayAgentPanel = ({
           }
         } = await supabase.auth.getUser();
         if (!user) return;
-        const {
-          data: companies
-        } = await supabase.from('companies').select('*').eq('user_id', user.id).limit(1);
-        if (companies && companies.length > 0) {
-          const company = companies[0];
+        
+        // Get client data
+        const { data: clients } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('user_id', user.id)
+          .limit(1);
+        
+        if (clients && clients.length > 0) {
+          const client = clients[0];
+          
+          // Try to get additional company data from content_sources_data
+          const { data: companySourceData } = await supabase
+            .from('content_sources_data')
+            .select('data')
+            .eq('client_id', client.id)
+            .eq('source_type', 'company_profile')
+            .limit(1);
+          
+          let companyInfo: any = {};
+          if (companySourceData && companySourceData.length > 0) {
+            companyInfo = companySourceData[0].data as any;
+          }
+          
           setCompanyData({
-            company_name: company.name,
-            industry: company.industry,
-            website_url: company.website,
-            description: company.description,
-            target_market: company.primary_markets || []
+            company_name: client.name,
+            industry: companyInfo.company_data?.industry || 'تقنية',
+            website_url: companyInfo.company_data?.website || '',
+            description: companyInfo.company_data?.description || '',
+            target_market: companyInfo.company_data?.primary_markets || []
           });
         }
       } catch (error) {

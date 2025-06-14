@@ -133,9 +133,35 @@ export const RefactoredSmartOnboarding = ({ user, onComplete }: RefactoredSmartO
           client_id: client.id,
           source_type: 'company_profile',
           data: {
-            company_data: companyData,
-            sales_data: salesData,
-            budget_data: budgetData,
+            company_data: {
+              name: companyData.name,
+              industry: companyData.industry,
+              description: companyData.description,
+              website: companyData.website,
+              size: companyData.size,
+              location: companyData.location,
+              founded: companyData.founded
+            },
+            sales_data: {
+              annual_revenue: salesData.annual_revenue,
+              monthly_average_sales: salesData.monthly_average_sales,
+              top_selling_products: salesData.top_selling_products,
+              sales_channels: salesData.sales_channels,
+              customer_acquisition_cost: salesData.customer_acquisition_cost,
+              customer_lifetime_value: salesData.customer_lifetime_value,
+              conversion_rate: salesData.conversion_rate,
+              sales_team_size: salesData.sales_team_size,
+              sales_process_description: salesData.sales_process_description
+            },
+            budget_data: {
+              total_marketing_budget: budgetData.total_marketing_budget,
+              monthly_marketing_budget: budgetData.monthly_marketing_budget,
+              budget_allocation: budgetData.budget_allocation,
+              budget_period: budgetData.budget_period,
+              priority_channels: budgetData.priority_channels,
+              budget_constraints: budgetData.budget_constraints,
+              expected_roi: budgetData.expected_roi
+            },
             uploaded_files: uploadedFiles
           }
         });

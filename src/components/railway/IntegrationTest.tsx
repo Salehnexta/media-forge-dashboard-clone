@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,9 +73,9 @@ export const IntegrationTest = () => {
       const startTime2 = Date.now();
       
       try {
-        // Test if we can access companies table with RLS
-        const { data: companyTest } = await supabase
-          .from('companies')
+        // Test if we can access clients table with RLS
+        const { data: clientTest } = await supabase
+          .from('clients')
           .select('id')
           .limit(1);
         
@@ -115,14 +116,15 @@ export const IntegrationTest = () => {
       
       try {
         const { error: dbError } = await supabase
-          .from('agent_results')
+          .from('task_results')
           .insert({
-            agent_id: 'TEST_AGENT',
+            client_id: crypto.randomUUID(),
+            correlation_id: crypto.randomUUID(),
+            project_id: crypto.randomUUID(),
             task_type: 'integration_test',
-            input_data: { test: true },
-            output_data: { success: true },
-            status: 'completed',
-            user_id: user.user.id
+            request: { test: true },
+            result: { success: true },
+            status: 'completed'
           });
 
         if (!dbError) {
