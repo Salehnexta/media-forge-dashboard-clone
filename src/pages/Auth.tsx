@@ -17,17 +17,33 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('Auth component mounted, checking session...');
+    
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/dashboard');
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Session check result:', { session, error });
+        
+        if (error) {
+          console.error('Session check error:', error);
+          return;
+        }
+        
+        if (session) {
+          console.log('User already logged in, redirecting to dashboard');
+          navigate('/dashboard');
+        }
+      } catch (err) {
+        console.error('Error checking session:', err);
       }
     };
+    
     checkUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', { event, session });
       if (session) {
         navigate('/dashboard');
       }
@@ -38,37 +54,49 @@ const Auth = () => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Starting auth process:', { isLogin, email });
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log('Attempting login...');
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        
+        console.log('Login result:', { data, error });
+        
         if (error) throw error;
+        
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة Morvo",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        console.log('Attempting signup...');
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`
           }
         });
+        
+        console.log('Signup result:', { data, error });
+        
         if (error) throw error;
+        
         toast({
           title: "تم إنشاء الحساب بنجاح",
           description: "يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب",
         });
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: "خطأ في المصادقة",
-        description: error.message,
+        description: error.message || 'حدث خطأ غير متوقع',
         variant: "destructive",
       });
     } finally {
@@ -142,6 +170,12 @@ const Auth = () => {
                 : 'لديك حساب بالفعل؟ سجل الدخول'
               }
             </Button>
+          </div>
+
+          {/* Debug info - remove this in production */}
+          <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+            <p>Debug: Check browser console for detailed logs</p>
+            <p>Supabase URL: {supabase.supabaseUrl}</p>
           </div>
         </CardContent>
       </Card>
