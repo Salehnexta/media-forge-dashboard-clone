@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,7 +14,7 @@ import { Wifi, WifiOff, AlertTriangle, MessageCircle, Bell, Settings, Sparkles }
 import { EnhancedMorvoChat } from './EnhancedMorvoChat';
 import { SmartAlertsPanel } from './SmartAlertsPanel';
 import { PlatformSelector } from './PlatformSelector';
-import { SmartAlert } from '@/services/MorvoWebSocketService';
+import { SmartAlert } from '@/services/MorvoPollingService';
 import { toast } from 'sonner';
 
 interface EnhancedChatSectionProps {
@@ -179,7 +178,7 @@ export const EnhancedChatSection = ({
         {chatMode === 'enhanced' ? (
           <div className="h-full p-4">
             {activeTab === 'chat' && (
-              <EnhancedMorvoChat onSmartAlert={handleSmartAlert} />
+              <EnhancedMorvoChat />
             )}
             {activeTab === 'alerts' && (
               <SmartAlertsPanel />

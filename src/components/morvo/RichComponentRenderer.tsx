@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, MousePointer, AlertTriangle, Bell } from 'lucide-react';
-import { RichComponent } from '@/services/MorvoWebSocketService';
+import { RichComponent } from '@/services/MorvoPollingService';
 
 interface RichComponentRendererProps {
   components: RichComponent[];

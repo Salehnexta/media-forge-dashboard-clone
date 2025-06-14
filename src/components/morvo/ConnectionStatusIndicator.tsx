@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Loader2, AlertTriangle } from 'lucide-react';
-import { ConnectionStatus } from '@/services/MorvoWebSocketService';
+import { ConnectionStatus } from '@/services/MorvoPollingService';
 
 interface ConnectionStatusIndicatorProps {
   status: ConnectionStatus;
