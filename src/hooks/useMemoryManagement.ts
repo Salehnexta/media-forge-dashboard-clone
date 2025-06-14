@@ -221,8 +221,9 @@ export const useMemoryManagement = () => {
 
       if (error) throw error;
 
-      // Handle null data case properly
-      const cleanedCount = data ? (Array.isArray(data) ? data.length : 0) : 0;
+      // Fix: Handle both null and array cases properly
+      const cleanedCount = data && Array.isArray(data) ? data.length : 0;
+      
       setCleanupStats(prev => ({
         ...prev,
         lastCleanup: new Date(),
