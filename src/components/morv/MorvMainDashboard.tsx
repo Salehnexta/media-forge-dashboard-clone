@@ -101,7 +101,6 @@ export const MorvMainDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100" dir="rtl">
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -136,9 +135,7 @@ export const MorvMainDashboard = () => {
             <TabsTrigger value="analytics">التحليلات</TabsTrigger>
           </TabsList>
 
-          {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                 <CardContent className="p-6">
@@ -169,7 +166,7 @@ export const MorvMainDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-purple-100">معدل الاستجابة</p>
-                      <p className="text-3xl font-bold">< 10s</p>
+                      <p className="text-3xl font-bold">&lt; 10s</p>
                     </div>
                     <Zap className="w-8 h-8 text-purple-200" />
                   </div>
@@ -189,7 +186,6 @@ export const MorvMainDashboard = () => {
               </Card>
             </div>
 
-            {/* Recent Activity */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -234,7 +230,6 @@ export const MorvMainDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Agents Tab */}
           <TabsContent value="agents" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {masterService.agents.map((agent) => (
@@ -268,10 +263,8 @@ export const MorvMainDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Chat Tab */}
           <TabsContent value="chat" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Agent Selection */}
               <Card className="lg:col-span-1 border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-lg">اختر الوكيل</CardTitle>
@@ -296,7 +289,6 @@ export const MorvMainDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Chat Interface */}
               <Card className="lg:col-span-3 border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -305,7 +297,6 @@ export const MorvMainDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Messages */}
                   <ScrollArea className="h-96 w-full p-4 border rounded-lg">
                     {messages.length === 0 ? (
                       <div className="text-center py-8">
@@ -347,7 +338,6 @@ export const MorvMainDashboard = () => {
                     )}
                   </ScrollArea>
 
-                  {/* Input */}
                   <div className="flex gap-2">
                     <Input
                       value={inputMessage}
@@ -370,7 +360,6 @@ export const MorvMainDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="border-0 shadow-lg">
