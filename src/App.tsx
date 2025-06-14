@@ -26,6 +26,8 @@ import Product from './pages/Product';
 import Status from './pages/Status';
 import Updates from './pages/Updates';
 import { MCPProvider } from '@/contexts/MCPContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 function App() {
   const queryClient = new QueryClient();
@@ -33,33 +35,37 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <Toaster position="top-right" />
-        <MCPProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/chat" element={<SimpleChat />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/railway" element={<RailwayDashboardPage />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/help" element={<HelpCenter />} />
-            <Route path="/support" element={<Support />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/payment-callback" element={<PaymentCallback />} />
-            <Route path="/ai-analysis" element={<AIAnalysis />} />
-            <Route path="/success-stories" element={<SuccessStories />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/product" element={<Product />} />
-            <Route path="/status" element={<Status />} />
-            <Route path="/updates" element={<Updates />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MCPProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <Toaster position="top-right" />
+            <MCPProvider>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/chat" element={<SimpleChat />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/railway" element={<RailwayDashboardPage />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/payment-callback" element={<PaymentCallback />} />
+                <Route path="/ai-analysis" element={<AIAnalysis />} />
+                <Route path="/success-stories" element={<SuccessStories />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/product" element={<Product />} />
+                <Route path="/status" element={<Status />} />
+                <Route path="/updates" element={<Updates />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </MCPProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );
