@@ -71,13 +71,12 @@ export const agentTypeMap: Record<AgentType, AgentId> = {
   analytics: 'M5'
 };
 
-// Use environment variables from .env file
 export const environment = {
-  morvoApiUrl: import.meta.env.VITE_MORVO_API_URL || 'https://morvo-production.up.railway.app',
-  morvoWebSocketUrl: import.meta.env.VITE_MORVO_WS_URL || 'wss://morvo-production.up.railway.app/ws',
-  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://teniefzxdikestahdnur.supabase.co',
-  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjI2NTIsImV4cCI6MjA2NDE5ODY1Mn0.k5eor_-j2aTheb1q6OhGK8DWGjucRWK11eFAOpAZP3I',
-  apiKey: import.meta.env.VITE_API_KEY || '',
+  morvoApiUrl: 'https://morvo-production.up.railway.app',
+  morvoWebSocketUrl: 'wss://morvo-production.up.railway.app/ws',
+  supabaseUrl: 'https://teniefzxdikestahdnur.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlbmllZnp4ZGlrZXN0YWhkbnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjI2NTIsImV4cCI6MjA2NDE5ODY1Mn0.k5eor_-j2aTheb1q6OhGK8DWGjucRWK11eFAOpAZP3I',
+  apiKey: '',
   apiKeyHeader: 'X-API-Key',
   defaultLanguage: 'ar',
   isDevelopment: import.meta.env.DEV,

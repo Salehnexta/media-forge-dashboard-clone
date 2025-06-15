@@ -1,7 +1,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 
 import Home from './pages/Home';
 import Features from './pages/Features';
@@ -20,7 +20,6 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Status from './pages/Status';
 import Updates from './pages/Updates';
-import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -29,10 +28,9 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <Toaster />
+        <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/product" element={<Product />} />

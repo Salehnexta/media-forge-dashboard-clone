@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
@@ -15,6 +15,8 @@ import {
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   const productLinks = [
     { title: "المنتج", href: "/product", description: "تعرف على منصة Morvo وإمكانياتها" },
@@ -134,10 +136,13 @@ export const Navigation = () => {
             </NavigationMenu>
           </div>
 
-          {/* Dashboard Button */}
+          {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link to="/auth">تسجيل الدخول</Link>
+            </Button>
             <Button asChild>
-              <Link to="/dashboard">ادخل إلى المنصة</Link>
+              <Link to="/auth">ابدأ مجاناً</Link>
             </Button>
           </div>
 
@@ -205,13 +210,20 @@ export const Navigation = () => {
                 </div>
               </div>
 
-              {/* Dashboard Button */}
+              {/* Auth Buttons */}
               <div className="pt-4 border-t border-gray-200">
-                <Button className="w-full justify-center" asChild>
-                  <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                    ادخل إلى المنصة
-                  </Link>
-                </Button>
+                <div className="space-y-2">
+                  <Button variant="ghost" className="w-full justify-center" asChild>
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                      تسجيل الدخول
+                    </Link>
+                  </Button>
+                  <Button className="w-full justify-center" asChild>
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                      ابدأ مجاناً
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
