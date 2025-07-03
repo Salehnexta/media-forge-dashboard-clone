@@ -21,6 +21,7 @@ import Terms from './pages/Terms';
 import Status from './pages/Status';
 import Updates from './pages/Updates';
 import NotFound from './pages/NotFound';
+import Auth from './pages/Auth';
 
 function App() {
   const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/status" element={<Status />} />
           <Route path="/updates" element={<Updates />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </QueryClientProvider>
