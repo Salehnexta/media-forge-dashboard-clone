@@ -11,190 +11,37 @@ export type Database = {
     Tables: {
       a2a_messages: {
         Row: {
-          client_id: string
-          context: Json
-          correlation_id: string
-          created_at: string
-          error: string | null
           id: string
-          parent_message_id: string | null
-          payload: Json
-          processing_time_ms: number | null
-          project_id: string
-          recipient_agent_id: string
-          response: Json | null
-          sender_agent_id: string
-          status: string
-          task_type: string
-          updated_at: string
-        }
-        Insert: {
-          client_id: string
-          context?: Json
-          correlation_id: string
-          created_at?: string
-          error?: string | null
-          id?: string
-          parent_message_id?: string | null
-          payload?: Json
-          processing_time_ms?: number | null
-          project_id: string
-          recipient_agent_id: string
-          response?: Json | null
-          sender_agent_id: string
-          status?: string
-          task_type: string
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string
-          context?: Json
-          correlation_id?: string
-          created_at?: string
-          error?: string | null
-          id?: string
-          parent_message_id?: string | null
-          payload?: Json
-          processing_time_ms?: number | null
-          project_id?: string
-          recipient_agent_id?: string
-          response?: Json | null
-          sender_agent_id?: string
-          status?: string
-          task_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "a2a_messages_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "a2a_messages_parent_message_id_fkey"
-            columns: ["parent_message_id"]
-            isOneToOne: false
-            referencedRelation: "a2a_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "a2a_messages_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ad_performance_data: {
-        Row: {
-          client_id: string | null
-          data: Json
-          id: string
-          platform: string
-          project_id: string | null
+          message: string
+          source_agent_id: string
+          target_agent_id: string
           timestamp: string
         }
         Insert: {
-          client_id?: string | null
-          data: Json
           id?: string
-          platform: string
-          project_id?: string | null
+          message: string
+          source_agent_id: string
+          target_agent_id: string
           timestamp?: string
         }
         Update: {
-          client_id?: string | null
-          data?: Json
           id?: string
-          platform?: string
-          project_id?: string | null
+          message?: string
+          source_agent_id?: string
+          target_agent_id?: string
           timestamp?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ad_performance_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ad_performance_data_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agent_activity_log: {
-        Row: {
-          activity_type: string
-          agent_id: string
-          client_id: string
-          description: string | null
-          emotional_tone: string | null
-          id: string
-          metrics: Json | null
-          project_id: string
-          timestamp: string
-        }
-        Insert: {
-          activity_type: string
-          agent_id: string
-          client_id: string
-          description?: string | null
-          emotional_tone?: string | null
-          id?: string
-          metrics?: Json | null
-          project_id: string
-          timestamp?: string
-        }
-        Update: {
-          activity_type?: string
-          agent_id?: string
-          client_id?: string
-          description?: string | null
-          emotional_tone?: string | null
-          id?: string
-          metrics?: Json | null
-          project_id?: string
-          timestamp?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_activity_log_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_activity_log_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       agent_memory: {
         Row: {
           agent_id: string
           client_id: string
           content: Json
-          conversation_id: string | null
           created_at: string
-          embedding: string | null
-          expires_at: string | null
           id: string
-          importance_score: number | null
-          interaction_type: string
+          importance_score: number
           memory_type: string
-          metadata: Json | null
           timestamp: string
           updated_at: string
         }
@@ -202,15 +49,10 @@ export type Database = {
           agent_id: string
           client_id: string
           content?: Json
-          conversation_id?: string | null
           created_at?: string
-          embedding?: string | null
-          expires_at?: string | null
           id?: string
-          importance_score?: number | null
-          interaction_type?: string
+          importance_score?: number
           memory_type?: string
-          metadata?: Json | null
           timestamp?: string
           updated_at?: string
         }
@@ -218,17 +60,50 @@ export type Database = {
           agent_id?: string
           client_id?: string
           content?: Json
-          conversation_id?: string | null
           created_at?: string
-          embedding?: string | null
-          expires_at?: string | null
           id?: string
-          importance_score?: number | null
-          interaction_type?: string
+          importance_score?: number
           memory_type?: string
-          metadata?: Json | null
           timestamp?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_memory_client_id_fkey1"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_memory_kv: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          id: string
+          key: string
+          source: string | null
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          id?: string
+          key: string
+          source?: string | null
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          key?: string
+          source?: string | null
+          updated_at?: string | null
+          value?: string
         }
         Relationships: [
           {
@@ -244,125 +119,23 @@ export type Database = {
         Row: {
           agent_id: string
           id: string
-          response_time: number | null
-          success_rate: number | null
-          task_id: string
-          timestamp: string | null
-          tokens_used: number | null
+          metric_name: string
+          metric_value: number
+          timestamp: string
         }
         Insert: {
           agent_id: string
           id?: string
-          response_time?: number | null
-          success_rate?: number | null
-          task_id: string
-          timestamp?: string | null
-          tokens_used?: number | null
+          metric_name: string
+          metric_value: number
+          timestamp?: string
         }
         Update: {
           agent_id?: string
           id?: string
-          response_time?: number | null
-          success_rate?: number | null
-          task_id?: string
-          timestamp?: string | null
-          tokens_used?: number | null
-        }
-        Relationships: []
-      }
-      agent_performance: {
-        Row: {
-          agent_id: string
-          client_id: string
-          created_at: string
-          error_type: string | null
-          id: string
-          processing_time_ms: number
-          project_id: string
-          success: boolean
-          task_type: string
-          tokens_used: number | null
-        }
-        Insert: {
-          agent_id: string
-          client_id: string
-          created_at?: string
-          error_type?: string | null
-          id?: string
-          processing_time_ms: number
-          project_id: string
-          success: boolean
-          task_type: string
-          tokens_used?: number | null
-        }
-        Update: {
-          agent_id?: string
-          client_id?: string
-          created_at?: string
-          error_type?: string | null
-          id?: string
-          processing_time_ms?: number
-          project_id?: string
-          success?: boolean
-          task_type?: string
-          tokens_used?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_performance_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_performance_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agent_results: {
-        Row: {
-          agent_id: string
-          chart_configs: Json | null
-          company_id: string | null
-          created_at: string | null
-          execution_time_ms: number | null
-          id: string
-          input_data: Json | null
-          output_data: Json | null
-          status: string | null
-          task_type: string
-          user_id: string | null
-        }
-        Insert: {
-          agent_id: string
-          chart_configs?: Json | null
-          company_id?: string | null
-          created_at?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status?: string | null
-          task_type: string
-          user_id?: string | null
-        }
-        Update: {
-          agent_id?: string
-          chart_configs?: Json | null
-          company_id?: string | null
-          created_at?: string | null
-          execution_time_ms?: number | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status?: string | null
-          task_type?: string
-          user_id?: string | null
+          metric_name?: string
+          metric_value?: number
+          timestamp?: string
         }
         Relationships: []
       }
@@ -396,456 +169,157 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_insights: {
+      campaigns: {
         Row: {
-          client_id: string | null
-          content: Json
-          created_at: string
-          id: string
-          insight_type: string
-          project_id: string | null
-          source_data_ref: string | null
+          budget: number | null
+          campaign_id: number
+          channel: string | null
+          clicks: number | null
+          company_id: number | null
+          conversions: number | null
+          end_date: string | null
+          impressions: number | null
+          name: string | null
+          start_date: string | null
         }
         Insert: {
-          client_id?: string | null
-          content: Json
-          created_at?: string
-          id?: string
-          insight_type: string
-          project_id?: string | null
-          source_data_ref?: string | null
+          budget?: number | null
+          campaign_id?: number
+          channel?: string | null
+          clicks?: number | null
+          company_id?: number | null
+          conversions?: number | null
+          end_date?: string | null
+          impressions?: number | null
+          name?: string | null
+          start_date?: string | null
         }
         Update: {
-          client_id?: string | null
-          content?: Json
-          created_at?: string
-          id?: string
-          insight_type?: string
-          project_id?: string | null
-          source_data_ref?: string | null
+          budget?: number | null
+          campaign_id?: number
+          channel?: string | null
+          clicks?: number | null
+          company_id?: number | null
+          conversions?: number | null
+          end_date?: string | null
+          impressions?: number | null
+          name?: string | null
+          start_date?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "ai_insights_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "campaigns_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_insights_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_model_usage: {
-        Row: {
-          client_id: string
-          completion_tokens: number
-          cost: number
-          created_at: string | null
-          id: string
-          model_name: string
-          project_id: string | null
-          prompt_tokens: number
-          task_id: string | null
-          total_tokens: number
-        }
-        Insert: {
-          client_id: string
-          completion_tokens: number
-          cost: number
-          created_at?: string | null
-          id?: string
-          model_name: string
-          project_id?: string | null
-          prompt_tokens: number
-          task_id?: string | null
-          total_tokens: number
-        }
-        Update: {
-          client_id?: string
-          completion_tokens?: number
-          cost?: number
-          created_at?: string | null
-          id?: string
-          model_name?: string
-          project_id?: string | null
-          prompt_tokens?: number
-          task_id?: string | null
-          total_tokens?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_model_usage_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_model_usage_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      analytics_data: {
-        Row: {
-          client_id: string | null
-          data: Json
-          id: string
-          metric_type: string
-          project_id: string | null
-          timestamp: string
-        }
-        Insert: {
-          client_id?: string | null
-          data: Json
-          id?: string
-          metric_type: string
-          project_id?: string | null
-          timestamp?: string
-        }
-        Update: {
-          client_id?: string | null
-          data?: Json
-          id?: string
-          metric_type?: string
-          project_id?: string | null
-          timestamp?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "analytics_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "analytics_data_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      api_usage: {
-        Row: {
-          client_id: string
-          cost: number | null
-          created_at: string | null
-          endpoint: string
-          id: string
-          latency_ms: number | null
-          project_id: string | null
-          request_size: number | null
-          response_size: number | null
-          service_name: string
-          status_code: number | null
-          success: boolean
-        }
-        Insert: {
-          client_id: string
-          cost?: number | null
-          created_at?: string | null
-          endpoint: string
-          id?: string
-          latency_ms?: number | null
-          project_id?: string | null
-          request_size?: number | null
-          response_size?: number | null
-          service_name: string
-          status_code?: number | null
-          success: boolean
-        }
-        Update: {
-          client_id?: string
-          cost?: number | null
-          created_at?: string | null
-          endpoint?: string
-          id?: string
-          latency_ms?: number | null
-          project_id?: string | null
-          request_size?: number | null
-          response_size?: number | null
-          service_name?: string
-          status_code?: number | null
-          success?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "api_usage_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "api_usage_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      brand24_data: {
-        Row: {
-          brand_name: string
-          competitor_mentions: Json | null
-          created_at: string | null
-          crisis_alerts: Json | null
-          id: string
-          influencers: Json | null
-          mentions: Json | null
-          sentiment_analysis: Json | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          brand_name: string
-          competitor_mentions?: Json | null
-          created_at?: string | null
-          crisis_alerts?: Json | null
-          id?: string
-          influencers?: Json | null
-          mentions?: Json | null
-          sentiment_analysis?: Json | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          brand_name?: string
-          competitor_mentions?: Json | null
-          created_at?: string | null
-          crisis_alerts?: Json | null
-          id?: string
-          influencers?: Json | null
-          mentions?: Json | null
-          sentiment_analysis?: Json | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "brand24_data_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chart_data: {
-        Row: {
-          agent_id: string
-          chart_type: string
-          client_id: string
-          created_at: string | null
-          data: Json
-          id: string
-          time_range: string | null
-        }
-        Insert: {
-          agent_id: string
-          chart_type: string
-          client_id: string
-          created_at?: string | null
-          data: Json
-          id?: string
-          time_range?: string | null
-        }
-        Update: {
-          agent_id?: string
-          chart_type?: string
-          client_id?: string
-          created_at?: string | null
-          data?: Json
-          id?: string
-          time_range?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chart_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
       clients: {
         Row: {
-          active: boolean
-          api_key: string
-          created_at: string
+          active: boolean | null
+          api_key: string | null
+          created_at: string | null
+          email: string | null
           id: string
+          metadata: Json | null
           name: string
-          quota_limit: number
-          quota_used: number
-          updated_at: string
+          quota_limit: number | null
+          quota_used: number | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
-          active?: boolean
-          api_key?: string
-          created_at?: string
+          active?: boolean | null
+          api_key?: string | null
+          created_at?: string | null
+          email?: string | null
           id?: string
+          metadata?: Json | null
           name: string
-          quota_limit?: number
-          quota_used?: number
-          updated_at?: string
+          quota_limit?: number | null
+          quota_used?: number | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
-          active?: boolean
-          api_key?: string
-          created_at?: string
+          active?: boolean | null
+          api_key?: string | null
+          created_at?: string | null
+          email?: string | null
           id?: string
+          metadata?: Json | null
           name?: string
-          quota_limit?: number
-          quota_used?: number
-          updated_at?: string
+          quota_limit?: number | null
+          quota_used?: number | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
       }
       companies: {
         Row: {
-          created_at: string | null
+          company_id: number
+          company_size: string | null
           description: string | null
-          founded: number | null
-          id: string
+          founded_year: number | null
+          headquarters: string | null
           industry: string | null
-          name: string
-          primary_markets: string[] | null
-          size: string | null
-          updated_at: string | null
-          user_id: string
+          name: string | null
           website: string | null
         }
         Insert: {
-          created_at?: string | null
+          company_id?: number
+          company_size?: string | null
           description?: string | null
-          founded?: number | null
-          id?: string
+          founded_year?: number | null
+          headquarters?: string | null
           industry?: string | null
-          name: string
-          primary_markets?: string[] | null
-          size?: string | null
-          updated_at?: string | null
-          user_id: string
+          name?: string | null
           website?: string | null
         }
         Update: {
-          created_at?: string | null
+          company_id?: number
+          company_size?: string | null
           description?: string | null
-          founded?: number | null
-          id?: string
+          founded_year?: number | null
+          headquarters?: string | null
           industry?: string | null
-          name?: string
-          primary_markets?: string[] | null
-          size?: string | null
-          updated_at?: string | null
-          user_id?: string
+          name?: string | null
           website?: string | null
         }
         Relationships: []
       }
-      content_sources_data: {
+      competitors: {
         Row: {
-          client_id: string | null
-          data: Json
-          id: string
-          project_id: string | null
-          source_type: string
-          timestamp: string
+          company_id: number | null
+          competitor_id: number
+          description: string | null
+          name: string | null
+          website: string | null
         }
         Insert: {
-          client_id?: string | null
-          data: Json
-          id?: string
-          project_id?: string | null
-          source_type: string
-          timestamp?: string
+          company_id?: number | null
+          competitor_id?: number
+          description?: string | null
+          name?: string | null
+          website?: string | null
         }
         Update: {
-          client_id?: string | null
-          data?: Json
-          id?: string
-          project_id?: string | null
-          source_type?: string
-          timestamp?: string
+          company_id?: number | null
+          competitor_id?: number
+          description?: string | null
+          name?: string | null
+          website?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "content_sources_data_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "competitors_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "content_sources_data_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_messages: {
-        Row: {
-          client_id: string
-          content: string
-          conversation_id: string | null
-          created_at: string
-          emotion_analysis: Json | null
-          id: string
-          metadata: Json | null
-          sender_id: string
-          sender_type: string
-          timestamp: string
-        }
-        Insert: {
-          client_id: string
-          content: string
-          conversation_id?: string | null
-          created_at?: string
-          emotion_analysis?: Json | null
-          id?: string
-          metadata?: Json | null
-          sender_id: string
-          sender_type: string
-          timestamp?: string
-        }
-        Update: {
-          client_id?: string
-          content?: string
-          conversation_id?: string | null
-          created_at?: string
-          emotion_analysis?: Json | null
-          id?: string
-          metadata?: Json | null
-          sender_id?: string
-          sender_type?: string
-          timestamp?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_messages_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -854,6 +328,8 @@ export type Database = {
           client_id: string
           created_at: string | null
           id: string
+          last_message_at: string | null
+          metadata: Json | null
           status: string | null
           title: string | null
           updated_at: string | null
@@ -862,6 +338,8 @@ export type Database = {
           client_id: string
           created_at?: string | null
           id?: string
+          last_message_at?: string | null
+          metadata?: Json | null
           status?: string | null
           title?: string | null
           updated_at?: string | null
@@ -870,6 +348,8 @@ export type Database = {
           client_id?: string
           created_at?: string | null
           id?: string
+          last_message_at?: string | null
+          metadata?: Json | null
           status?: string | null
           title?: string | null
           updated_at?: string | null
@@ -882,36 +362,8 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      dashboard_contexts: {
-        Row: {
-          active_charts: Json | null
-          client_id: string
-          context_type: string
-          id: string
-          last_updated: string | null
-          metrics_config: Json | null
-        }
-        Insert: {
-          active_charts?: Json | null
-          client_id: string
-          context_type: string
-          id?: string
-          last_updated?: string | null
-          metrics_config?: Json | null
-        }
-        Update: {
-          active_charts?: Json | null
-          client_id?: string
-          context_type?: string
-          id?: string
-          last_updated?: string | null
-          metrics_config?: Json | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "dashboard_contexts_client_id_fkey"
+            foreignKeyName: "fk_conversations_client_id"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -919,315 +371,105 @@ export type Database = {
           },
         ]
       }
-      email_performance_data: {
+      executives: {
         Row: {
-          client_id: string | null
-          data: Json
-          id: string
-          metric_type: string
-          project_id: string | null
-          timestamp: string
+          company_id: number | null
+          executive_id: number
+          linkedin_url: string | null
+          name: string | null
+          role: string | null
         }
         Insert: {
-          client_id?: string | null
-          data: Json
-          id?: string
-          metric_type: string
-          project_id?: string | null
-          timestamp?: string
+          company_id?: number | null
+          executive_id?: number
+          linkedin_url?: string | null
+          name?: string | null
+          role?: string | null
         }
         Update: {
-          client_id?: string | null
-          data?: Json
-          id?: string
-          metric_type?: string
-          project_id?: string | null
-          timestamp?: string
+          company_id?: number | null
+          executive_id?: number
+          linkedin_url?: string | null
+          name?: string | null
+          role?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "email_performance_data_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "executives_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "email_performance_data_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
-      embeddings: {
+      faq: {
         Row: {
-          client_id: string
-          content: string
-          created_at: string
-          id: string
-          metadata: Json
-          project_id: string
+          answer: string | null
+          company_id: number | null
+          date_updated: string | null
+          faq_id: number
+          question: string | null
         }
         Insert: {
-          client_id: string
-          content: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          project_id: string
+          answer?: string | null
+          company_id?: number | null
+          date_updated?: string | null
+          faq_id?: number
+          question?: string | null
         }
         Update: {
-          client_id?: string
-          content?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          project_id?: string
+          answer?: string | null
+          company_id?: number | null
+          date_updated?: string | null
+          faq_id?: number
+          question?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "embeddings_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "faq_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "embeddings_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
-      emotional_journey: {
+      financials: {
         Row: {
-          adaptation_strategy: string | null
-          client_id: string
-          emotion_confidence: number | null
-          emotional_context: string | null
-          engagement_level: string | null
-          id: string
-          primary_emotion: string | null
-          project_id: string
-          satisfaction_score: number | null
-          stage: string
-          timestamp: string
+          amount_raised: number | null
+          company_id: number | null
+          financial_id: number
+          funding_round: string | null
+          investors: string | null
+          revenue: number | null
+          year: number | null
         }
         Insert: {
-          adaptation_strategy?: string | null
-          client_id: string
-          emotion_confidence?: number | null
-          emotional_context?: string | null
-          engagement_level?: string | null
-          id?: string
-          primary_emotion?: string | null
-          project_id: string
-          satisfaction_score?: number | null
-          stage: string
-          timestamp?: string
+          amount_raised?: number | null
+          company_id?: number | null
+          financial_id?: number
+          funding_round?: string | null
+          investors?: string | null
+          revenue?: number | null
+          year?: number | null
         }
         Update: {
-          adaptation_strategy?: string | null
-          client_id?: string
-          emotion_confidence?: number | null
-          emotional_context?: string | null
-          engagement_level?: string | null
-          id?: string
-          primary_emotion?: string | null
-          project_id?: string
-          satisfaction_score?: number | null
-          stage?: string
-          timestamp?: string
+          amount_raised?: number | null
+          company_id?: number | null
+          financial_id?: number
+          funding_round?: string | null
+          investors?: string | null
+          revenue?: number | null
+          year?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "emotional_journey_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "financials_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "emotional_journey_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      emotional_milestones: {
-        Row: {
-          client_id: string
-          description: string | null
-          emotion_after: string | null
-          emotion_before: string | null
-          id: string
-          milestone_type: string
-          project_id: string
-          stage: string
-          timestamp: string
-        }
-        Insert: {
-          client_id: string
-          description?: string | null
-          emotion_after?: string | null
-          emotion_before?: string | null
-          id?: string
-          milestone_type: string
-          project_id: string
-          stage: string
-          timestamp?: string
-        }
-        Update: {
-          client_id?: string
-          description?: string | null
-          emotion_after?: string | null
-          emotion_before?: string | null
-          id?: string
-          milestone_type?: string
-          project_id?: string
-          stage?: string
-          timestamp?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "emotional_milestones_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "emotional_milestones_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_api_configs: {
-        Row: {
-          api_key_encrypted: string | null
-          api_name: string
-          config_data: Json | null
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          api_key_encrypted?: string | null
-          api_name: string
-          config_data?: Json | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          api_key_encrypted?: string | null
-          api_name?: string
-          config_data?: Json | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_api_configs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      external_api_data: {
-        Row: {
-          api_source: string
-          client_id: string
-          created_at: string | null
-          data_type: string
-          id: string
-          processed_data: Json | null
-          raw_data: Json
-        }
-        Insert: {
-          api_source: string
-          client_id: string
-          created_at?: string | null
-          data_type: string
-          id?: string
-          processed_data?: Json | null
-          raw_data: Json
-        }
-        Update: {
-          api_source?: string
-          client_id?: string
-          created_at?: string | null
-          data_type?: string
-          id?: string
-          processed_data?: Json | null
-          raw_data?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "external_api_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      integrated_analytics: {
-        Row: {
-          analysis_type: string
-          confidence_score: number | null
-          created_at: string | null
-          data_sources: Json | null
-          id: string
-          insights: Json
-          recommendations: Json | null
-          user_id: string
-        }
-        Insert: {
-          analysis_type: string
-          confidence_score?: number | null
-          created_at?: string | null
-          data_sources?: Json | null
-          id?: string
-          insights?: Json
-          recommendations?: Json | null
-          user_id: string
-        }
-        Update: {
-          analysis_type?: string
-          confidence_score?: number | null
-          created_at?: string | null
-          data_sources?: Json | null
-          id?: string
-          insights?: Json
-          recommendations?: Json | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "integrated_analytics_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -1235,31 +477,45 @@ export type Database = {
         Row: {
           client_id: string
           content: string
-          conversation_id: string | null
+          conversation_id: string
+          created_at: string | null
           id: string
           metadata: Json | null
           role: string
-          timestamp: string | null
         }
         Insert: {
           client_id: string
           content: string
-          conversation_id?: string | null
+          conversation_id: string
+          created_at?: string | null
           id?: string
           metadata?: Json | null
           role: string
-          timestamp?: string | null
         }
         Update: {
           client_id?: string
           content?: string
-          conversation_id?: string | null
+          conversation_id?: string
+          created_at?: string | null
           id?: string
           metadata?: Json | null
           role?: string
-          timestamp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_messages_client_id"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_conversation_id"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_client_id_fkey"
             columns: ["client_id"]
@@ -1276,47 +532,38 @@ export type Database = {
           },
         ]
       }
-      notifications: {
+      news: {
         Row: {
-          client_id: string
-          created_at: string | null
-          id: string
-          message: string
-          metadata: Json | null
-          priority: string | null
-          read: boolean | null
-          title: string
-          type: string
+          company_id: number | null
+          date: string | null
+          headline: string | null
+          news_id: number
+          summary: string | null
+          url: string | null
         }
         Insert: {
-          client_id: string
-          created_at?: string | null
-          id?: string
-          message: string
-          metadata?: Json | null
-          priority?: string | null
-          read?: boolean | null
-          title: string
-          type: string
+          company_id?: number | null
+          date?: string | null
+          headline?: string | null
+          news_id?: number
+          summary?: string | null
+          url?: string | null
         }
         Update: {
-          client_id?: string
-          created_at?: string | null
-          id?: string
-          message?: string
-          metadata?: Json | null
-          priority?: string | null
-          read?: boolean | null
-          title?: string
-          type?: string
+          company_id?: number | null
+          date?: string | null
+          headline?: string | null
+          news_id?: number
+          summary?: string | null
+          url?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "news_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -1347,13 +594,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "optimization_recommendations_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "optimization_recommendations_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -1361,6 +601,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          moyasar_payment_id: string | null
+          moyasar_response: Json | null
+          payment_method: string | null
+          status: string | null
+          subscription_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          moyasar_payment_id?: string | null
+          moyasar_response?: Json | null
+          payment_method?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          moyasar_payment_id?: string | null
+          moyasar_response?: Json | null
+          payment_method?: string | null
+          status?: string | null
+          subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       predictive_analytics: {
         Row: {
@@ -1389,18 +674,43 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "predictive_analytics_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "predictive_analytics_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_services: {
+        Row: {
+          category: string | null
+          company_id: number | null
+          description: string | null
+          name: string | null
+          ps_id: number
+        }
+        Insert: {
+          category?: string | null
+          company_id?: number | null
+          description?: string | null
+          name?: string | null
+          ps_id?: number
+        }
+        Update: {
+          category?: string | null
+          company_id?: number | null
+          description?: string | null
+          name?: string | null
+          ps_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_services_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -1432,15 +742,84 @@ export type Database = {
           name?: string
           updated_at?: string
         }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          company_id: number | null
+          date: string | null
+          rating: number | null
+          review_id: number
+          review_text: string | null
+          source: string | null
+        }
+        Insert: {
+          company_id?: number | null
+          date?: string | null
+          rating?: number | null
+          review_id?: number
+          review_text?: string | null
+          source?: string | null
+        }
+        Update: {
+          company_id?: number | null
+          date?: string | null
+          rating?: number | null
+          review_id?: number
+          review_text?: string | null
+          source?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "projects_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "reviews_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
+      }
+      roi_predictions: {
+        Row: {
+          accuracy_score: number | null
+          actual_results: Json | null
+          baseline_metrics: Json
+          client_id: string
+          created_at: string
+          id: string
+          predicted_metrics: Json
+          prediction_confidence: number | null
+          prediction_type: string
+          time_horizon: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actual_results?: Json | null
+          baseline_metrics?: Json
+          client_id: string
+          created_at?: string
+          id?: string
+          predicted_metrics?: Json
+          prediction_confidence?: number | null
+          prediction_type: string
+          time_horizon: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          actual_results?: Json | null
+          baseline_metrics?: Json
+          client_id?: string
+          created_at?: string
+          id?: string
+          predicted_metrics?: Json
+          prediction_confidence?: number | null
+          prediction_type?: string
+          time_horizon?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       semrush_data: {
         Row: {
@@ -1479,13 +858,202 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
+        Relationships: []
+      }
+      seo_analysis: {
+        Row: {
+          action_plan: Json | null
+          analysis_date: string | null
+          analysis_tool: string
+          client_id: string
+          competitor_analysis: Json | null
+          content_gaps: number | null
+          created_at: string | null
+          domain_authority: number | null
+          expected_improvements: Json | null
+          google_my_business_status: string | null
+          id: string
+          immediate_actions: Json | null
+          keyword_gaps: number | null
+          keyword_opportunities: number | null
+          keywords_top_10: number | null
+          local_citations: number | null
+          local_seo_score: number | null
+          mobile_score: number | null
+          overall_score: number | null
+          page_speed_score: number | null
+          referring_domains: number | null
+          target_keywords: Json | null
+          technical_issues: Json | null
+          technical_score: number | null
+          total_backlinks: number | null
+          total_keywords: number | null
+          trust_score: number | null
+          updated_at: string | null
+          website_url: string
+        }
+        Insert: {
+          action_plan?: Json | null
+          analysis_date?: string | null
+          analysis_tool?: string
+          client_id: string
+          competitor_analysis?: Json | null
+          content_gaps?: number | null
+          created_at?: string | null
+          domain_authority?: number | null
+          expected_improvements?: Json | null
+          google_my_business_status?: string | null
+          id?: string
+          immediate_actions?: Json | null
+          keyword_gaps?: number | null
+          keyword_opportunities?: number | null
+          keywords_top_10?: number | null
+          local_citations?: number | null
+          local_seo_score?: number | null
+          mobile_score?: number | null
+          overall_score?: number | null
+          page_speed_score?: number | null
+          referring_domains?: number | null
+          target_keywords?: Json | null
+          technical_issues?: Json | null
+          technical_score?: number | null
+          total_backlinks?: number | null
+          total_keywords?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          website_url: string
+        }
+        Update: {
+          action_plan?: Json | null
+          analysis_date?: string | null
+          analysis_tool?: string
+          client_id?: string
+          competitor_analysis?: Json | null
+          content_gaps?: number | null
+          created_at?: string | null
+          domain_authority?: number | null
+          expected_improvements?: Json | null
+          google_my_business_status?: string | null
+          id?: string
+          immediate_actions?: Json | null
+          keyword_gaps?: number | null
+          keyword_opportunities?: number | null
+          keywords_top_10?: number | null
+          local_citations?: number | null
+          local_seo_score?: number | null
+          mobile_score?: number | null
+          overall_score?: number | null
+          page_speed_score?: number | null
+          referring_domains?: number | null
+          target_keywords?: Json | null
+          technical_issues?: Json | null
+          technical_score?: number | null
+          total_backlinks?: number | null
+          total_keywords?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          website_url?: string
+        }
+        Relationships: []
+      }
+      seo_data: {
+        Row: {
+          collected_at: string | null
+          created_at: string | null
+          data_snapshot: Json
+          data_type: string | null
+          id: string
+          user_id: string
+          website_url: string
+        }
+        Insert: {
+          collected_at?: string | null
+          created_at?: string | null
+          data_snapshot: Json
+          data_type?: string | null
+          id?: string
+          user_id: string
+          website_url: string
+        }
+        Update: {
+          collected_at?: string | null
+          created_at?: string | null
+          data_snapshot?: Json
+          data_type?: string | null
+          id?: string
+          user_id?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
+      seranking_usage: {
+        Row: {
+          api_key_hash: string
+          client_id: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          request_timestamp: string | null
+          response_status: number | null
+          units_consumed: number | null
+        }
+        Insert: {
+          api_key_hash: string
+          client_id: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          request_timestamp?: string | null
+          response_status?: number | null
+          units_consumed?: number | null
+        }
+        Update: {
+          api_key_hash?: string
+          client_id?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          request_timestamp?: string | null
+          response_status?: number | null
+          units_consumed?: number | null
+        }
+        Relationships: []
+      }
+      social_media: {
+        Row: {
+          company_id: number | null
+          engagement_rate: number | null
+          followers: number | null
+          last_post_date: string | null
+          platform: string | null
+          sm_id: number
+          url: string | null
+        }
+        Insert: {
+          company_id?: number | null
+          engagement_rate?: number | null
+          followers?: number | null
+          last_post_date?: string | null
+          platform?: string | null
+          sm_id?: number
+          url?: string | null
+        }
+        Update: {
+          company_id?: number | null
+          engagement_rate?: number | null
+          followers?: number | null
+          last_post_date?: string | null
+          platform?: string | null
+          sm_id?: number
+          url?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "semrush_data_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "social_media_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -1523,15 +1091,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "social_media_analytics_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       social_media_data: {
         Row: {
@@ -1560,13 +1120,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_media_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "social_media_data_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -1574,6 +1127,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          limits: Json | null
+          plan_code: string
+          plan_name: string
+          price_monthly: number | null
+          price_yearly: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          limits?: Json | null
+          plan_code: string
+          plan_name: string
+          price_monthly?: number | null
+          price_yearly?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          limits?: Json | null
+          plan_code?: string
+          plan_name?: string
+          price_monthly?: number | null
+          price_yearly?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       system_metrics: {
         Row: {
@@ -1674,13 +1269,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "task_results_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "task_results_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -1723,15 +1311,102 @@ export type Database = {
           status?: string | null
           task_type?: string
         }
+        Relationships: []
+      }
+      technology_stack: {
+        Row: {
+          company_id: number | null
+          description: string | null
+          tech_id: number
+          technology: string | null
+        }
+        Insert: {
+          company_id?: number | null
+          description?: string | null
+          tech_id?: number
+          technology?: string | null
+        }
+        Update: {
+          company_id?: number | null
+          description?: string | null
+          tech_id?: number
+          technology?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "tasks_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "technology_stack_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
           },
         ]
+      }
+      token_packages: {
+        Row: {
+          bonus_tokens: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          package_name: string
+          price_sar: number
+          token_amount: number
+        }
+        Insert: {
+          bonus_tokens?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          package_name: string
+          price_sar: number
+          token_amount: number
+        }
+        Update: {
+          bonus_tokens?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          package_name?: string
+          price_sar?: number
+          token_amount?: number
+        }
+        Relationships: []
+      }
+      token_usage: {
+        Row: {
+          client_id: string
+          cost_sar: number | null
+          id: string
+          operation_description: string | null
+          operation_type: string
+          timestamp: string
+          tokens_remaining: number
+          tokens_used: number
+          value_delivered: string | null
+        }
+        Insert: {
+          client_id: string
+          cost_sar?: number | null
+          id?: string
+          operation_description?: string | null
+          operation_type: string
+          timestamp?: string
+          tokens_remaining: number
+          tokens_used: number
+          value_delivered?: string | null
+        }
+        Update: {
+          client_id?: string
+          cost_sar?: number | null
+          id?: string
+          operation_description?: string | null
+          operation_type?: string
+          timestamp?: string
+          tokens_remaining?: number
+          tokens_used?: number
+          value_delivered?: string | null
+        }
+        Relationships: []
       }
       user_contexts: {
         Row: {
@@ -1763,6 +1438,335 @@ export type Database = {
         }
         Relationships: []
       }
+      user_engagement_metrics: {
+        Row: {
+          addiction_score: number | null
+          client_id: string
+          context_data: Json | null
+          created_at: string
+          engagement_duration: number | null
+          engagement_type: string
+          engagement_value: number | null
+          id: string
+          session_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          addiction_score?: number | null
+          client_id: string
+          context_data?: Json | null
+          created_at?: string
+          engagement_duration?: number | null
+          engagement_type: string
+          engagement_value?: number | null
+          id?: string
+          session_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          addiction_score?: number | null
+          client_id?: string
+          context_data?: Json | null
+          created_at?: string
+          engagement_duration?: number | null
+          engagement_type?: string
+          engagement_value?: number | null
+          id?: string
+          session_id?: string | null
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          average_order_value: number | null
+          biggest_marketing_challenge: string | null
+          branch_locations: string[] | null
+          business_model: string | null
+          business_type: string | null
+          case_studies: string[] | null
+          company_name: string | null
+          company_overview: string | null
+          company_size: string | null
+          contact_info: Json | null
+          created_at: string | null
+          current_monthly_revenue: string | null
+          customer_acquisition_cost: number | null
+          data_completeness_score: number | null
+          expansion_plans: string[] | null
+          first_time_setup_completed: boolean | null
+          full_name: string | null
+          greeting_preference: string | null
+          id: string
+          industry: string | null
+          key_team_members: Json | null
+          last_seo_update: string | null
+          marketing_experience: string | null
+          monthly_marketing_budget: string | null
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
+          preferred_language: string | null
+          primary_marketing_goals: string[] | null
+          products_services: Json | null
+          profile_setup_completed: boolean | null
+          profile_setup_completed_at: string | null
+          recent_news: string[] | null
+          revenue_target: string | null
+          seasonal_peaks: string[] | null
+          seo_analysis_completed_at: string | null
+          seo_analysis_triggered: boolean | null
+          seo_data: Json | null
+          service_areas: string[] | null
+          target_audience: Json | null
+          target_market: string | null
+          unique_selling_points: string[] | null
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          average_order_value?: number | null
+          biggest_marketing_challenge?: string | null
+          branch_locations?: string[] | null
+          business_model?: string | null
+          business_type?: string | null
+          case_studies?: string[] | null
+          company_name?: string | null
+          company_overview?: string | null
+          company_size?: string | null
+          contact_info?: Json | null
+          created_at?: string | null
+          current_monthly_revenue?: string | null
+          customer_acquisition_cost?: number | null
+          data_completeness_score?: number | null
+          expansion_plans?: string[] | null
+          first_time_setup_completed?: boolean | null
+          full_name?: string | null
+          greeting_preference?: string | null
+          id?: string
+          industry?: string | null
+          key_team_members?: Json | null
+          last_seo_update?: string | null
+          marketing_experience?: string | null
+          monthly_marketing_budget?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
+          preferred_language?: string | null
+          primary_marketing_goals?: string[] | null
+          products_services?: Json | null
+          profile_setup_completed?: boolean | null
+          profile_setup_completed_at?: string | null
+          recent_news?: string[] | null
+          revenue_target?: string | null
+          seasonal_peaks?: string[] | null
+          seo_analysis_completed_at?: string | null
+          seo_analysis_triggered?: boolean | null
+          seo_data?: Json | null
+          service_areas?: string[] | null
+          target_audience?: Json | null
+          target_market?: string | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          average_order_value?: number | null
+          biggest_marketing_challenge?: string | null
+          branch_locations?: string[] | null
+          business_model?: string | null
+          business_type?: string | null
+          case_studies?: string[] | null
+          company_name?: string | null
+          company_overview?: string | null
+          company_size?: string | null
+          contact_info?: Json | null
+          created_at?: string | null
+          current_monthly_revenue?: string | null
+          customer_acquisition_cost?: number | null
+          data_completeness_score?: number | null
+          expansion_plans?: string[] | null
+          first_time_setup_completed?: boolean | null
+          full_name?: string | null
+          greeting_preference?: string | null
+          id?: string
+          industry?: string | null
+          key_team_members?: Json | null
+          last_seo_update?: string | null
+          marketing_experience?: string | null
+          monthly_marketing_budget?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
+          preferred_language?: string | null
+          primary_marketing_goals?: string[] | null
+          products_services?: Json | null
+          profile_setup_completed?: boolean | null
+          profile_setup_completed_at?: string | null
+          recent_news?: string[] | null
+          revenue_target?: string | null
+          seasonal_peaks?: string[] | null
+          seo_analysis_completed_at?: string | null
+          seo_analysis_triggered?: boolean | null
+          seo_data?: Json | null
+          service_areas?: string[] | null
+          target_audience?: Json | null
+          target_market?: string | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          end_date: string | null
+          id: string
+          plan_id: string
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          plan_id: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          plan_id?: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_subscriptions_client_id"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_subscriptions_plan_id"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_intelligence: {
+        Row: {
+          client_id: string
+          confidence_score: number | null
+          created_at: string
+          id: string
+          intelligence_type: string
+          last_updated: string
+          processed_insights: Json | null
+          query_used: string
+          raw_data: Json
+          website_url: string
+        }
+        Insert: {
+          client_id: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          intelligence_type: string
+          last_updated?: string
+          processed_insights?: Json | null
+          query_used: string
+          raw_data: Json
+          website_url: string
+        }
+        Update: {
+          client_id?: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          intelligence_type?: string
+          last_updated?: string
+          processed_insights?: Json | null
+          query_used?: string
+          raw_data?: Json
+          website_url?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          moyasar_payment_id: string | null
+          payload: Json
+          processed: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          moyasar_payment_id?: string | null
+          payload: Json
+          processed?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          moyasar_payment_id?: string | null
+          payload?: Json
+          processed?: boolean | null
+        }
+        Relationships: []
+      }
       website_intel_data: {
         Row: {
           client_id: string | null
@@ -1790,13 +1794,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "website_intel_data_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "website_intel_data_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -1805,14 +1802,104 @@ export type Database = {
           },
         ]
       }
+      website_seo: {
+        Row: {
+          backlink_count: number | null
+          bounce_rate: number | null
+          company_id: number | null
+          domain_authority: number | null
+          monthly_visits: number | null
+          seo_id: number
+          top_keywords: string | null
+        }
+        Insert: {
+          backlink_count?: number | null
+          bounce_rate?: number | null
+          company_id?: number | null
+          domain_authority?: number | null
+          monthly_visits?: number | null
+          seo_id?: number
+          top_keywords?: string | null
+        }
+        Update: {
+          backlink_count?: number | null
+          bounce_rate?: number | null
+          company_id?: number | null
+          domain_authority?: number | null
+          monthly_visits?: number | null
+          seo_id?: number
+          top_keywords?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_seo_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      check_feature_access: {
+        Args: { p_client_id: string; p_feature_name: string }
+        Returns: boolean
+      }
+      check_usage_limit: {
+        Args:
+          | Record<PropertyKey, never>
+          | {
+              p_client_id: string
+              p_feature_name: string
+              p_increment?: number
+            }
+          | { p_client_id: string; p_feature_name: string; p_period?: string }
+        Returns: Json
+      }
+      execute_sql: {
+        Args: { sql_statement: string }
+        Returns: undefined
+      }
       handle_user_onboarding_update: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      has_role: {
+        Args:
+          | { _user_id: string; _role: Database["public"]["Enums"]["app_role"] }
+          | { user_id: string; required_role: string }
+        Returns: boolean
+      }
+      initialize_conversation_system: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      link_clients_to_auth: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_seo_data_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      store_agent_memory_service: {
+        Args: {
+          p_agent_id: string
+          p_client_id: string
+          p_memory_type: string
+          p_content: string
+          p_importance_score?: number
+          p_metadata?: Json
+        }
+        Returns: string
       }
       user_owns_company: {
         Args:
@@ -1822,7 +1909,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1937,6 +2024,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user", "premium"],
+    },
   },
 } as const
